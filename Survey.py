@@ -167,13 +167,10 @@ def getStudentResponse(orig, header, summarykey=None, type='POI'):
             
             if len(value) > 0:
                 content = inst[key].strip()
-                #if content.lower() in filters: continue
-                #if len(content) > 0:
                 
-                if content.lower() in filters: 
-                    content = ""
+                if content.lower() in filters: continue
                 
-                if True:
+                if len(content) > 0:
                     summary = NLTKWrapper.splitSentence(content)
                     summaries[value] = summary
             else:
