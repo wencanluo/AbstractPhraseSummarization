@@ -7,14 +7,13 @@ from Survey import *
 import random
 import NLTKWrapper
 import SennaParser
-import porter
+import porterW
 
 import tfidf
 import shallowSummary
 import phraseClusteringKmedoid
 
-stopwordfilename = "../../ROUGE-1.5.5/data/smart_common_words.txt"
-stopwords = [line.lower().strip() for line in fio.readfile("../../ROUGE-1.5.5/data/smart_common_words.txt")]
+stopwords = [line.lower().strip() for line in fio.readfile(fio.stopwordfilename)]
 print "stopwords:", len(stopwords)
 
 stopwords = stopwords + ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']

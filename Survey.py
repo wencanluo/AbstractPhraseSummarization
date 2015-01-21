@@ -8,6 +8,7 @@ import numpy as np
 import math
 import SennaParser
 
+stopwordfilename = "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt"
 filters = ["?", "[blank]", 'n/a', 'blank'] #a classifier to predict whether the student has problem
 #filters = []
                         
@@ -343,8 +344,8 @@ def getStudentResponses4Senna(excelfile, datadir):
             student_summaryList = getStudentResponseList(orig, header, summarykey, type)
             filename = datadir + "senna." + str(week) + "." + type + ".input"
             
-            fio.savelist(student_summaryList, filename + ".2")
-            student_summaryList = [summary[0] for summary in student_summaryList]
+            #fio.savelist(student_summaryList, filename + ".2")
+            #student_summaryList = [summary[0] for summary in student_summaryList]
             fio.savelist(student_summaryList, filename)
 
 def getStudentResponses4Maui(excelfile, datadir):
