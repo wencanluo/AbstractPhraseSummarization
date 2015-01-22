@@ -33,7 +33,7 @@ def Write4Opinosis(student_summaryList, sennafile, output):
             
             inputs.append(p)
         
-    fio.savelist(inputs, output, "\r\n")
+    fio.SaveList(inputs, output, "\r\n")
                                         
 def getShallowSummary(excelfile, folder, sennadatadir, tfidfdir, np, method, K=30):
     #K is the number of words per points
@@ -86,7 +86,7 @@ def WriteSummary(excelfile, folder, datadirOpinosis):
             fio.newPath(path)
             filename = path + type + '.summary'
             
-            fio.savelist(Summary, filename)
+            fio.SaveList(Summary, filename)
             
 if __name__ == '__main__':
     excelfile = "../data/2011Spring.xls"

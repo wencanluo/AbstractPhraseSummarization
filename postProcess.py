@@ -682,7 +682,7 @@ def ExtractNP(datadir, outdir, method="syntax"):
             
             fio.newPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
-            fio.savelist(keys, output)
+            fio.SaveList(keys, output)
 
 def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
     sheets = range(0,12)
@@ -707,7 +707,7 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
             
             fio.newPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
-            fio.savelist(keys, output)
+            fio.SaveList(keys, output)
 
 def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
     sheets = range(0,12)

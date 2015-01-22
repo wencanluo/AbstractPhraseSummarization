@@ -151,7 +151,7 @@ def WriteTASummary(excelfile, datadir):
             print filename
             
             #only save the first 3 points
-            fio.savelist(summary, filename)
+            fio.SaveList(summary, filename)
 
 def getStudentQuality(orig, header):
     '''
@@ -377,9 +377,9 @@ def getStudentResponses4Senna(excelfile, datadir):
             student_summaryList = getStudentResponseList(orig, header, summarykey, type)
             filename = datadir + "senna." + str(week) + "." + type + ".input"
             
-            #fio.savelist(student_summaryList, filename + ".2")
+            #fio.SaveList(student_summaryList, filename + ".2")
             #student_summaryList = [summary[0] for summary in student_summaryList]
-            fio.savelist(student_summaryList, filename)
+            fio.SaveList(student_summaryList, filename)
 
 def getStudentResponses4Maui(excelfile, datadir):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
@@ -395,7 +395,7 @@ def getStudentResponses4Maui(excelfile, datadir):
         for type in ['POI', 'MP', 'LP']:
             student_summaryList = getStudentResponseList(orig, header, summarykey, type)
             filename = datadir + "" + str(week) + "." + type + ".txt"
-            fio.savelist(student_summaryList, filename, ".\n")
+            fio.SaveList(student_summaryList, filename, ".\n")
 
 def getCandidatePhrases(dir):
     sheets = range(0,12)

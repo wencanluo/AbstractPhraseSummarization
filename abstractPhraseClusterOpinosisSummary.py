@@ -54,7 +54,7 @@ def Write4Opinosis(student_summaryList, sennafile, clusterfile, week, sources, o
             else:
                 inputs.append(dict[NP])
         
-        fio.savelist(inputs, output + "_" + str(M) + ".parsed", "\r\n")
+        fio.SaveList(inputs, output + "_" + str(M) + ".parsed", "\r\n")
         M = M + 1
                                         
 def getShallowSummary(excelfile, folder, sennadatadir, clusterdir, tfidfdir, np, method, K=30, ratio='sqrt'):
@@ -122,7 +122,7 @@ def WriteSummary(excelfile, folder, datadirOpinosis):
             fio.newPath(path)
             filename = path + type + '.summary'
             
-            fio.savelist(Summary, filename)
+            fio.SaveList(Summary, filename)
             
 if __name__ == '__main__':
     excelfile = "../data/2011Spring.xls"

@@ -136,7 +136,7 @@ def getShallowSummary(excelfile, folder, sennadatadir, tfidfdir, np, method, K=3
                 #if total_word <= K:
                     Summary.append(key)
             
-            fio.savelist(Summary, filename)
+            fio.SaveList(Summary, filename)
                         
 def ShallowSummary(excelfile, datadir, sennadatadir, tfidfdir, np, method, K=30):
     getShallowSummary(excelfile, datadir, sennadatadir, tfidfdir, np, method,  K)

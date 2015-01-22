@@ -107,7 +107,7 @@ def getShallowSummary(excelfile, folder, K=30, method='ngram', tfidfdir=None):
                 if len(Summary) + 1 <= K:
                     Summary.append(key)
             
-            fio.savelist(Summary, filename)
+            fio.SaveList(Summary, filename)
             
 def writeText(excelfile, folder):
     #K is the number of words per points
@@ -129,7 +129,7 @@ def writeText(excelfile, folder):
             path = folder + str(week)+ '_'
             filename = path + type + '.txt'
             
-            fio.savelist(student_summaryList, filename)
+            fio.SaveList(student_summaryList, filename)
 
 def computeTFIDF(folder):
     for type in ['POI', 'MP', 'LP']:

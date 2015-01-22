@@ -60,7 +60,7 @@ def getInput4StanfordParser(excelfile, spellchecker, outputdir):
             filename = outputdir + str(week) + "_" + str(type) + ".input"
             print filename
             
-            fio.savelist(NormalizedsummaryList, filename)
+            fio.SaveList(NormalizedsummaryList, filename)
         
 if __name__ == '__main__':
     excelfile = "../../data/2011Spring_norm.xls"

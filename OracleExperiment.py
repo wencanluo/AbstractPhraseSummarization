@@ -12,8 +12,8 @@ def getRouge(ref, model):
     #return the Rouge scores given the reference summary and the models
     
     #write the files
-    fio.savelist(ref, tmpdir+'ref.txt', '\n')
-    fio.savelist(model, tmpdir+'model.txt', '\n')
+    fio.SaveList(ref, tmpdir+'ref.txt', '\n')
+    fio.SaveList(model, tmpdir+'model.txt', '\n')
     
     retcode = subprocess.call(['./get_rouge'], shell=True)
     if retcode != 0:
@@ -106,7 +106,7 @@ def Greedy(oracledir, np, L, metric='R1-F'):
                 if Changed:
                     #write the results
                     sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
-                    fio.savelist(maxSum, sumfile, '\r\n')
+                    fio.SaveList(maxSum, sumfile, '\r\n')
                     
                     summary = maxSum
                     Length = 0
