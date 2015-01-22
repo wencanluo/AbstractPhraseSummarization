@@ -13,12 +13,12 @@ if __name__ == '__main__':
     #Step2: get senna output
     
     #Step3: get phrases
-    for np in ['syntax', 'chunk']:
-         postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np)
-         postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np)
-         postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np)
+#     for np in ['syntax', 'chunk']:
+#          postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np)
+#          postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np)
+#          postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np)
     
     #Step4: write TA's reference 
-    #Survey.WriteTASummary(excelfile, outdir)
+    Survey.WriteTASummary(excelfile, outdir)
     
     #Greedy()

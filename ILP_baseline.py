@@ -218,7 +218,7 @@ def ILP_Summarizer(ilpdir, np, L):
             prefix = dir + type + "." + np
             
             ILP1(prefix, L)
-        
+            
 if __name__ == '__main__':
     ilpdir = "../../data/ILP/"
     

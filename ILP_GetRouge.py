@@ -1,0 +1,75 @@
+import OracleExperiment
+import fio
+import numpy
+import json
+
+tmpdir = "../../data/tmp/"
+RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
+RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
+
+def getRouge(datadir, np, L, outputdir):
+    #sheets = range(0,1)
+    sheets = range(0,12)
+    
+    body = []
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+        
+        Cache = {}
+        cachefile = datadir + str(week) + '/' + 'cache.json'
+        print cachefile
+        if fio.isExist(cachefile):
+            with open(cachefile, 'r') as fin:
+                Cache = json.load(fin)
+                
+        for type in ['POI', 'MP', 'LP']:
+            row = []
+            row.append(week)
+        
+            #read TA's summmary
+            reffile = datadir + str(week) + '/' + type + '.ref.summary'
+            lines = fio.readfile(reffile)
+            ref = [line.strip() for line in lines]
+            
+            sumfile = datadir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) +'.summary'
+            
+            lines = fio.readfile(sumfile)
+            TmpSum = [line.strip() for line in lines]
+            
+            cacheKey = OracleExperiment.getKey(ref, TmpSum)
+            if cacheKey in Cache:
+                scores = Cache[cacheKey]
+                print "Hit"
+            else:
+                print "Miss", cacheKey
+                print sumfile
+                scores = OracleExperiment.getRouge(ref, TmpSum)
+                Cache[cacheKey] = scores
+            
+            row = row + scores
+            
+            body.append(row)
+            
+        with open(cachefile, 'w') as outfile:
+            json.dump(Cache, outfile, indent=2)
+            
+    header = ['week'] + RougeHeader    
+    row = []
+    row.append("average")
+    for i in range(1, len(header)):
+        scores = [float(xx[i]) for xx in body]
+        row.append(numpy.mean(scores))
+    body.append(row)
+    
+    fio.writeMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + ".txt", body, header)
+            
+if __name__ == '__main__':
+    datadir = "../../data/ILP/" 
+    
+    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for np in ['syntax', 'chunk']:
+            getRouge(datadir, np, L, datadir)
+                            
+    print "done"
+    
