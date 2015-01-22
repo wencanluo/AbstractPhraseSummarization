@@ -11,7 +11,10 @@ import SennaParser
 stopwordfilename = "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt"
 filters = ["?", "[blank]", 'n/a', 'blank'] #a classifier to predict whether the student has problem
 #filters = []
-                        
+    
+spellcheckerfile = "../../data/spellchecker.txt"
+spellchecker = fio.LoadDict(spellcheckerfile)
+                    
 def HasSummary(orig, header, summarykey):
     key = header[0]
     for k, inst in enumerate(orig._data):
@@ -37,6 +40,34 @@ def getWeight(summary):
         return int(weight)
     
     return 1
+
+
+def NormalizedResponse(s):
+    s = s.strip()
+    
+    punctuations = ".?!:;-()[]/,"
+    
+    if len(s) > 0:
+        if s[0] in punctuations:
+            s = s[1:].strip()
+        if len(s) > 0:
+            if s[0] in punctuations:
+                s = s[1:].strip()
+    
+    if len(s) > 0 and s[-1] not in ['.', '?']:
+        s = s + "."
+                
+    #process the spell error
+    unigram = NLTKWrapper.getNgram(s, 1)
+    
+    newS = []
+    for word in unigram:
+        if word.lower() in spellchecker:
+            word = spellchecker[word.lower()]
+        
+        newS.append(word)
+    
+    return " ".join(newS)
 
 def NormalizedTASummary(summary):
     summary = summary.strip()
@@ -215,6 +246,8 @@ def getStudentResponseList(orig, header, summarykey, type='POI', withSource=Fals
     
     for id, summaryList in student_summaries.items():
         for s in summaryList:
+            s = NormalizedResponse(s)
+            if len(s) == 0: continue
             student_summaryList.append((s,id))
             
     if withSource:

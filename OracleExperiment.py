@@ -96,8 +96,8 @@ def Greedy(oracledir, np, L, metric='R1-F'):
                         scores = getRouge(ref, TmpSum)
                         Cache[cacheKey] = scores
                     
-                    #s = float(scores[RIndex])
-                    s = scores[RIndex]
+                    s = float(scores[RIndex])
+                    #s = scores[RIndex]
                     if s > maxScore:
                         maxSum = TmpSum
                         maxScore = s
@@ -201,15 +201,15 @@ if __name__ == '__main__':
     datadir = "../../data/oracle/"
     #TestRouge()
     
-#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-#         for np in ['syntax', 'chunk']:
-#             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
-#                 Greedy(oracledir, np, L, metric)
+    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for np in ['syntax', 'chunk']:
+            for metric in ['R1-F', 'R2-F', 'RSU4-F']:
+                Greedy(oracledir, np, L, metric)
     
-#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-#         for np in ['syntax', 'chunk']:
-#             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
-#                 getOracleRouge(oracledir, np, L, metric, datadir)
+    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for np in ['syntax', 'chunk']:
+            for metric in ['R1-F', 'R2-F', 'RSU4-F']:
+                getOracleRouge(oracledir, np, L, metric, datadir)
     
             
     print "done"

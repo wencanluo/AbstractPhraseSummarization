@@ -708,6 +708,36 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
             fio.newPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.savelist(keys, output)
+
+def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
+    sheets = range(0,12)
+    
+    header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
+    summarykey = "Top Answers"
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+        
+        orig = prData(excelfile, sheet)
+        
+        for type in ['POI', 'MP', 'LP']:
+            
+            sennafile = sennadatadir + "senna." + str(week) + "." + type + '.output'
+            
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True)
+            ids = [summary[1] for summary in student_summaryList]
+            NPs, sources = phraseClusteringKmedoid.getNPs(sennafile, MalformedFlilter=False, source=ids, np=method)
+            
+            dict = {}
+            
+            for NP in NPs:
+                if NP not in dict:
+                    dict[NP] = 0
+                dict[NP] = dict[NP] + 1 
+                        
+            fio.newPath(outdir + str(week)+ '/')
+            output = outdir + str(week)+ '/' + type + '.'+method+'.dict'
+            fio.SaveDict(dict, output)
             
 def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax"):
     sheets = range(0,12)
@@ -737,7 +767,7 @@ def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax"):
             fileout = outdir + str(week)+ '/' + type + '.'+method+'.keys.source'
             
             with open(fileout, 'w') as outfile:
-                json.dump(dict, outfile)
+                json.dump(dict, outfile, indent=2)
 
 def ExtractUnigramSource(excelfile, outdir, method="unigram"):
     sheets = range(0,12)
