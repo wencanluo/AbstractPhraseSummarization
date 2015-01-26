@@ -17,7 +17,7 @@ import numpy
 import ClusterWrapper
 import SennaParser
 
-stopwords = [line.lower().strip() for line in fio.readfile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
+stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
 punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
 def isMalformed(phrase):
@@ -137,7 +137,7 @@ def Similarity2Distance(similarity):
 def getPhraseClusterCandidateNP(student_summaryList, weightfile, candiatefile, output, ratio=None, MalformedFlilter=False, source=None, np=None):
     NPCandidates, sources = getNPCandiate(student_summaryList, candiatefile, MalformedFlilter, source=source, np=np)
     
-    NPs, matrix = fio.readMatrix(weightfile, hasHead = True)
+    NPs, matrix = fio.ReadMatrix(weightfile, hasHead = True)
     
     matrix = Similarity2Distance(matrix)
 

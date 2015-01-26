@@ -14,7 +14,7 @@ import shallowSummary
 import phraseClusteringKmedoid
 import postProcess
 
-stopwords = [line.lower().strip() for line in fio.readfile(W)]
+stopwords = [line.lower().strip() for line in fio.ReadFile(W)]
 print "stopwords:", len(stopwords)
 
 stopwords = stopwords + ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
@@ -32,7 +32,7 @@ def Write4Opinosis(student_summaryList, sennafile, clusterfile, week, sources, o
                 p = p + " ./." #add a start and end point
             dict[np.lower()] = p
     
-    body = fio.readMatrix(clusterfile, False)
+    body = fio.ReadMatrix(clusterfile, False)
             
     NPs = [row[0] for row in body]
     clusterids = [row[1] for row in body]
@@ -79,7 +79,7 @@ def getShallowSummary(excelfile, folder, sennadatadir, clusterdir, tfidfdir, np,
             output = clusterdir + str(week) +'/' + type + ".cluster.kmedoids." + str(ratio) + "." +method + '.' + np
             weightfile = clusterdir + str(week)+ '/' + type + '.' + np + '.' + method
             
-            if not fio.isExist(output):
+            if not fio.IsExist(output):
                 phraseClusteringKmedoid.getPhraseClusterAll(sennafile, weightfile, output, ratio, MalformedFlilter=True, source=ids, np=np)
                 
             filename = folder + str(week) + '_' + type
@@ -103,7 +103,7 @@ def WriteSummary(excelfile, folder, datadirOpinosis):
             for k in range(4):
                 filename = datadirOpinosis + "output/summary/" + str(week) + '_' + type + "_"+ str(k) + '.summary.system'
             
-                lines = fio.readfile(filename)
+                lines = fio.ReadFile(filename)
                 
                 if len(lines) == 0: 
                     print filename
@@ -119,7 +119,7 @@ def WriteSummary(excelfile, folder, datadirOpinosis):
             Summary = newS
             
             path = folder + str(week)+ '/'
-            fio.newPath(path)
+            fio.NewPath(path)
             filename = path + type + '.summary'
             
             fio.SaveList(Summary, filename)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     sennadatadir = "../data/senna/"
 
     datadirOpinosis = "../../OpinosisSummarizer-1.0/phrasecluster/"
-    fio.newPath(datadirOpinosis)
+    fio.NewPath(datadirOpinosis)
     
     i=511
     clusterdir = "../data/np"+str(i)+"/"

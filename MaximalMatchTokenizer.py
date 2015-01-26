@@ -16,23 +16,23 @@ def CheckPhrase(tmp,  phraseset, stemming = True):
 
 def NgramMatchTokenizer(sentence, phrasefile, maxNgram=5, stemming=True):
     if stemming:
-        phraselist = [porter.getStemming(line.lower().strip()) for line in fio.readfile(phrasefile)]
+        phraselist = [porter.getStemming(line.lower().strip()) for line in fio.ReadFile(phrasefile)]
     else:
-        phraselist = [line.lower().strip() for line in fio.readfile(phrasefile)]
+        phraselist = [line.lower().strip() for line in fio.ReadFile(phrasefile)]
     return NgramMatchTokenizerList(sentence, set(phraselist), maxNgram, stemming = stemming)
     
 def MaximalMatchTokenizer(sentence, phrasefile, maxNgram=5, stemming=True):
     if stemming:
-        phraselist = [porter.getStemming(line.lower().strip()) for line in fio.readfile(phrasefile)]
+        phraselist = [porter.getStemming(line.lower().strip()) for line in fio.ReadFile(phrasefile)]
     else:
-        phraselist = [line.lower().strip() for line in fio.readfile(phrasefile)]
+        phraselist = [line.lower().strip() for line in fio.ReadFile(phrasefile)]
     return MaximalMatchTokenizerList(sentence, set(phraselist), maxNgram, stemming = stemming)
 
 # def ReverseMaximalMatchTokenizer(sentence, phrasefile, maxNgram=5, stemming=True):
 #     if stemming:
-#         phraselist = [porter.getStemming(line.lower().strip()) for line in fio.readfile(phrasefile)]
+#         phraselist = [porter.getStemming(line.lower().strip()) for line in fio.ReadFile(phrasefile)]
 #     else:
-#         phraselist = [line.lower().strip() for line in fio.readfile(phrasefile)]
+#         phraselist = [line.lower().strip() for line in fio.ReadFile(phrasefile)]
 #     
 #     return ReverseMaximalMatchTokenizerList(sentence, set(phraselist), maxNgram)
 

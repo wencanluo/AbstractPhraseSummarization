@@ -7,7 +7,7 @@ tmpdir = "../../data/tmp/"
 RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
 
-def getRouge(datadir, np, L, outputdir):
+def getRouge(datadir, np, L, outputdir, Lambda):
     #sheets = range(0,1)
     sheets = range(0,12)
     
@@ -19,7 +19,7 @@ def getRouge(datadir, np, L, outputdir):
         Cache = {}
         cachefile = datadir + str(week) + '/' + 'cache.json'
         print cachefile
-        if fio.isExist(cachefile):
+        if fio.IsExist(cachefile):
             with open(cachefile, 'r') as fin:
                 Cache = json.load(fin)
                 
@@ -29,12 +29,15 @@ def getRouge(datadir, np, L, outputdir):
         
             #read TA's summmary
             reffile = datadir + str(week) + '/' + type + '.ref.summary'
-            lines = fio.readfile(reffile)
+            lines = fio.ReadFile(reffile)
             ref = [line.strip() for line in lines]
             
-            sumfile = datadir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) +'.summary'
+            if Lambda == None:
+                sumfile = datadir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + '.summary'
+            else:
+                sumfile = datadir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(Lambda) + '.summary'
             
-            lines = fio.readfile(sumfile)
+            lines = fio.ReadFile(sumfile)
             TmpSum = [line.strip() for line in lines]
             
             cacheKey = OracleExperiment.getKey(ref, TmpSum)
@@ -62,14 +65,24 @@ def getRouge(datadir, np, L, outputdir):
         row.append(numpy.mean(scores))
     body.append(row)
     
-    fio.writeMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + ".txt", body, header)
+    if Lambda == None:
+        fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + ".txt", body, header)
+    else:
+        fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(Lambda) + ".txt", body, header)
             
 if __name__ == '__main__':
-    datadir = "../../data/ILP/" 
+#     datadir = "../../data/ILP1/" 
+#      
+#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+#         for np in ['syntax', 'chunk']:
+#             getRouge(datadir, np, L, datadir, Lambda = None)
+                
+    datadir = "../../data/ILP2/" 
     
-    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-        for np in ['syntax', 'chunk']:
-            getRouge(datadir, np, L, datadir)
+    for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+        for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+            for np in ['syntax']:
+                getRouge(datadir, np, L, datadir, Lambda)
                             
     print "done"
     

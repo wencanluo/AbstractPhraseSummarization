@@ -10,7 +10,7 @@ import tfidf
 import phraseClusteringKmedoid
 
 stopwordfilename = "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt"
-stopwords = [line.lower().strip() for line in fio.readfile(stopwordfilename)]
+stopwords = [line.lower().strip() for line in fio.ReadFile(stopwordfilename)]
 print "stopwords:", len(stopwords)
 
 stopwords = stopwords + ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
@@ -85,7 +85,7 @@ def getShallowSummary(excelfile, folder, K=30, method='ngram', tfidfdir=None):
             student_summaryList = getStudentResponseList(orig, header, summarykey, type)
 
             path = folder + str(week)+ '/'
-            fio.newPath(path)
+            fio.NewPath(path)
             filename = path + type + '.summary'
             
             Summary = []
@@ -125,7 +125,7 @@ def writeText(excelfile, folder):
             print excelfile, sheet, type
             student_summaryList = getStudentResponseList(orig, header, summarykey, type)
 
-            fio.newPath(folder)
+            fio.NewPath(folder)
             path = folder + str(week)+ '_'
             filename = path + type + '.txt'
             

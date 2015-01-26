@@ -139,7 +139,7 @@ def WriteTASummary(excelfile, datadir):
     for sheet in sheets:
         week = sheet + 1
         path = datadir + str(week)+ '/'
-        fio.newPath(path)
+        fio.NewPath(path)
 
         orig = prData(excelfile, sheet)
         for type in types:
@@ -504,7 +504,7 @@ if __name__ == '__main__':
     datadir = "../../Maui1.2/data/2011Spring/"
     sennadir = "../data/senna/"
     
-    #fio.newPath(datadir)
+    #fio.NewPath(datadir)
     #getStudentResponses4Maui(excelfile, datadir)
     
     #getStudentResponses4Senna(excelfile, sennadir)

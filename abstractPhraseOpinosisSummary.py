@@ -13,7 +13,7 @@ import tfidf
 import shallowSummary
 import phraseClusteringKmedoid
 
-stopwords = [line.lower().strip() for line in fio.readfile(fio.stopwordfilename)]
+stopwords = [line.lower().strip() for line in fio.ReadFile(fio.stopwordfilename)]
 print "stopwords:", len(stopwords)
 
 stopwords = stopwords + ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
@@ -71,7 +71,7 @@ def WriteSummary(excelfile, folder, datadirOpinosis):
         for type in ['POI', 'MP', 'LP']:
             filename = datadirOpinosis + "output/summary/" + str(week) + '_' + type + '.summary.system'
             
-            Summary = fio.readfile(filename)
+            Summary = fio.ReadFile(filename)
             
             Summary = [line.strip() for line in Summary]
             

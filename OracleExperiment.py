@@ -25,7 +25,7 @@ def getRouge(ref, model):
     row = []
     for scorename in RougeNames:
         filename = tmpdir + "OUT_"+scorename+".csv"
-        lines = fio.readfile(filename)
+        lines = fio.ReadFile(filename)
         try:
             scorevalues = lines[1].split(',')
             score = scorevalues[1].strip()
@@ -54,7 +54,7 @@ def Greedy(oracledir, np, L, metric='R1-F'):
         #Add a cache to make it faster
         Cache = {}
         cachefile = oracledir + str(week) + '/' + 'cache.json'
-        if fio.isExist(cachefile):
+        if fio.IsExist(cachefile):
             with open(cachefile, 'r') as fin:
                 Cache = json.load(fin)
         
@@ -62,12 +62,12 @@ def Greedy(oracledir, np, L, metric='R1-F'):
         for type in ['POI', 'MP', 'LP']:
             #read TA's summmary
             reffile = oracledir + str(week) + '/' + type + '.ref.summary'
-            lines = fio.readfile(reffile)
+            lines = fio.ReadFile(reffile)
             ref = [line.strip() for line in lines]
             
             #read Phrases
             phrasefile = oracledir + str(week) + '/' + type + '.' + str(np) + '.key'
-            lines = fio.readfile(phrasefile)
+            lines = fio.ReadFile(phrasefile)
             candidates = [line.strip() for line in lines]
             
             summary = []
@@ -139,7 +139,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
         Cache = {}
         cachefile = oracledir + str(week) + '/' + 'cache.json'
         print cachefile
-        if fio.isExist(cachefile):
+        if fio.IsExist(cachefile):
             with open(cachefile, 'r') as fin:
                 Cache = json.load(fin)
         
@@ -149,7 +149,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
         
             #read TA's summmary
             reffile = oracledir + str(week) + '/' + type + '.ref.summary'
-            lines = fio.readfile(reffile)
+            lines = fio.ReadFile(reffile)
             ref = [line.strip() for line in lines]
             
             Round = 1
@@ -161,7 +161,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
             Round = Round - 1
             sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
             
-            lines = fio.readfile(sumfile)
+            lines = fio.ReadFile(sumfile)
             TmpSum = [line.strip() for line in lines]
             
             cacheKey = getKey(ref, TmpSum)
@@ -187,7 +187,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
         row.append(numpy.mean(scores))
     body.append(row)
     
-    fio.writeMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(metric) + ".txt", body, header)
+    fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(metric) + ".txt", body, header)
              
 def TestRouge():
     ref = ["police killed the gunman"]

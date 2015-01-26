@@ -4,10 +4,11 @@ import sys
 import porter
 import NLTKWrapper
 import os
+import json
 
 #Stemming
 phraseext = ".key" #a list
-studentext = ".source" #json
+studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
@@ -29,7 +30,12 @@ def WriteConstraint3(PhraseBigram):
     for phrase, bigrams in PhraseBigram.items():
         for bigram in bigrams:
             print "  ", phrase, "-", bigram, "<=", 0
-    
+            
+def WriteConstraint4(StudentPhrase):
+    #$\sum_{j=1}^P {y_j Occ_{jk}} \ge z_k$
+    for student, phrases in StudentPhrase.items():
+        print "  ", " + ".join(phrases), "-", student, ">=", 0
+        
 def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
@@ -77,7 +83,7 @@ def ExtractSummaryfromILP(lpfileprefix, phrases, output):
     
     sol = lpfileprefix + lpsolext
     
-    lines = fio.readfile(sol)
+    lines = fio.ReadFile(sol)
     for line in lines:
         line = line.strip()
         if line.startswith('#'): continue
@@ -96,7 +102,7 @@ def ExtractSummaryfromILP(lpfileprefix, phrases, output):
 
 def getPhraseBigram(phrasefile):
     #get phrases
-    lines = fio.readfile(phrasefile)
+    lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
     
     PhraseBigram = {}
@@ -132,15 +138,15 @@ def getPhraseBigram(phrasefile):
             
             PhraseBigram[pKey].append(bKey)
     
-    NewPhraseIndex = {}
+    IndexPhrase = {}
     for k,v in phraseIndex.items():
-        NewPhraseIndex[v] = k
+        IndexPhrase[v] = k
     
-    newBigramIndex = {}
+    IndexBigram = {}
     for k,v in bigramIndex.items():
-        newBigramIndex[v] = k
+        IndexBigram[v] = k
         
-    return NewPhraseIndex, newBigramIndex, PhraseBigram
+    return IndexPhrase, IndexBigram, PhraseBigram
 
 def getBigramWeight_TF(PhraseBigram, PhraseIndex, CountFile):
     BigramTheta = {}
@@ -180,22 +186,62 @@ def getBigramPhrase(PhraseBigram):
             BigramPhrase[bigram].append(phrase)
                 
     return BigramPhrase
+
+def getStudentPhrase(phrases, sourcefile):
+    with open(sourcefile, "r") as infile:
+        PhraseStduent = json.load(infile)
+    
+    indexPhrase = {}
+    for index, phrase in phrases.items():
+        indexPhrase[phrase] = index
+    
+    StudentPhrase = {}
+    k = 1
+    studentIndex = {}
+    for phrase, students in PhraseStduent.items():
+        pKey = indexPhrase[phrase]
         
+        for student in students:
+            if student not in studentIndex:
+                sKey = 'Z' + str(k)
+                studentIndex[student] = sKey
+                k = k + 1
+            else:
+                sKey = studentIndex[student] 
+            
+            if sKey not in StudentPhrase:
+                StudentPhrase[sKey] = []
+            StudentPhrase[sKey].append(pKey)
+    
+    IndexStudent = {}
+    for student, index in studentIndex.items():
+        IndexStudent[index] = student
+        
+    return IndexStudent, StudentPhrase
+
+def getStudentWeight_One(StudentPhrase):
+    #assume every student is equally important
+    StudentGamma = {}
+    
+    for student in StudentPhrase:
+        StudentGamma[student] = 1.0
+    return StudentGamma
+            
 def ILP1(prefix, L):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    phrases, bigrams, PhraseBigram = getPhraseBigram(prefix + phraseext)
-    fio.SaveDict(phrases, prefix + ".phrase_index.dict")
-    fio.SaveDict(bigrams, prefix + ".bigram_index.dict")
+    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext)
+    fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
+    fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
     #get weight of bigrams
-    BigramTheta = getBigramWeight_TF(PhraseBigram, phrases, prefix + countext) # return a dictionary
+    BigramTheta = getBigramWeight_TF(PhraseBigram, prefix + countext) # return a dictionary
     
     #get word count of phrases
-    PhraseBeta = getWordCounts(phrases)
-    
+    PhraseBeta = getWordCounts(IndexPhrase)
+       
     #get {bigram:[phrase]} dictionary
     BigramPhrase = getBigramPhrase(PhraseBigram)
     
@@ -205,7 +251,7 @@ def ILP1(prefix, L):
     m = SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + ".summary"
-    ExtractSummaryfromILP(lpfile, phrases, output)
+    ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
 def ILP_Summarizer(ilpdir, np, L):
     sheets = range(0,12)

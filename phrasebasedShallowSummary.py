@@ -14,7 +14,7 @@ import shallowSummary
 import phraseClusteringKmedoid
 
 
-stopwords = [line.lower().strip() for line in fio.readfile(stopwordfilename)]
+stopwords = [line.lower().strip() for line in fio.ReadFile(stopwordfilename)]
 print "stopwords:", len(stopwords)
 
 stopwords = stopwords + ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']

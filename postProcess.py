@@ -47,7 +47,7 @@ def formatSummaryOutput(excelfile, datadir, output):
         
         body.append(row)
             
-    fio.writeMatrix(output, body, head)
+    fio.WriteMatrix(output, body, head)
     
 def GetRougeScore(datadir, models, outputdir):
     for model in models:
@@ -67,13 +67,13 @@ def GetRougeScore(datadir, models, outputdir):
             for type in types:
                 week = sheet + 1
                 path = datadir + model + '/' + str(week)+ '/'
-                fio.newPath(path)
+                fio.NewPath(path)
         
                 row = []
                 row.append(week)
                 for scorename in scores:
                     filename = path + type + "_OUT_"+scorename+".csv"
-                    lines = fio.readfile(filename)
+                    lines = fio.ReadFile(filename)
                     try:
                         scorevalues = lines[1].split(',')
                         score = scorevalues[1].strip()
@@ -95,7 +95,7 @@ def GetRougeScore(datadir, models, outputdir):
             row.append(numpy.mean(scores))
         body.append(row)
         
-        fio.writeMatrix(outputdir + "rouge." + model + ".txt", body, header)
+        fio.WriteMatrix(outputdir + "rouge." + model + ".txt", body, header)
         
 def GetRougeScoreSingle(datadir, models, outputdir):
     for model in models:
@@ -111,14 +111,14 @@ def GetRougeScoreSingle(datadir, models, outputdir):
         for sheet in sheets:
             week = sheet + 1
             path = datadir + model + '/' + str(week)+ '/'
-            fio.newPath(path)
+            fio.NewPath(path)
             
             row = []
             row.append(week)
             for type in types:
                 for scorename in scores:
                     filename = path + type + "_OUT_"+scorename+".csv"
-                    lines = fio.readfile(filename)
+                    lines = fio.ReadFile(filename)
                     try:
                         scorevalues = lines[1].split(',')
                         score = scorevalues[1].strip()
@@ -140,7 +140,7 @@ def GetRougeScoreSingle(datadir, models, outputdir):
             row.append(numpy.mean(scores))
         body.append(row)
         
-        fio.writeMatrix(outputdir + "rouge." + model + ".txt", body, header)
+        fio.WriteMatrix(outputdir + "rouge." + model + ".txt", body, header)
 
 def GetRougeScoreMMRSingle(datadir, models, outputdir): #only keep the average
     for model in models:
@@ -157,14 +157,14 @@ def GetRougeScoreMMRSingle(datadir, models, outputdir): #only keep the average
             for sheet in sheets:
                 week = sheet + 1
                 path = datadir + model + '/' + str(week)+ '/'
-                fio.newPath(path)
+                fio.NewPath(path)
                 
                 row = []
                 row.append(week)
                 for type in types:
                     for scorename in scores:
                         filename = path + type + "." + str(r) + "_OUT_"+scorename+".csv"
-                        lines = fio.readfile(filename)
+                        lines = fio.ReadFile(filename)
                         try:
                             scorevalues = lines[1].split(',')
                             score = scorevalues[1].strip()
@@ -190,7 +190,7 @@ def GetRougeScoreMMRSingle(datadir, models, outputdir): #only keep the average
             body.append(row)
             averagebody.append(arow)
   
-            fio.writeMatrix(outputdir + "rouge." + model + '.' + r + ".txt", body, header)
+            fio.WriteMatrix(outputdir + "rouge." + model + '.' + r + ".txt", body, header)
         
         #get max
         #get the max
@@ -201,7 +201,7 @@ def GetRougeScoreMMRSingle(datadir, models, outputdir): #only keep the average
             row.append(numpy.max(scores))
         averagebody.append(row)
         
-        fio.writeMatrix(outputdir + "rouge." + model + ".txt", averagebody, header)
+        fio.WriteMatrix(outputdir + "rouge." + model + ".txt", averagebody, header)
                 
 def GetRougeScoreMMR(datadir, models, outputdir): #only keep the average
     for model in models:
@@ -220,13 +220,13 @@ def GetRougeScoreMMR(datadir, models, outputdir): #only keep the average
                 for sheet in sheets:
                     week = sheet + 1
                     path = datadir + model + '/' + str(week)+ '/'
-                    fio.newPath(path)
+                    fio.NewPath(path)
                 
                     row = []
                     row.append(week)
                     for scorename in scores:
                         filename = path + type + "." + str(r) + "_OUT_"+scorename+".csv"
-                        lines = fio.readfile(filename)
+                        lines = fio.ReadFile(filename)
                         try:
                             scorevalues = lines[1].split(',')
                             score = scorevalues[1].strip()
@@ -252,7 +252,7 @@ def GetRougeScoreMMR(datadir, models, outputdir): #only keep the average
             body.append(row)
             averagebody.append(arow)
   
-            fio.writeMatrix(outputdir + "rouge." + model + '.' + r + ".txt", body, header)
+            fio.WriteMatrix(outputdir + "rouge." + model + '.' + r + ".txt", body, header)
         
         #get max
         #get the max
@@ -263,10 +263,10 @@ def GetRougeScoreMMR(datadir, models, outputdir): #only keep the average
             row.append(numpy.max(scores))
         averagebody.append(row)
         
-        fio.writeMatrix(outputdir + "rouge." + model + ".txt", averagebody, header)
+        fio.WriteMatrix(outputdir + "rouge." + model + ".txt", averagebody, header)
            
 def getWordCount(summary, output):
-    head, body = fio.readMatrix(summary, True)
+    head, body = fio.ReadMatrix(summary, True)
     
     data = []
     
@@ -283,7 +283,7 @@ def getWordCount(summary, output):
         if i==0: continue
         newhead.append("WC_"+head[i])
     
-    fio.writeMatrix(output, data, newhead)
+    fio.WriteMatrix(output, data, newhead)
     
 def getTAWordCountDistribution(excelfile, output):
     reload(sys)
@@ -417,7 +417,7 @@ def getStudentResponseAverageWords(excelfile, output):
             row.append(numpy.std(counts[type].values()))
         body.append(row)
             
-    fio.writeMatrix(output, body, ['Week', 'POI', '', 'MP', '', 'LP', '']) 
+    fio.WriteMatrix(output, body, ['Week', 'POI', '', 'MP', '', 'LP', '']) 
 
 def getStudentResponseWordCountDistribution2(excelfile, output):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
@@ -470,7 +470,7 @@ def getStudentResponseWordCountDistribution2(excelfile, output):
     
     #fio.PrintDict(dict['MP'], SortbyValueflag=False)
     
-    fio.writeMatrix("../data/wordcount.txt", AveBody, AveHead)
+    fio.WriteMatrix("../data/wordcount.txt", AveBody, AveHead)
     
     values = []
     for key in range(0, 46):
@@ -680,7 +680,7 @@ def ExtractNP(datadir, outdir, method="syntax"):
             dict = fio.LoadDict(file, 'float')
             keys = sorted(dict, key=dict.get, reverse = True)
             
-            fio.newPath(outdir + str(week)+ '/')
+            fio.NewPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
@@ -705,7 +705,7 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
             
             keys = set(NPs)
             
-            fio.newPath(outdir + str(week)+ '/')
+            fio.NewPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
@@ -735,7 +735,7 @@ def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
                     dict[NP] = 0
                 dict[NP] = dict[NP] + 1 
                         
-            fio.newPath(outdir + str(week)+ '/')
+            fio.NewPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.dict'
             fio.SaveDict(dict, output)
             
@@ -808,7 +808,7 @@ def CombineKMethod(datadir, output, methods, ratios, nps, model_prefix):
         for method in methods: 
             for ratio in ratios:
                 filename = datadir + "rouge." + model_prefix + "_" + str(ratio) + "_"+ method + '_' + np + ".txt"
-                head, body = fio.readMatrix(filename, hasHead=True)
+                head, body = fio.ReadMatrix(filename, hasHead=True)
                 
                 row = []
                 row.append(np)
@@ -828,7 +828,7 @@ def CombineKMethod(datadir, output, methods, ratios, nps, model_prefix):
         row.append(numpy.max(scores))
     newbody.append(row)
     
-    fio.writeMatrix(output, newbody, Header)
+    fio.WriteMatrix(output, newbody, Header)
 
 def CombineRouges(models, outputdir):
     Header = ['method', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
@@ -836,7 +836,7 @@ def CombineRouges(models, outputdir):
     
     for model in models: 
         filename = outputdir + "rouge." + model + ".txt"
-        head, body = fio.readMatrix(filename, hasHead=True)
+        head, body = fio.ReadMatrix(filename, hasHead=True)
         
         row = []
         row.append(model)
@@ -855,7 +855,7 @@ def CombineRouges(models, outputdir):
     newname = outputdir + "_".join(models) + ".txt"
     if len(newname) > 50:
         newname = newname[:50] + "_50.txt"
-    fio.writeMatrix(newname, newbody, Header) 
+    fio.WriteMatrix(newname, newbody, Header) 
         
 def CombineRouges2(models, outputdir):
     Header = ['method', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']
@@ -863,7 +863,7 @@ def CombineRouges2(models, outputdir):
     
     for model in models: 
         filename = outputdir + "rouge." + model + ".txt"
-        head, body = fio.readMatrix(filename, hasHead=True)
+        head, body = fio.ReadMatrix(filename, hasHead=True)
         
         row = []
         row.append(model)
@@ -882,7 +882,7 @@ def CombineRouges2(models, outputdir):
     newname = outputdir + "_".join(models) + ".txt"
     if len(newname) > 50:
         newname = newname[:50] + "_50.txt"
-    fio.writeMatrix(newname, newbody, Header)    
+    fio.WriteMatrix(newname, newbody, Header)    
 
 def getSingleCoverage(entries, sources, N):
     covered = []
@@ -969,7 +969,7 @@ def getCoverage(modelname, excelfile, npdir, method="unigram"):
         for type in ['POI', 'MP', 'LP']:
             path = datadir + str(week)+ '/'
             summaryfile = path + type + '.summary'
-            summaries = [line.strip() for line in fio.readfile(summaryfile)]
+            summaries = [line.strip() for line in fio.ReadFile(summaryfile)]
             
             sourcefile = npdir + str(week)+ '/' + type + '.'+method+'.keys.source'
             student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True)
@@ -994,7 +994,7 @@ def getCoverage(modelname, excelfile, npdir, method="unigram"):
     newbody.append(row)
         
     file = "../data/coverage." + modelname + '.txt'
-    fio.writeMatrix(file, newbody, newhead)
+    fio.WriteMatrix(file, newbody, newhead)
 
 def getDiversity(modelname, excelfile, npdir, method="unigram"):
     sheets = range(0,12)
@@ -1018,7 +1018,7 @@ def getDiversity(modelname, excelfile, npdir, method="unigram"):
         for type in ['POI', 'MP', 'LP']:
             path = datadir + str(week)+ '/'
             summaryfile = path + type + '.summary'
-            summaries = [line.strip() for line in fio.readfile(summaryfile)]
+            summaries = [line.strip() for line in fio.ReadFile(summaryfile)]
             
             sourcefile = npdir + str(week)+ '/' + type + '.'+method+'.keys.source'
             student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True)
@@ -1042,7 +1042,7 @@ def getDiversity(modelname, excelfile, npdir, method="unigram"):
     newbody.append(row)
         
     file = "../data/diversity." + modelname + '.txt'
-    fio.writeMatrix(file, newbody, newhead)
+    fio.WriteMatrix(file, newbody, newhead)
 
 def getHighQualityRatio(modelname, excelfile, npdir, method="unigram"):
     sheets = range(0,12)
@@ -1066,7 +1066,7 @@ def getHighQualityRatio(modelname, excelfile, npdir, method="unigram"):
         for type in ['MP']:
             path = datadir + str(week)+ '/'
             summaryfile = path + type + '.summary'
-            summaries = [line.strip() for line in fio.readfile(summaryfile)]
+            summaries = [line.strip() for line in fio.ReadFile(summaryfile)]
             
             qualitydict = getStudentQuality(orig, header)
             
@@ -1092,7 +1092,7 @@ def getHighQualityRatio(modelname, excelfile, npdir, method="unigram"):
     newbody.append(row)
         
     file = "../data/quality." + modelname + '.txt'
-    fio.writeMatrix(file, newbody, newhead)
+    fio.WriteMatrix(file, newbody, newhead)
             
 def getCoverageDiversity(modelname, excelfile, npdir, method="unigram"):
     getCoverage(modelname, excelfile, npdir, method)
@@ -1204,14 +1204,14 @@ def PrintCluster():
     
     import json
     
-    body = fio.readMatrix(sourcesfile, False)
+    body = fio.ReadMatrix(sourcesfile, False)
     NPCandidates = [row[0] for row in body]
     sources = [row[1] for row in body]
     
     
     lexdict = fio.LoadDict(lexfile, 'float')
     
-    body = fio.readMatrix(output, False)
+    body = fio.ReadMatrix(output, False)
             
     NPs = [row[0] for row in body]
     clusterids = [row[1] for row in body]
