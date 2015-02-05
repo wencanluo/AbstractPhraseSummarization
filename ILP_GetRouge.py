@@ -76,13 +76,57 @@ if __name__ == '__main__':
 #     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
 #         for np in ['syntax', 'chunk']:
 #             getRouge(datadir, np, L, datadir, Lambda = None)
-                
-    datadir = "../../data/ILP2/" 
+                 
+#     datadir = "../../data/ILP2/" 
+#     
+#     for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+#         for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+#             for np in ['syntax']:
+#                 getRouge(datadir, np, L, datadir, Lambda)
+     
+    #without LP
+    datadir = "../../data/ILP/" 
+       
+    for L in [30]:
+        for np in ['syntax']:
+            getRouge(datadir, np, L, datadir, Lambda = None)
+  
+    ilpdir = "../../data/ILP2/"
+      
+    #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for Lambda in [0.8]:
+        #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for L in [30]:
+            for np in ['syntax', ]: #'chunk'
+                getRouge(ilpdir, np, L, ilpdir, Lambda)
+                    
+    ilpdir = "../../data/ILP_Unibigram/"
+      
+    #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for Lambda in [0.8]:
+        #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for L in [30]:
+            for np in ['syntax', ]: #'chunk'
+                getRouge(ilpdir, np, L, ilpdir, Lambda)
+      
+                     
+    ilpdir = "../../data/ILP_UnibigramMalformedFilter/"
+     
+    #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for Lambda in [0.8]:
+        #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for L in [30]:
+            for np in ['syntax', ]: #'chunk'
+                getRouge(ilpdir, np, L, ilpdir, Lambda)
+     
     
-    for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-        for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-            for np in ['syntax']:
-                getRouge(datadir, np, L, datadir, Lambda)
-                            
+    ilpdir = "../../data/ILP2_MalformedFilter/" 
+    #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for Lambda in [0.8]:
+        #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+        for L in [30]:
+            for np in ['syntax', ]: #'chunk'
+                getRouge(ilpdir, np, L, ilpdir, Lambda)
+                                  
     print "done"
     

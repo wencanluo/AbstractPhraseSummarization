@@ -143,7 +143,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
             with open(cachefile, 'r') as fin:
                 Cache = json.load(fin)
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in ['POI', 'MP']:#, 'LP'
             row = []
             row.append(week)
         
@@ -155,7 +155,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
             Round = 1
             while True:
                 sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
-                if not fio.isExist(sumfile): break
+                if not fio.IsExist(sumfile): break
                 Round = Round + 1
             
             Round = Round - 1
@@ -201,16 +201,25 @@ if __name__ == '__main__':
     datadir = "../../data/oracle/"
     #TestRouge()
     
-    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-        for np in ['syntax', 'chunk']:
-            for metric in ['R1-F', 'R2-F', 'RSU4-F']:
+#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+#         for np in ['syntax', 'chunk']:
+#             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
+#                 Greedy(oracledir, np, L, metric)
+#     
+#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+#         for np in ['syntax', 'chunk']:
+#             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
+#                 getOracleRouge(oracledir, np, L, metric, datadir)
+    
+    for L in [30]:
+        for np in ['syntax']:
+            for metric in ['R2-F']:
                 Greedy(oracledir, np, L, metric)
-    
-    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-        for np in ['syntax', 'chunk']:
-            for metric in ['R1-F', 'R2-F', 'RSU4-F']:
+     
+    for L in [30]:
+        for np in ['syntax']:
+            for metric in ['R2-F']:
                 getOracleRouge(oracledir, np, L, metric, datadir)
-    
-            
+        
     print "done"
     

@@ -5,6 +5,7 @@ import porter
 import NLTKWrapper
 import os
 import json
+import phraseClusteringKmedoid
 
 #Stemming
 phraseext = ".key" #a list
@@ -100,10 +101,21 @@ def ExtractSummaryfromILP(lpfileprefix, phrases, output):
     
     fio.SaveList(summaries, output)
 
-def getPhraseBigram(phrasefile):
+def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     #get phrases
     lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
+    
+    newPhrases = []
+    for phrase in phrases:
+        if MalformedFlilter:
+            if phraseClusteringKmedoid.isMalformed(phrase.lower()): 
+                print phrase
+            else:
+                newPhrases.append(phrase)
+    
+    if MalformedFlilter:
+        phrases = newPhrases
     
     PhraseBigram = {}
     
@@ -127,8 +139,12 @@ def getPhraseBigram(phrasefile):
         phrase = porter.getStemming(phrase)
         
         #get bigrams
-        bigrams = NLTKWrapper.getNgram(phrase, 2)
-        for bigram in bigrams:
+        ngrams = []
+        for n in Ngram:
+            grams = NLTKWrapper.getNgram(phrase, n)
+            ngrams = ngrams + grams
+            
+        for bigram in ngrams:
             if bigram not in bigramIndex:
                 bKey = 'X' + str(i)
                 bigramIndex[bigram] = bKey
@@ -199,6 +215,8 @@ def getStudentPhrase(phrases, sourcefile):
     k = 1
     studentIndex = {}
     for phrase, students in PhraseStduent.items():
+        if phrase not in indexPhrase: continue
+        
         pKey = indexPhrase[phrase]
         
         for student in students:
@@ -237,7 +255,7 @@ def ILP1(prefix, L):
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
     #get weight of bigrams
-    BigramTheta = getBigramWeight_TF(PhraseBigram, prefix + countext) # return a dictionary
+    BigramTheta = getBigramWeight_TF(PhraseBigram, IndexPhrase, prefix + countext) # return a dictionary
     
     #get word count of phrases
     PhraseBeta = getWordCounts(IndexPhrase)
