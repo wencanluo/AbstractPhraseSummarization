@@ -366,8 +366,8 @@ def getStudentResponses4Senna(excelfile, datadir):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
     
-    #sheets = range(0,25)
-    sheets = range(0,12)
+    sheets = range(0,25)
+    #sheets = range(0,12)
     
     for i, sheet in enumerate(sheets):
         week = i + 1

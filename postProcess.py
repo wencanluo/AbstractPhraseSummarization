@@ -685,7 +685,7 @@ def ExtractNP(datadir, outdir, method="syntax"):
             fio.SaveList(keys, output)
 
 def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
-    sheets = range(0,12)
+    sheets = range(0,25)
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
@@ -710,7 +710,7 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
             fio.SaveList(keys, output)
 
 def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
-    sheets = range(0,12)
+    sheets = range(0,25)
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
@@ -740,7 +740,7 @@ def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
             fio.SaveDict(dict, output)
             
 def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax"):
-    sheets = range(0,12)
+    sheets = range(0,25)
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
