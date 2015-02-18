@@ -684,8 +684,8 @@ def ExtractNP(datadir, outdir, method="syntax"):
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
-def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
-    sheets = range(0,12)
+def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12)):
+    sheets = weekrange
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
@@ -709,8 +709,8 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax"):
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
-def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
-    sheets = range(0,12)
+def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12)):
+    sheets = weekrange
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
@@ -739,8 +739,8 @@ def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax"):
             output = outdir + str(week)+ '/' + type + '.'+method+'.dict'
             fio.SaveDict(dict, output)
             
-def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax"):
-    sheets = range(0,12)
+def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12)):
+    sheets = weekrange
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"

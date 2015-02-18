@@ -59,9 +59,9 @@ if __name__ == '__main__':
     #Step3: get phrases
     #for np in ['syntax', 'chunk']:
     for np in ['sentence']:
-         postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np)
-         postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np)
-         postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np)
+         postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+         postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+         postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
 #       
 #     #Step4: write TA's reference 
 #     Survey.WriteTASummary(excelfile, outdir)
