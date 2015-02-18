@@ -29,7 +29,7 @@ def iter_documents(outdir, types, np='syntax'):
     document (=list of utf8 tokens) at a time.
     """
     # find all .txt documents, no matter how deep under top_directory
-    sheets = range(0,12)
+    sheets = range(0,25)
     
     for i, sheet in enumerate(sheets):
         week = i + 1

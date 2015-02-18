@@ -128,6 +128,9 @@ class SennaSentence:
 			words = words + word.token + " "
 		return words.strip()
 	
+	def getSentence(self):
+		return [self.getWords()]
+	
 	def getNPrases(self):
 		NP = []
 		

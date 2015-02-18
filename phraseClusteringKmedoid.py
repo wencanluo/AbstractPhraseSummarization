@@ -52,9 +52,13 @@ def getNPs(sennafile, MalformedFlilter=False, source = None, np=None):
     for i, s in enumerate(sentences):
         if np=='syntax':
             NPs = s.getSyntaxNP()
-        else:
+        elif np == 'chunk':
             NPs = s.getNPrases()
-        
+        elif np == 'sentence':
+            NPs = s.getSentence()
+        else:
+            NPs = s.getSyntaxNP()
+            
         for NP in NPs:
             NP = NP.lower()
             

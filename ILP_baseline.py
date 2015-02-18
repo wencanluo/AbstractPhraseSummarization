@@ -5,7 +5,9 @@ import porter
 import NLTKWrapper
 import os
 import json
-import phraseClusteringKmedoid
+
+stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
+punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
 #Stemming
 phraseext = ".key" #a list
@@ -13,6 +15,17 @@ studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
+
+def isMalformed(phrase):
+    N = len(phrase.split())
+    if N == 1: #single stop words
+        if phrase.lower() in stopwords: return True
+        if phrase.isdigit(): return True
+            
+    if len(phrase) > 0:
+        if phrase[0] in punctuations: return True
+    
+    return False
 
 def WriteConstraint1(PhraseBeta, L):
     #$\sum_{j=1}^P y_j \beta _j \le L$
@@ -109,7 +122,7 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     newPhrases = []
     for phrase in phrases:
         if MalformedFlilter:
-            if phraseClusteringKmedoid.isMalformed(phrase.lower()): 
+            if isMalformed(phrase.lower()): 
                 print phrase
             else:
                 newPhrases.append(phrase)
