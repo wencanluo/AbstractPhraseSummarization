@@ -9,12 +9,18 @@ import json
 stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
 punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
+stopwordswithpunctuations = stopwords + punctuations
+
 #Stemming
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
+
+def removeStopWords(tokens):
+    newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
+    return newTokens
 
 def isMalformed(phrase):
     N = len(phrase.split())
@@ -114,6 +120,12 @@ def ExtractSummaryfromILP(lpfileprefix, phrases, output):
     
     fio.SaveList(summaries, output)
 
+def ProcessLine(input):
+    tokens = NLTKWrapper.wordtokenizer(input, True)
+    tokens = removeStopWords(tokens)
+    newLine = " ".join(tokens)
+    return newLine
+    
 def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     #get phrases
     lines = fio.ReadFile(phrasefile)
@@ -121,15 +133,14 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     
     newPhrases = []
     for phrase in phrases:
-        if MalformedFlilter:
-            if isMalformed(phrase.lower()): 
-                print phrase
-            else:
-                newPhrases.append(phrase)
+        #phrase = ProcessLine(phrase)
+        
+        if MalformedFlilter and isMalformed(phrase.lower()): continue
+        
+        newPhrases.append(phrase)
     
-    if MalformedFlilter:
-        phrases = newPhrases
-    
+    phrases = newPhrases
+
     PhraseBigram = {}
     
     #get index of phrase
@@ -269,6 +280,7 @@ def ILP1(prefix, L):
     
     #get weight of bigrams
     BigramTheta = getBigramWeight_TF(PhraseBigram, IndexPhrase, prefix + countext) # return a dictionary
+    fio.SaveDict(BigramTheta, prefix + ".bigram_theta.dict")
     
     #get word count of phrases
     PhraseBeta = getWordCounts(IndexPhrase)
@@ -297,12 +309,16 @@ def ILP_Summarizer(ilpdir, np, L):
             ILP1(prefix, L)
             
 if __name__ == '__main__':
-    ilpdir = "../../data/ILP/"
+    ilpdir = "../../data/ILP1_Sentence/"
     
     #ILP1(ilpdir + "test/MP.syntax", 10)
     
-    for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-        for np in ['syntax', 'chunk']:
+#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+#         for np in ['syntax', 'chunk']:
+#             ILP_Summarizer(ilpdir, np, L)
+    
+    for L in [30]:
+        for np in ['sentence']:
             ILP_Summarizer(ilpdir, np, L)
-
+            
     print "done"

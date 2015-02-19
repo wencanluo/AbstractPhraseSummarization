@@ -16,6 +16,11 @@ corpusdictexe = ".corpus.dict"
 cscexe = ".mat.txt"
 ngramTag = "___"
 
+stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
+punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
+
+stopwordswithpunctuations = stopwords + punctuations
+
 def save_sparse_csr(filename, array):
     numpy.savez(filename, data = array.data, indices=array.indices,
              indptr = array.indptr, shape=array.shape)
@@ -36,8 +41,14 @@ def getNgramTokenized(tokens, n):
         ngrams.append(ngramTag.join(ngram))
     return ngrams
 
+def removeStopWords(tokens):
+    newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
+    return newTokens
+
 def ProcessLine(line,ngrams=[1]):
     tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
+    
+    #tokens = removeStopWords(tokens)
     
     new_tokens = []
     for n in ngrams:
@@ -193,7 +204,8 @@ if __name__ == '__main__':
 #     Survey.WriteTASummary(excelfile, outdir)
     
     for np in ['sentence']:
-        for K in [50, 100, 200]:
+        #for K in [50, 100, 200]:
+        for K in [50]:
             #getSVD(outdir, np, K, ngrams=[1,2])
             getSVD(outdir, bookname, K, 'book', ngrams=[1,2])
     

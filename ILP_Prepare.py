@@ -6,7 +6,7 @@ if __name__ == '__main__':
     
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
-    outdir = "../../data/ILP_Sentence_Supervised/"
+    outdir = "../../data/ILP1_Sentence/"
     
     #Step1: get senna input
     #Survey.getStudentResponses4Senna(excelfile, sennadatadir)
