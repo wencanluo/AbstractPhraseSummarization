@@ -5,7 +5,6 @@ import fio
 import numpy, scipy.sparse
 from scipy.sparse.linalg import svds as sparsesvd
 import re
-import ILP_baseline as ILP
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -31,7 +30,27 @@ def load_sparse_csr(filename):
     return csr_matrix((  loader['data'], loader['indices'], loader['indptr']),
                          shape = loader['shape'])
 
-
+def getNgramTokenized(tokens, n, NoStopWords=False):
+    #n is the number of grams, such as 1 means unigram
+    ngrams = []
+    
+    N = len(tokens)
+    for i in range(N):
+        if i+n > N: continue
+        ngram = tokens[i:i+n]
+        
+        if not NoStopWords:
+            ngrams.append(ngramTag.join(ngram))
+        else:
+            removed = True
+            for w in ngram:
+                if w not in stopwords:
+                    removed = False
+            
+            if not removed:
+                ngrams.append(ngramTag.join(ngram))
+            
+    return ngrams
 
 def removeStopWords(tokens):
     newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
@@ -44,7 +63,7 @@ def ProcessLine(line,ngrams=[1]):
     
     new_tokens = []
     for n in ngrams:
-        ngram = ILP.getNgramTokenized(tokens, n, NoStopWords=True)
+        ngram = getNgramTokenized(tokens, n, NoStopWords=True)
         new_tokens = new_tokens + ngram
     
     return " ".join(new_tokens)
@@ -66,12 +85,13 @@ def iter_documents(outdir, types, np='syntax', ngrams=[1]):
             
             document = open(prefix + phraseext).readlines()
             
+            onedocument = []
             for line in document:
                 line = ProcessLine(line,ngrams)
-                print line
+                onedocument.append(line)
                 
-                # break document into utf8 tokens
-                yield gensim.utils.tokenize(line, lower=True, errors='ignore')
+            # break document into utf8 tokens
+            yield gensim.utils.tokenize(" ".join(onedocument), lower=True, errors='ignore')
 
 def readbook(path, ngrams=[1]):
     document = open(path).readlines()
@@ -132,7 +152,34 @@ class BookCorpus(object):
         for tokens in readbook(self.path, self.ngrams):
             # transform tokens (strings) into a sparse vector, one at a time
             yield self.dictionary.doc2bow(tokens)
-            
+
+def WeightbyDF(csc):
+    s = csc.shape
+    m = s[0]
+    n = s[1]
+    
+    firstrow = []
+    for j in range(n):
+        firstrow.append(csc[0,j])
+    print firstrow
+    
+    for i in range(m):
+        df = 0.0 #get document frequency
+        for j in range(n):
+            if csc[i, j] != 0:
+                df = df + 1.0
+        
+        for j in range(n):
+            if csc[i, j] != 0:
+                csc[i, j] = csc[i, j] / df
+    
+    firstrow = []
+    for j in range(n):
+        firstrow.append(csc[0,j])
+    print firstrow
+    
+    return csc
+               
 def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]): 
     types = ['POI', 'MP', 'LP']
     
@@ -150,6 +197,9 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     
     #https://pypi.python.org/pypi/sparsesvd/
     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
+    print scipy_csc_matrix.shape
+    
+    scipy_csc_matrix = WeightbyDF(scipy_csc_matrix)
     print scipy_csc_matrix.shape
     
 #     for vector in scipy_csc_matrix:
@@ -177,7 +227,7 @@ if __name__ == '__main__':
     
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
-    outdir = "../../data/SVD_Sentence/"
+    outdir = "../../data/SVD_Sentence_Lecture/"
     bookname = "../../tools/TextBook_Materials.txt"
     
     #Step1: get senna input

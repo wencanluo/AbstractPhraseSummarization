@@ -125,6 +125,28 @@ def ProcessLine(input):
     tokens = removeStopWords(tokens)
     newLine = " ".join(tokens)
     return newLine
+
+def getNgramTokenized(tokens, n, NoStopWords=False):
+    #n is the number of grams, such as 1 means unigram
+    ngrams = []
+    
+    N = len(tokens)
+    for i in range(N):
+        if i+n > N: continue
+        ngram = tokens[i:i+n]
+        
+        if not NoStopWords:
+            ngrams.append(ngramTag.join(ngram))
+        else:
+            removed = True
+            for w in ngram:
+                if w not in stopwords:
+                    removed = False
+            
+            if not removed:
+                ngrams.append(ngramTag.join(ngram))
+            
+    return ngrams
     
 def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     #get phrases
@@ -161,11 +183,14 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
         
         #get stemming
         phrase = porter.getStemming(phrase)
+        #tokens = phrase.lower().split()
+        tokens = list(gensim.utils.tokenize(phrase, lower=True, errors='ignore'))
         
         #get bigrams
         ngrams = []
         for n in Ngram:
-            grams = NLTKWrapper.getNgram(phrase, n)
+            grams = getNgramTokenized(tokens, n, NoStopWords=True)
+            #grams = NLTKWrapper.getNgram(phrase, n)
             ngrams = ngrams + grams
             
         for bigram in ngrams:

@@ -8,6 +8,7 @@ import numpy
 
 import ILP_baseline as ILP
 
+
 #Stemming
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -176,12 +177,14 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
                 bindex = 'X' + str(i)
                 i = i + 1
                 BigramIndex[bigramname] = bindex
-                
-                #update the weights
-                if bindex not in Weights:
-                    Weights[bindex] = 0
-                
-                Weights[bindex] = Weights[bindex] + 1
+            else:
+                bindex = BigramIndex[bigramname]
+                 
+            #update the weights
+            if bindex not in Weights:
+                Weights[bindex] = 0
+            
+            Weights[bindex] = Weights[bindex] + 1
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
     Weights = {} #{Index:Weight}
@@ -231,14 +234,14 @@ def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        train = [str(k) for k in range(N) if k != i]
-        #train = [str(i)]
+        #train = [str(k) for k in range(N) if k != i]
+        train = [str(i)]
         test = [str(i)]
         yield train, test
             
 if __name__ == '__main__':   
-    #ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
-    ilpdir = "../../data/ILP_Sentence_Supervised/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
+    #ilpdir = "../../data/ILP_Sentence_Supervised/"
     word2vecdir = "../../data/wordvector/"
     
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
