@@ -21,6 +21,8 @@ lpsolext = ".sol"
 
 def LoadSVD(svddir, corpusname, K):
     dictname = svddir + "POI_MP_LP_" + str(K) + '_' + corpusname + ".corpus.dict"
+    print dictname
+    
     uname = svddir + "u_" + str(K) + '_' + corpusname + ".mat.txt"
     
     dict = fio.LoadDict(dictname, 'int')

@@ -162,10 +162,11 @@ def getLastIndex(BigramIndex):
             maxI = int(bigram[1:])
     return maxI
 
-def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter):
+def UpdateWeight(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram, MalformedFlilter):
     # the weights of the bigram is the frequency appear in the golden summary
     #read the summary
-    _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(prefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
+    _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(sumprefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
+    _, IndexBigramResponse, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram, MalformedFlilter=MalformedFlilter)    
     
     i = getLastIndex(BigramIndex)
     
@@ -185,6 +186,19 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
                 Weights[bindex] = 0
             
             Weights[bindex] = Weights[bindex] + 1
+    
+    for phrase, bigrams in PhraseBigram.items():
+        for bigram in bigrams:
+            bigramname = IndexBigramResponse[bigram]
+            if bigramname not in BigramIndex: continue
+                
+            bindex = BigramIndex[bigramname]
+                  
+            #update the weights
+            if bindex not in Weights:
+                Weights[bindex] = 0
+             
+            Weights[bindex] = Weights[bindex] + 1
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
     Weights = {} #{Index:Weight}
@@ -201,7 +215,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
             prefix = dir + type + "." + np
             summprefix = dir + type
             
-            UpdateWeight(BigramIndex, Weights, summprefix, L, Lambda, ngram, MalformedFlilter)
+            UpdateWeight(BigramIndex, Weights, summprefix, prefix, L, Lambda, ngram, MalformedFlilter)
             #ILP3(prefix, L, Lambda, ngram, MalformedFlilter)
         
     fio.SaveDict(Weights, weightfile, True)
@@ -234,15 +248,14 @@ def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        #train = [str(k) for k in range(N) if k != i]
-        train = [str(i)]
+        train = [str(k) for k in range(N) if k != i]
+        #train = [str(i)]
         test = [str(i)]
         yield train, test
             
 if __name__ == '__main__':   
-    ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
-    #ilpdir = "../../data/ILP_Sentence_Supervised/"
-    word2vecdir = "../../data/wordvector/"
+    #ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
+    ilpdir = "../../data/ILP_Sentence_Supervised/"
     
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
     for Lambda in [1.0]:

@@ -20,6 +20,9 @@ sumexe = ".ref.summary"
 
 global WordVecU
 WordVecU = None
+
+PositiveUpdateCount = 0
+NegativeUpdateCount = 0
     
 def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
     SavedStdOut = sys.stdout
@@ -245,8 +248,8 @@ def getMaxRatio(RefBigramDict, vec, U):
     return maxR
     
 def getUpdateRatio(RefBigramDict, vec, U):
-    #return getMinRatio(RefBigramDict, bigram, U)
-    return getMaxRatio(RefBigramDict, bigram, U)
+    #return getMinRatio(RefBigramDict, vec, U)
+    return getMaxRatio(RefBigramDict, vec, U)
     #return getAveRatio(RefBigramDict, vec, U)
 
 def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
@@ -291,13 +294,16 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
                 Weights[bindex] = [0]*K
             
             ratio = getUpdateRatio(RefBigramDict, vec, WordVecU)
-            Weights[bindex] = list(numpy.add(Weights[bindex], [x for x in vec]))
+            #Weights[bindex] = list(numpy.add(Weights[bindex], [x for x in vec]))
             
+            global PositiveUpdateCount, NegativeUpdateCount
             #threshold
-            #if ratio > 0.5:
-            #    Weights[bindex] = list(numpy.add(Weights[bindex], [x for x in vec]))
-            #elif ratio < -0.5:
-            #    Weights[bindex] = list(numpy.add(Weights[bindex], [x for x in vec]))
+            if ratio > 0.5:
+                PositiveUpdateCount = PositiveUpdateCount + 1
+                Weights[bindex] = list(numpy.add(Weights[bindex], [x for x in vec]))
+            elif ratio < -0.5:
+                NegativeUpdateCount = NegativeUpdateCount + 1
+                Weights[bindex] = list(numpy.add(Weights[bindex], [x for x in vec]))
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
     Weights = {} #{Index:Weight}
@@ -381,6 +387,7 @@ def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir,
         
         for type in ['POI', 'MP', 'LP']:
             prefix = dir + type + "." + np
+            print "Test: ", prefix
             ILP_Supervised(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter)
 
 def ILP_CrossValidation(ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
@@ -402,9 +409,10 @@ if __name__ == '__main__':
     #ilpdir = "../../data/ILP_Sentence_Supervised_SVD_BOOK/"
     ilpdir = "../../data/ILP_Sentence_Supervised_SVD_Lecture/"
     
-    svddir = "../../data/SVD_Sentence_Lecture/"
+    #svddir = "../../data/SVD_Sentence_Lecture/"
+    svddir = "../../data/SVD_Sentence/"
     
-    corpusname = "corpus"
+    corpusname = "book"
     K = 50    
     MalformedFlilter = False
     ngrams = [1,2]
@@ -415,5 +423,7 @@ if __name__ == '__main__':
          for L in [30]:
              for np in ['sentence']: #'chunk
                  ILP_CrossValidation(ilpdir, np, L, Lambda, ngrams, MalformedFlilter, svddir, corpusname, K)
-
+    
+    global PositiveUpdateCount, NegativeUpdateCount
+    print PositiveUpdateCount, NegativeUpdateCount
     print "done"

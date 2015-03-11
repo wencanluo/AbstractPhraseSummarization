@@ -144,7 +144,7 @@ def getNgramTokenized(tokens, n, NoStopWords=False):
                     removed = False
             
             if not removed:
-                ngrams.append(ngramTag.join(ngram))
+                ngrams.append(" ".join(ngram))
             
     return ngrams
     
@@ -183,8 +183,8 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
         
         #get stemming
         phrase = porter.getStemming(phrase)
-        #tokens = phrase.lower().split()
-        tokens = list(gensim.utils.tokenize(phrase, lower=True, errors='ignore'))
+        tokens = phrase.lower().split()
+        #tokens = list(gensim.utils.tokenize(phrase, lower=True, errors='ignore'))
         
         #get bigrams
         ngrams = []

@@ -190,16 +190,94 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
     fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(metric) + ".txt", body, header)
              
 def TestRouge():
-    ref = ["police killed the gunman"]
-    S1 = ["police kill the gunman"]
-    S2 = ["the gunman kill police"]
+    #ref = ["police killed the gunman"]
+    #S1 = ["police kill the gunman"]
+    #S2 = ["the gunman kill police"]
     
-    getRouge(ref, S2)
+    S1_1 = ['Unable to finish the problem set before the quiz',
+'Unable to understand why R is useful',
+'Some questions were not answered',
+'The problem set was confusing',
+'Did not understand plots in R, or mean and median'
+]
+    
+    S1_3=['There were two fundamental issues with the class. One, the students felt rushed and were unable to complete the required exercises, and two, the teaching assistant was seen as disorganized and rushed.']
+    
+    S1_4 = ['The recitation was a good time to learn about the many useful features of R, and how to use them, e.g., plotting data sets and finding the mean and median. The questions in the problem set were well-organized to this end. The application to stock prices was a helpful demonstration.']
+    
+    S1_2 = ['Learned some useful built-in functions of R',
+'Practiced programming in R',
+'The question types in the problem set were good',
+'Application of R to stock values was helpful',
+'The organization of the recitation was good']
+
+    S2_1=['Unfinished In-Class Questions',
+'Knowing when to use R',
+'Calculating Means/Medians',
+'Using / Creating a Histogram',
+'Using Rstudio']
+
+    S2_2 = ['Enjoyed Practice Session / In Class Questions',
+'Liked learning about capabilities of rstudio',
+'Liked Graphical Depictions / Diagrams',
+'Liked Learning about Practical Applications of R',
+'Enjoyed Calculating R']
+    
+    S2_3=['Students had trouble knowing when to use R, and would have liked more examples. Some students had trouble using Rstudio. They were also concerned about the questions in the practice session, as they did not get to go over them.']
+    
+    S2_4 = ['Students seemed to like using rstudio to calculate R, and creating graphics and seeing applications (such as stock values) for R. They liked the practice problems, and would have liked more of them.']
+    
+    S1_5=['we cannot solve the last two questions of ps if we can solve them before quiz it will be very good ',
+'Still not very clear how to use R/what data we were using at all times today when we were discussing R',
+'Ps assistant couldn\'t manage her time properly.',
+'question 3 in ps 1 was confusing',
+'we can plot normal dist when the values are not continous but for it to work we need a lot independent variables , but like how much ?in the question it was 100',
+]
+
+    S1_6=['things we can do with r',
+    'Question types',
+    'I did not think that these questions can be created in lectures.',
+    'Interesting to combine the R with statistics on stock values',
+    'In the first part of class, we practised R programming, whuch was easy to understand.',
+    ]
+    
+    S2_5=['The r experience was a bit Fast and hard to follow and the ps TA made simple questions look like a bit more complicated',
+    'in r function there can be more examples',
+    'Still not very clear how to use R/what data we were using at all times today when we were discussing R',
+    'inferring informations from histograph is a little confusing since it is new for me',
+    'Rstudio ps was not good I couldn\'t concentrate much',
+    ]
+    
+    S2_6=['In the second part, we solved questions, which was helpful for us to remember our probability knowledge.',
+    'Most interesting thing was to learn that R is capable of many things like reading Excel or txt files.',
+    'Make a result of collection of data, look like normal distribution',
+    'the graphics in R and importing data to R',
+    'learning how to calculate in R',
+    ]
+
+    body = []
+    #getRouge(ref, S2)
+    r1 = getRouge(S1_1, S2_1)
+    r2 = getRouge(S1_2, S2_2)
+    r3 = getRouge(S1_3, S2_3)
+    r4 = getRouge(S1_4, S2_4)
+    r5 = getRouge(S1_5, S2_5)
+    r6 = getRouge(S1_6, S2_6)
+    
+    body.append(r1)
+    body.append(r2)
+    body.append(r3)
+    body.append(r4)
+    body.append(r5)
+    body.append(r6)
+    print body
+    
+    fio.WriteMatrix('log.txt', body)
     
 if __name__ == '__main__':
     oracledir = "../../data/oracle/" 
     datadir = "../../data/oracle/"
-    #TestRouge()
+    TestRouge()
     
 #     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
 #         for np in ['syntax', 'chunk']:
@@ -211,15 +289,15 @@ if __name__ == '__main__':
 #             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
 #                 getOracleRouge(oracledir, np, L, metric, datadir)
     
-    for L in [30]:
-        for np in ['syntax']:
-            for metric in ['R2-F']:
-                Greedy(oracledir, np, L, metric)
-     
-    for L in [30]:
-        for np in ['syntax']:
-            for metric in ['R2-F']:
-                getOracleRouge(oracledir, np, L, metric, datadir)
+#     for L in [30]:
+#         for np in ['syntax']:
+#             for metric in ['R2-F']:
+#                 Greedy(oracledir, np, L, metric)
+#      
+#     for L in [30]:
+#         for np in ['syntax']:
+#             for metric in ['R2-F']:
+#                 getOracleRouge(oracledir, np, L, metric, datadir)
         
     print "done"
     
