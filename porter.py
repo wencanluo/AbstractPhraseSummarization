@@ -343,10 +343,11 @@ class PorterStemmer:
         self.step5()
         return self.b[self.k0:self.k+1]
 
-import NLTKWrapper
+#import NLTKWrapper
 def getStemming(sentence):
     words = []
-    tokens = NLTKWrapper.wordtokenizer(sentence)
+    #tokens = NLTKWrapper.wordtokenizer(sentence)
+    tokens = sentence.split()
     
     p = PorterStemmer()
     for token in tokens:

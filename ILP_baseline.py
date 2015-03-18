@@ -6,6 +6,8 @@ import NLTKWrapper
 import os
 import json
 
+ngramTag = "___"
+
 stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
 punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
@@ -136,7 +138,7 @@ def getNgramTokenized(tokens, n, NoStopWords=False):
         ngram = tokens[i:i+n]
         
         if not NoStopWords:
-            ngrams.append(ngramTag.join(ngram))
+            ngrams.append(" ".join(ngram))
         else:
             removed = True
             for w in ngram:

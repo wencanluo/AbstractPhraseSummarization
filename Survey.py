@@ -240,21 +240,29 @@ def getMPQualityPoint(orig):
             return summaries
     return summaries
 
-def getStudentResponseList(orig, header, summarykey, type='POI', withSource=False):
+def getStudentResponseList(orig, header, summarykey, type='POI', withSource=False, Split=True):
     student_summaries = getStudentResponse(orig, header, summarykey, type)
     student_summaryList = []
     
     for id, summaryList in student_summaries.items():
+        summaries = []
         for s in summaryList:
             s = NormalizedResponse(s)
             if len(s) == 0: continue
-            student_summaryList.append((s,id))
             
+            summaries.append(s)
+                
+        if Split:
+            for s in summaries:
+                student_summaryList.append((s,id))
+        else:
+            student_summaryList.append((' '.join(summaries), id))
+    
     if withSource:
         return student_summaryList
     else:
         return [summary[0] for summary in student_summaryList]
-                    
+                      
 def getStudentSummaryNum(orig, header, summarykey, type='POI'):
     if type=='POI':
         key = header[2]
@@ -362,7 +370,7 @@ def getMeadSummaryList(datadir, type):
         
     return summaryList
 
-def getStudentResponses4Senna(excelfile, datadir):
+def getStudentResponses4Senna(excelfile, datadir, Split=True):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
     
@@ -374,13 +382,13 @@ def getStudentResponses4Senna(excelfile, datadir):
         orig = prData(excelfile, sheet)
         
         for type in ['POI', 'MP', 'LP']:
-            student_summaryList = getStudentResponseList(orig, header, summarykey, type)
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=False, Split=Split)
             filename = datadir + "senna." + str(week) + "." + type + ".input"
             
             #fio.SaveList(student_summaryList, filename + ".2")
             #student_summaryList = [summary[0] for summary in student_summaryList]
             fio.SaveList(student_summaryList, filename)
-
+            
 def getStudentResponses4Maui(excelfile, datadir):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"

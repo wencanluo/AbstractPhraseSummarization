@@ -88,7 +88,7 @@ def ExtractNonWord(inputdirpredix, output):
     for type in ['POI', 'MP', 'LP']:
         util.UnionDict(dict, dicts[type])
     
-    wordlist = [word.strip().lower() for word in fio.readfile('wordsEn.txt')]
+    wordlist = [word.strip().lower() for word in fio.ReadFile('wordsEn.txt')]
     
     VOC = {}
     for key in dict:

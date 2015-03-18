@@ -193,12 +193,18 @@ if __name__ == '__main__':
 #             for np in ['syntax', ]: #'chunk'
 #                 getRouge(ilpdir, np, L, ilpdir, Lambda)
     
-    ilpdir = "../../data/ILP_Sentence_Supervised/" 
-    for Lambda in [1.0]:
-        #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-        for L in [30]:
-            for np in ['sentence', ]: #'chunk'
-                getRougeSplit(ilpdir, np, L, ilpdir, Lambda)
-                              
+#     ilpdir = "../../data/ILP_Sentence_Supervised/" 
+#     for Lambda in [1.0]:
+#         #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+#         for L in [30]:
+#             for np in ['sentence', ]: #'chunk'
+#                 getRougeSplit(ilpdir, np, L, ilpdir, Lambda)
+    
+    datadir = "../../data/ILP1_Sentence_SVD/" 
+      
+    for L in [30]:
+        for np in ['sentence']:
+            getRougeSplit(datadir, np, L, datadir, Lambda = None)
+                          
     print "done"
     

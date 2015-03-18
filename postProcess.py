@@ -684,7 +684,7 @@ def ExtractNP(datadir, outdir, method="syntax"):
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
-def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12)):
+def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12), Split=True):
     sheets = weekrange
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
@@ -699,7 +699,7 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange
             
             sennafile = sennadatadir + "senna." + str(week) + "." + type + '.output'
             
-            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True)
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True, Split=Split)
             ids = [summary[1] for summary in student_summaryList]
             NPs, sources = phraseClusteringKmedoid.getNPs(sennafile, MalformedFlilter=False, source=ids, np=method)
             
@@ -709,7 +709,7 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
-def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12)):
+def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12), Split=True):
     sheets = weekrange
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
@@ -724,7 +724,7 @@ def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax", 
             
             sennafile = sennadatadir + "senna." + str(week) + "." + type + '.output'
             
-            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True)
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True, Split=Split)
             ids = [summary[1] for summary in student_summaryList]
             NPs, sources = phraseClusteringKmedoid.getNPs(sennafile, MalformedFlilter=False, source=ids, np=method)
             
@@ -733,13 +733,13 @@ def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax", 
             for NP in NPs:
                 if NP not in dict:
                     dict[NP] = 0
-                dict[NP] = dict[NP] + 1 
+                dict[NP] = dict[NP] + 1
                         
             fio.NewPath(outdir + str(week)+ '/')
             output = outdir + str(week)+ '/' + type + '.'+method+'.dict'
             fio.SaveDict(dict, output)
             
-def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12)):
+def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12), Split=True):
     sheets = weekrange
     
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
@@ -754,7 +754,7 @@ def ExtractNPSource(excelfile, sennadatadir, outdir, method="syntax", weekrange=
             
             sennafile = sennadatadir + "senna." + str(week) + "." + type + '.output'
             
-            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True)
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True, Split=Split)
             ids = [summary[1] for summary in student_summaryList]
             NPs, sources = phraseClusteringKmedoid.getNPs(sennafile, MalformedFlilter=False, source=ids, np=method)
             
