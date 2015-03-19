@@ -279,7 +279,7 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     
     SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, 'org')
     
-    newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray())
+    newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T)
     
     newAname = path + "_".join(types) + '_' + str(K) + '_' + corpusname + mcexe
     #fio.WriteMatrix(newAname, newA.tolist(), None)

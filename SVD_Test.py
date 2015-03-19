@@ -3,6 +3,7 @@ import scipy.sparse
 import gensim
 import SVD_getUS2
 import fio
+import softImputeWrapper
 
 from scipy.sparse.linalg import svds as sparsesvd
 
@@ -60,21 +61,24 @@ def TestSimpleInput():
     
     K = 3
     
-    csc_m = scipy.sparse.csc_matrix(scipy_csc_matrix.T)
-    u, s, vt = sparsesvd(csc_m, K)
-    new_matrix = numpy.dot(u, numpy.dot(numpy.diag(s), vt))
+    new_matrix = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T)
+#     csc_m = scipy.sparse.csc_matrix(scipy_csc_matrix.T)
+#     u, s, vt = sparsesvd(csc_m, K)
+#     new_matrix = numpy.dot(u, numpy.dot(numpy.diag(s), vt))
         
     #print new_matrix
     PrintMatrix(new_matrix.T)
     
     K = 2
     
-    csc_m = scipy.sparse.csc_matrix(scipy_csc_matrix.T)
-    u, s, vt = sparsesvd(csc_m, K)
-    new_matrix = numpy.dot(u, numpy.dot(numpy.diag(s), vt))
-        
+#     csc_m = scipy.sparse.csc_matrix(scipy_csc_matrix.T)
+#     u, s, vt = sparsesvd(csc_m, K)
+#     new_matrix = numpy.dot(u, numpy.dot(numpy.diag(s), vt))
+    
+    #new_matrix = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T)
+    
     #print new_matrix
-    PrintMatrix(new_matrix.T)
+    #PrintMatrix(new_matrix.T)
 
 def PrintMatrix(A):
     m,n = A.shape
