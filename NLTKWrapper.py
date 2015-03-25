@@ -76,4 +76,10 @@ def getWordList(file):
     return words
 
 if __name__ == '__main__':
-    print splitSentence("[1] I love you. [2] Sent 2. [3] sentence 3")
+    #print splitSentence("[1] I love you. [2] Sent 2. [3] sentence 3")
+    
+    import fio
+    lines = fio.ReadFile("../../data/test.txt")
+    
+    for line in lines:
+        print nltk.word_tokenize(line.decode('utf-8'))
