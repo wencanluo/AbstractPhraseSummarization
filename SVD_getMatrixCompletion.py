@@ -209,7 +209,7 @@ def SaveSparseMatrix(A, filename):
         json.dump(data, fin, indent = 2)
         
 
-def SaveNewA(A, dict, path, K):
+def SaveNewA(A, dict, path, K, ngrams):
     types = ['POI', 'MP', 'LP']
     
     sheets = range(0,25)
@@ -233,7 +233,7 @@ def SaveNewA(A, dict, path, K):
             
             Bigrams = []
             for line in document:
-                line = ProcessLine(line, [2])
+                line = ProcessLine(line, ngrams)
                 
                 tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
                 
@@ -277,7 +277,7 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
     print scipy_csc_matrix.shape
     
-    SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, 'org')
+    SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, 'org', ngrams)
     
     newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T, rank=50, Lambda=1.5)
     
@@ -286,7 +286,7 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     #SaveSparseMatrix(newA.tolist(), newAname)
     #pickle.dump(newA.tolist(), open(newAname, "wb" ))
     
-    SaveNewA(newA.T, corpus.dictionary.token2id, path, K)
+    SaveNewA(newA.T, corpus.dictionary.token2id, path, K, ngrams)
     
 if __name__ == '__main__':
     

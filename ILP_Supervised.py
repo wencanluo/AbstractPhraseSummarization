@@ -21,6 +21,9 @@ def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBet
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
     
+    if Lambda== None:
+        Lambda = 1.0
+        
     #write objective
     print "Maximize"
     objective = []
@@ -96,13 +99,11 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=Fals
     for phrase in phrases:
         pKey = phraseIndex[phrase]
         
-        #get stemming
-        phrase = porter.getStemming(phrase)
-        
-        #get bigrams
+        tokens = phrase.lower().split()
+
         ngrams = []
         for n in Ngram:
-            grams = NLTKWrapper.getNgram(phrase, n)
+            grams = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
             ngrams = ngrams + grams
             
         for bigram in ngrams:
@@ -152,7 +153,10 @@ def ILP_Supervised(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlil
     
     m = ILP.SloveILP(lpfile)
     
-    output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
+    if Lambda == None:
+        output = lpfile + '.L' + str(L) + ".summary"
+    else:
+        output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, phrases, output)
 
 def getLastIndex(BigramIndex):
@@ -187,18 +191,18 @@ def UpdateWeight(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram, Malf
             
             Weights[bindex] = Weights[bindex] + 1
     
-    for phrase, bigrams in PhraseBigram.items():
-        for bigram in bigrams:
-            bigramname = IndexBigramResponse[bigram]
-            if bigramname not in BigramIndex: continue
-                
-            bindex = BigramIndex[bigramname]
-                  
-            #update the weights
-            if bindex not in Weights:
-                Weights[bindex] = 0
-             
-            Weights[bindex] = Weights[bindex] + 1
+#     for phrase, bigrams in PhraseBigram.items():
+#         for bigram in bigrams:
+#             bigramname = IndexBigramResponse[bigram]
+#             if bigramname not in BigramIndex: continue
+#                 
+#             bindex = BigramIndex[bigramname]
+#                   
+#             #update the weights
+#             if bindex not in Weights:
+#                 Weights[bindex] = 0
+#              
+#             Weights[bindex] = Weights[bindex] + 1
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
     Weights = {} #{Index:Weight}
@@ -253,15 +257,15 @@ def LeaveOneLectureOutPermutation():
         test = [str(i)]
         yield train, test
             
-if __name__ == '__main__':   
+if __name__ == '__main__':
     #ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
     ilpdir = "../../data/ILP_Sentence_Supervised/"
     
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-    for Lambda in [1.0]:
+    for Lambda in [None]:
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [30]:
              for np in ['sentence', ]: #'chunk
-                 ILP_CrossValidation(ilpdir, np, L, Lambda, ngram=[1,2], MalformedFlilter=True)
+                 ILP_CrossValidation(ilpdir, np, L, Lambda, ngram=[1,2], MalformedFlilter=False)
 
     print "done"

@@ -45,13 +45,14 @@ def WriteConstraint1(PhraseBeta, L):
 def WriteConstraint2(partialBigramPhrase):
     #$\sum_{j=1} {y_j Occ_{ij}} \ge x_i$
     for bigram, phrases in partialBigramPhrase.items():
-        weightedPhrase = [phrase[1] + ' ' + phrase[0] for phrase in phrases]
+        weightedPhrase = [phrase[1] + ' ' + phrase[0] for phrase in phrases if str(phrase[1]) != '0.0']
         print "  ", " + ".join(weightedPhrase), "-", bigram, ">=", 0
 
 def WriteConstraint3(partialPhraseBigram):
     #$y_j Occ_{ij} \le x_i$
     for phrase, bigrams in partialPhraseBigram.items():
         for bigram in bigrams:
+            if str(bigram[1].strip()) == '0.0': continue
             print "  ", bigram[1].strip(), phrase,  "-", bigram[0], "<=", 0
             
 def WriteConstraint4(StudentPhrase):
@@ -163,12 +164,13 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=True):
     return ngrams
     
 def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False, svdfile=None):
-    with open(svdfile, 'r') as fin:
-        svdA = json.load(fin)
-    bigramDict = {}
-    for bigram in svdA:
-        bigram = bigram.replace(ngramTag, " ")
-        bigramDict[bigram] = True
+    if svdfile != None:
+        with open(svdfile, 'r') as fin:
+            svdA = json.load(fin)
+        bigramDict = {}
+        for bigram in svdA:
+            bigram = bigram.replace(ngramTag, " ")
+            bigramDict[bigram] = True
         
     #get phrases
     lines = fio.ReadFile(phrasefile)
@@ -211,7 +213,8 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False, svdfile=None)
             ngrams = ngrams + grams
 
         for bigram in ngrams:
-            if bigram not in bigramDict: continue
+            if svdfile != None:
+                if bigram not in bigramDict: continue
             
             if bigram not in bigramIndex:
                 bKey = 'X' + str(i)
@@ -319,7 +322,7 @@ def getStudentWeight_One(StudentPhrase):
         StudentGamma[student] = 1.0
     return StudentGamma
  
-def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile):
+def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile, threshold=1.0):
     lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
     
@@ -363,7 +366,7 @@ def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpha
                 continue
             bKey = BigramIndex[bigram]
             
-            if row[i] < 0: continue
+            if row[i] < threshold: continue
             #print bigram, phrase, svdvalue
             #if str(row[i]) == '0.0': continue
             PartialPhraseBigram[pKey].append([bKey, str(row[i])])
@@ -393,7 +396,7 @@ def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpha
         
             pKey = PhraseIndex[phrase]
             
-            if row[i] < 0: continue
+            if row[i] < threshold: continue
             #if str(row[i]) == '0.0': continue
             PartialBigramPhrase[bKey].append([pKey, str(row[i])])
     
@@ -438,7 +441,7 @@ def ILP_Summarizer(ilpdir, svddir, np, L):
         
         for type in ['POI', 'MP', 'LP']:
             prefix = dir + type + "." + np
-            svdfile = svddir + str(week) + '/' + type + ".50.svdA"
+            svdfile = svddir + str(week) + '/' + type + ".50.softA"
             svdpharefile = svddir + str(week) + '/' + type + '.' + np + ".key"
             
             if week==3 and type == 'MP':

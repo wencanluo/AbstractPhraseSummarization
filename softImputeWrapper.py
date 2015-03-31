@@ -21,7 +21,7 @@ def SoftImpute(X, rank, Lambda, type='svd'):
     df = com.convert_to_r_dataframe(df)
     r.assign("X", df)
     r("save(X, file='X.gzip', compress=TRUE)")
-    
+     
     cmd = 'Rscript softImpute.R %d %.1f %s' % (rank, Lambda, type)
     print cmd
     os.system(cmd)
