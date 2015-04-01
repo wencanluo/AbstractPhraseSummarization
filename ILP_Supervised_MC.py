@@ -119,6 +119,8 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
     
     #write Integers
     indicators = []
+    #for bigram in BigramTheta.keys():
+    #    indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
         

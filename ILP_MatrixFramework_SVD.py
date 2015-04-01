@@ -322,7 +322,7 @@ def getStudentWeight_One(StudentPhrase):
         StudentGamma[student] = 1.0
     return StudentGamma
  
-def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile, threshold=1.0):
+def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile, threshold=0.5):
     lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
     
