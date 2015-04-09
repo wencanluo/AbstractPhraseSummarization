@@ -41,6 +41,21 @@ def getWeight(summary):
     
     return 1
 
+def getTitle(titlefile):
+    """
+    get the slide titles for one single lecture
+    """
+    lines = fio.ReadFile(titlefile)
+        
+    title = []
+    
+    for i in range(len(lines)):
+        if i%3 == 1:
+            line = lines[i].strip()
+            if len(line) > 0:
+                title.append(line)
+    
+    return title
 
 def NormalizedResponse(s):
     s = s.strip()
