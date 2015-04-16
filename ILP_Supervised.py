@@ -99,11 +99,12 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=Fals
     for phrase in phrases:
         pKey = phraseIndex[phrase]
         
+        phrase = porter.getStemming(phrase)
         tokens = phrase.lower().split()
 
         ngrams = []
         for n in Ngram:
-            grams = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
+            grams = ILP.getNgramTokenized(tokens, n, NoStopWords=True)
             ngrams = ngrams + grams
             
         for bigram in ngrams:

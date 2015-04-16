@@ -12,6 +12,8 @@ stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/su
 punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
 stopwordswithpunctuations = stopwords + punctuations
+stopwords = stopwords + punctuations
+stopwords = [porter.getStemming(w) for w in stopwords]
 
 #Stemming
 phraseext = ".key" #a list
@@ -301,7 +303,7 @@ def ILP1(prefix, L):
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext)
+    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, Ngram=[1,2])
     fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     

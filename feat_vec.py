@@ -116,6 +116,21 @@ class FeatureVector(dict):
                 
         return self
     
+    def save(self, output_file):
+        """
+        save FeatureVector using (feat, weight) pairs to file
+        """
+        import codecs
+        import os.path
+        
+        if not os.path.exists(output_file):
+            print 'file does not exist: %s' % output_file
+        
+        with codecs.open(output_file, 'w', 'utf-8') as outfile:
+            outfile.writelines(self.toString())
+        
+        return self
+    
     def getSquaredNorm(self):
         """
         calculate squared norm of feature values
@@ -161,6 +176,9 @@ if __name__ == '__main__':
     feat_vec1 += feat_vec1 * (0.1 - 1)
     print feat_vec1.toString()
     
+    #print feat_vec1.save('log.txt')
+    
+    print feat_vec1.load('log.txt')
     
     
     
