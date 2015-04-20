@@ -530,8 +530,8 @@ if __name__ == '__main__':
     #fio.NewPath(datadir)
     #getStudentResponses4Maui(excelfile, datadir)
     
-    #getStudentResponses4Senna(excelfile, sennadir)
+    getStudentResponses4Senna(excelfile, sennadir)
     
     #getCandidatePhrases("../data/phrases/")
     
-    getNumberofCandiatePhrase(excelfile, "../data/phrases/")
+    #getNumberofCandiatePhrase(excelfile, "../data/phrases/")

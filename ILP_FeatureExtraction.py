@@ -20,6 +20,7 @@ studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 featureext = ".f"
 tfidfext = ".tfidf"
+posext = '.pos'
 
 titledir = "E:/Dropbox/reflection project_LRDC/250 Sp11 CLIC All Lecs .2G/titles/"
 
@@ -108,6 +109,18 @@ def extract_TFIDF_Rank(prefix, ngram, topK=10):
         
         if i< topK: feat_vec['tfidf_rank=' + str(i)] = 1.0
         
+        dict[bigram] = feat_vec
+        
+    return dict
+
+def extract_Pos(prefix, ngram):
+    BigramPos = fio.LoadDict(prefix + posext, str)
+    
+    dict = {}
+    for bigram, pos in BigramPos.items():
+        
+        feat_vec = FeatureVector()
+        feat_vec['pos='+pos] = 1.0
         dict[bigram] = feat_vec
         
     return dict
@@ -282,7 +295,9 @@ def extract_single(prefix, ngram, output, titlefile=None):
     tf_dict = extract_TF(prefix, ngram)
     tf_rank_dict = extract_TF_Rank(prefix, ngram)
     idftf_dict = extract_TFIDF(prefix, ngram)
-    idftf_dict_rank = extract_TFIDF_Rank(prefix, ngram)
+    idftf_rank_dict = extract_TFIDF_Rank(prefix, ngram)
+    
+    pos_dict = extract_Pos(prefix, ngram)
     
     one_dict = extract_one(prefix, ngram)  
     stop_ratio_dict = extract_nonstop_ratio(prefix, ngram)    
@@ -298,7 +313,9 @@ def extract_single(prefix, ngram, output, titlefile=None):
     data = add_feature_set(data, tf_dict)
     data = add_feature_set(data, tf_rank_dict)
     data = add_feature_set(data, idftf_dict)
-    data = add_feature_set(data, idftf_dict_rank)
+    data = add_feature_set(data, idftf_rank_dict)
+    
+    data = add_feature_set(data, pos_dict)
     
     data = add_feature_set(data, stop_ratio_dict)
     data = add_feature_set(data, ngram_length_dict)
