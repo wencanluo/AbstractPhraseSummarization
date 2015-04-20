@@ -15,6 +15,8 @@ stopwordswithpunctuations = stopwords + punctuations
 stopwords = stopwords + punctuations
 stopwords = [porter.getStemming(w) for w in stopwords]
 
+#fio.SaveList(stopwords, "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words_stemmed.txt")
+
 #Stemming
 phraseext = ".key" #a list
 studentext = ".keys.source" #json

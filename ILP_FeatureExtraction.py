@@ -19,6 +19,7 @@ phraseext = ".key" #a list
 studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 featureext = ".f"
+tfidfext = ".tfidf"
 
 titledir = "E:/Dropbox/reflection project_LRDC/250 Sp11 CLIC All Lecs .2G/titles/"
 
@@ -46,11 +47,11 @@ def extract_TF(prefix, ngram):
         bigramname = bigrams[bigram]
         
         feat_vec = FeatureVector()
-        if tf == 0: feat_vec['term_freq_0'] = 1.0
-        if tf >= 1: feat_vec['term_freq_1'] = 1.0   
-        if tf >= 2: feat_vec['term_freq_2'] = 1.0  
-        if tf >= 5: feat_vec['term_freq_5'] = 1.0   
-        if tf >= 10: feat_vec['term_freq_10'] = 1.0
+        if tf == 0: feat_vec['term_freq=0'] = 1.0
+        if tf >= 1: feat_vec['term_freq>=1'] = 1.0   
+        if tf >= 2: feat_vec['term_freq>=2'] = 1.0  
+        if tf >= 5: feat_vec['term_freq>=5'] = 1.0   
+        if tf >= 10: feat_vec['term_freq>=10'] = 1.0
 
         dict[bigramname] = feat_vec
         
@@ -70,9 +71,44 @@ def extract_TF_Rank(prefix, ngram, topK=10):
         
         feat_vec = FeatureVector()
         
-        if i< topK: feat_vec['tf_rank_' + str(i)] = 1.0
+        if i< topK: feat_vec['tf_rank=' + str(i)] = 1.0
         
         dict[bigramname] = feat_vec
+        
+    return dict
+
+def extract_TFIDF(prefix, ngram):
+    BigramTFIDF = fio.LoadDict(prefix + tfidfext, float)
+    
+    dict = {}
+    for bigram, tfidf in BigramTFIDF.items():
+        
+        feat_vec = FeatureVector()
+        if tfidf >= 0.5: feat_vec['tfidf>=0.5'] = 1.0
+        if tfidf >= 0.1: feat_vec['tfidf>=0.1'] = 1.0
+        if tfidf >= 0.05: feat_vec['tfidf>=0.05'] = 1.0
+        if tfidf >= 0.04: feat_vec['tfidf>=0.04'] = 1.0
+        if tfidf >= 0.03: feat_vec['tfidf>=0.03'] = 1.0
+        if tfidf >= 0.02: feat_vec['tfidf>=0.02'] = 1.0
+        if tfidf >= 0.01: feat_vec['tfidf>=0.01'] = 1.0
+        if tfidf >= 0.005: feat_vec['tfidf>=0.005'] = 1.0
+        if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
+
+        dict[bigram] = feat_vec
+        
+    return dict
+
+def extract_TFIDF_Rank(prefix, ngram, topK=10):
+    BigramTFIDF = fio.LoadDict(prefix + tfidfext, float)
+    keys = sorted(BigramTFIDF, key=BigramTFIDF.get, reverse=True)
+    
+    dict = {}
+    for i, bigram in enumerate(keys):
+        feat_vec = FeatureVector()
+        
+        if i< topK: feat_vec['tfidf_rank=' + str(i)] = 1.0
+        
+        dict[bigram] = feat_vec
         
     return dict
 
@@ -141,8 +177,8 @@ def extract_nonstop_ratio(prefix, ngram):
         feat_vec = FeatureVector()
         r = get_nonstop_ratio(bigramname)
         
-        if r <= 0.5: feat_vec['non_stop_ratio_0.5'] = 1.0
-        if r > 0.5: feat_vec['non_stop_ratio_1'] = 1.0 
+        if r <= 0.5: feat_vec['non_stop_ratio<=0.5'] = 1.0
+        if r > 0.5: feat_vec['non_stop_ratio>0.5'] = 1.0 
         
         dict[bigramname] = feat_vec
         
@@ -187,31 +223,31 @@ def extract_frequency_of_words(prefix, ngram):
             n1 = wf_dict[words[0]]
             n2 = wf_dict[words[1]]
             
-            if n1 == 0:feat_vec['freq_firstw_0'] = 1.0 
-            if n1 >= 1: feat_vec['freq_firstw_1'] = 1.0 
-            if n1 >= 2: feat_vec['freq_firstw_2'] = 1.0 
-            if n1 >= 3: feat_vec['freq_firstw_3'] = 1.0 
-            if n1 >= 4: feat_vec['freq_firstw_4'] = 1.0 
-            if n1 >= 5: feat_vec['freq_firstw_5'] = 1.0 
-            if n1 >= 10: feat_vec['freq_firstw_10'] = 1.0 
+            if n1 == 0:feat_vec['freq_firstw=0'] = 1.0 
+            if n1 >= 1: feat_vec['freq_firstw>=1'] = 1.0 
+            if n1 >= 2: feat_vec['freq_firstw>=2'] = 1.0 
+            if n1 >= 3: feat_vec['freq_firstw>=3'] = 1.0 
+            if n1 >= 4: feat_vec['freq_firstw>=4'] = 1.0 
+            if n1 >= 5: feat_vec['freq_firstw>=5'] = 1.0 
+            if n1 >= 10: feat_vec['freq_firstw>=10'] = 1.0 
             
-            if n2 == 0: feat_vec['freq_secondw_0'] = 1.0 
-            if n2 >= 1: feat_vec['freq_secondw_1'] = 1.0 
-            if n2 >= 2: feat_vec['freq_secondw_2'] = 1.0 
-            if n2 >= 3: feat_vec['freq_secondw_3'] = 1.0 
-            if n2 >= 4: feat_vec['freq_secondw_4'] = 1.0 
-            if n2 >= 5: feat_vec['freq_secondw_5'] = 1.0 
-            if n2 >= 10: feat_vec['freq_secondw_10'] = 1.0 
+            if n2 == 0: feat_vec['freq_secondw=0'] = 1.0 
+            if n2 >= 1: feat_vec['freq_secondw>=1'] = 1.0 
+            if n2 >= 2: feat_vec['freq_secondw>=2'] = 1.0 
+            if n2 >= 3: feat_vec['freq_secondw>=3'] = 1.0 
+            if n2 >= 4: feat_vec['freq_secondw>=4'] = 1.0 
+            if n2 >= 5: feat_vec['freq_secondw>=5'] = 1.0 
+            if n2 >= 10: feat_vec['freq_secondw>=10'] = 1.0 
         else:#unigram
             n1 = wf_dict[words[0]]
             
-            if n1 == 0: feat_vec['freq_firstw_0'] = 1.0 
-            if n1 >= 1: feat_vec['freq_firstw_1'] = 1.0 
-            if n1 >= 2: feat_vec['freq_firstw_2'] = 1.0 
-            if n1 >= 3: feat_vec['freq_firstw_3'] = 1.0 
-            if n1 >= 4: feat_vec['freq_firstw_4'] = 1.0 
-            if n1 >= 5: feat_vec['freq_firstw_5'] = 1.0 
-            if n1 >= 10: feat_vec['freq_firstw_10'] = 1.0 
+            if n1 == 0: feat_vec['freq_firstw=0'] = 1.0 
+            if n1 >= 1: feat_vec['freq_firstw>=1'] = 1.0 
+            if n1 >= 2: feat_vec['freq_firstw>=2'] = 1.0 
+            if n1 >= 3: feat_vec['freq_firstw>=3'] = 1.0 
+            if n1 >= 4: feat_vec['freq_firstw>=4'] = 1.0 
+            if n1 >= 5: feat_vec['freq_firstw>=5'] = 1.0 
+            if n1 >= 10: feat_vec['freq_firstw>=10'] = 1.0 
             
         dict[bigramname] = feat_vec
         
@@ -225,8 +261,8 @@ def extract_ngram_length(prefix, ngram):
         bigramname = bigrams[bigram]
         
         feat_vec = FeatureVector()
-        if len(bigramname.split()) == 1: feat_vec['ngram_1'] = 1.0 
-        if len(bigramname.split()) == 2: feat_vec['ngram_2'] = 1.0 
+        if len(bigramname.split()) == 1: feat_vec['ngram=1'] = 1.0 
+        if len(bigramname.split()) == 2: feat_vec['ngram=2'] = 1.0 
         
         dict[bigramname] = feat_vec
     return dict
@@ -244,14 +280,15 @@ def extract_single(prefix, ngram, output, titlefile=None):
     data = {}
     
     tf_dict = extract_TF(prefix, ngram)
-    tf_rank_dict = extract_TF_Rank(prefix, ngram)  
+    tf_rank_dict = extract_TF_Rank(prefix, ngram)
+    idftf_dict = extract_TFIDF(prefix, ngram)
+    idftf_dict_rank = extract_TFIDF_Rank(prefix, ngram)
+    
     one_dict = extract_one(prefix, ngram)  
     stop_ratio_dict = extract_nonstop_ratio(prefix, ngram)    
     ngram_length_dict = extract_ngram_length(prefix, ngram)
     frequency_of_words_dict = extract_frequency_of_words(prefix, ngram)
-    if "all" in frequency_of_words_dict:
-        print 'frequency_of_words_dict'
-        
+
     if titlefile != None:
         title_dict = extract_title(prefix, ngram, titlefile)
     else:
@@ -260,6 +297,9 @@ def extract_single(prefix, ngram, output, titlefile=None):
     #data = add_feature_set(data, one_dict)
     data = add_feature_set(data, tf_dict)
     data = add_feature_set(data, tf_rank_dict)
+    data = add_feature_set(data, idftf_dict)
+    data = add_feature_set(data, idftf_dict_rank)
+    
     data = add_feature_set(data, stop_ratio_dict)
     data = add_feature_set(data, ngram_length_dict)
     data = add_feature_set(data, title_dict)
