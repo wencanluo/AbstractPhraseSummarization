@@ -263,6 +263,9 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
             
             if bigramname in RefBigramDict:
                 Weights += vec
+            else:
+                Weights = Weights.sub_cutoff(vec*0.1)
+                
     return Weights
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):

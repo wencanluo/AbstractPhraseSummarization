@@ -21,8 +21,13 @@ countext = ".dict"  #a dictionary
 featureext = ".f"
 tfidfext = ".tfidf"
 posext = '.pos'
+inNPext = '.inNP'
 
 titledir = "E:/Dropbox/reflection project_LRDC/250 Sp11 CLIC All Lecs .2G/titles/"
+
+prompts = {'POI':'Describe what you found most interesting in today\'s class.',
+           'MP':'Describe what was confusing or needed more detail.',
+           'LP':'Describe what you learned about how you learn.'}
 
 def getNgram(prefix, ngram):
     phrases, bigrams, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
@@ -125,6 +130,140 @@ def extract_Pos(prefix, ngram):
         
     return dict
 
+def extract_inNP(prefix, ngram):
+    BigraminNP = fio.LoadDict(prefix + inNPext, str)
+    
+    dict = {}
+    for bigram, inNP in BigraminNP.items():
+        
+        feat_vec = FeatureVector()
+        if inNP == '1': feat_vec['in_NP'] = 1.0
+        
+        dict[bigram] = feat_vec
+        
+    return dict
+
+def extract_averageSentenceLength(prefix, ngram):
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    
+    #get word count of phrases
+    PhraseBeta = ILP.getWordCounts(IndexPhrase)
+    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
+    
+    dict = {}
+    for bigram, phrases in BigramPhrase.items():
+        bigramname = IndexBigram[bigram]
+        
+        feat_vec = FeatureVector()
+        
+        ave = 0
+        for p in phrases:
+            ave += PhraseBeta[p]
+        ave /= len(phrases)
+        
+        if ave <= 2: feat_vec['ave_sen_length<=2'] = 1.0
+        if ave > 2 and ave <= 4: feat_vec['ave_sen_length=3-4'] = 1.0
+        if ave > 4 and ave <= 6: feat_vec['ave_sen_length=5-6'] = 1.0
+        if ave > 6 and ave <= 8: feat_vec['ave_sen_length>=7-8'] = 1.0
+        if ave > 8 and ave <= 10: feat_vec['ave_sen_length>=9-10'] = 1.0
+        if ave > 10 and ave <= 15: feat_vec['ave_sen_length>=11-15'] = 1.0
+        if ave > 15 and ave <= 20: feat_vec['ave_sen_length>=16-20'] = 1.0
+        if ave > 20 and ave <= 25: feat_vec['ave_sen_length>=21-25'] = 1.0
+        if ave > 25 and ave <= 30: feat_vec['ave_sen_length>=26-30'] = 1.0
+        if ave > 30: feat_vec['ave_sen_length>=30'] = 1.0
+        
+        dict[bigramname] = feat_vec
+        
+    return dict
+
+def getType(prefix):
+    begin_p = prefix.rfind('/')
+    name = prefix[begin_p+1:]
+    end_p = name.find('.')
+    type = name[:end_p]
+    return type 
+
+def getLexiconOverlap(s1, s2):
+    tokens1 = s1.split()
+    tokens2 = s2.split()
+    
+    unigram1 = ILP.getNgramTokenized(tokens1, 1, NoStopWords=True)
+    unigram2 = ILP.getNgramTokenized(tokens2, 1, NoStopWords=True)
+    
+    overlap = 0
+    for w in unigram1:
+        if w in unigram2:
+            overlap += 1
+    return overlap
+    
+def extract_averageSentenceSimilarity2promp(prefix, ngram):
+    type = getType(prefix)
+    
+    promp = prompts[type] 
+    
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    
+    #get word count of phrases
+    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
+    
+    dict = {}
+    for bigram, phrases in BigramPhrase.items():
+        bigramname = IndexBigram[bigram]
+        
+        feat_vec = FeatureVector()
+        
+        ave = 0
+        for p in phrases:
+            ave += getLexiconOverlap(IndexPhrase[p], promp)
+            
+        ave /= len(phrases)
+        
+        if ave == 0: feat_vec['ave_sen_sim=0'] = 1.0
+        if ave == 1: feat_vec['ave_sen_sim=1'] = 1.0
+        if ave == 2: feat_vec['ave_sen_sim=2'] = 1.0
+        if ave == 3: feat_vec['ave_sen_sim=3'] = 1.0
+        if ave == 4: feat_vec['ave_sen_sim=4'] = 1.0
+        if ave > 4 and ave <= 10: feat_vec['ave_sen_sim=5-10'] = 1.0
+        if ave > 10: feat_vec['ave_sen_sim>10'] = 1.0
+        
+        dict[bigramname] = feat_vec
+        
+    return dict
+    
+def extract_averageSentenceLength_rank(prefix, ngram, topK=10):
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    
+    #get word count of phrases
+    PhraseBeta = ILP.getWordCounts(IndexPhrase)
+    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
+    
+    LengthDict = {}
+    
+    dict = {}
+    for bigram, phrases in BigramPhrase.items():
+        bigramname = IndexBigram[bigram]
+        
+        feat_vec = FeatureVector()
+        
+        ave = 0
+        for p in phrases:
+            ave += PhraseBeta[p]
+        ave /= len(phrases)
+        
+        LengthDict[bigramname] = ave
+    
+    keys = sorted(LengthDict, key=LengthDict.get, reverse=True)
+    
+    dict = {}
+    for i, bigramname in enumerate(keys):
+        feat_vec = FeatureVector()
+        
+        if i< topK: feat_vec['ave_sen_length_rank=' + str(i)] = 1.0
+        
+        dict[bigramname] = feat_vec
+        
+    return dict
+    
 def extract_title(prefix, ngram, titlefile):
     phrases, bigrams, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
     titles = Survey.getTitle(titlefile)
@@ -298,6 +437,12 @@ def extract_single(prefix, ngram, output, titlefile=None):
     idftf_rank_dict = extract_TFIDF_Rank(prefix, ngram)
     
     pos_dict = extract_Pos(prefix, ngram)
+    inNP_dict = extract_inNP(prefix, ngram)
+    
+    ave_length_dict = extract_averageSentenceLength(prefix, ngram)
+    ave_length_dict_rank = extract_averageSentenceLength_rank(prefix, ngram)
+    
+    ave_sim_dict = extract_averageSentenceSimilarity2promp(prefix, ngram)
     
     one_dict = extract_one(prefix, ngram)  
     stop_ratio_dict = extract_nonstop_ratio(prefix, ngram)    
@@ -316,6 +461,11 @@ def extract_single(prefix, ngram, output, titlefile=None):
     data = add_feature_set(data, idftf_rank_dict)
     
     data = add_feature_set(data, pos_dict)
+    data = add_feature_set(data, inNP_dict)
+    data = add_feature_set(data, ave_length_dict)
+    data = add_feature_set(data, ave_length_dict_rank)
+    
+    data = add_feature_set(data, ave_sim_dict)
     
     data = add_feature_set(data, stop_ratio_dict)
     data = add_feature_set(data, ngram_length_dict)
