@@ -454,23 +454,22 @@ def extract_single(prefix, ngram, output, titlefile=None):
     else:
         title_dict = {}
         
-    #data = add_feature_set(data, one_dict)
-    data = add_feature_set(data, tf_dict)
+    #data = add_feature_set(data, tf_dict)
     data = add_feature_set(data, tf_rank_dict)
-    data = add_feature_set(data, idftf_dict)
+    #data = add_feature_set(data, idftf_dict)
     data = add_feature_set(data, idftf_rank_dict)
     
     data = add_feature_set(data, pos_dict)
     data = add_feature_set(data, inNP_dict)
-    data = add_feature_set(data, ave_length_dict)
+    #data = add_feature_set(data, ave_length_dict)
     data = add_feature_set(data, ave_length_dict_rank)
     
     data = add_feature_set(data, ave_sim_dict)
     
     data = add_feature_set(data, stop_ratio_dict)
-    data = add_feature_set(data, ngram_length_dict)
+    #data = add_feature_set(data, ngram_length_dict)
     data = add_feature_set(data, title_dict)
-    data = add_feature_set(data, frequency_of_words_dict)
+    #data = add_feature_set(data, frequency_of_words_dict)
     
     with open(output, 'w') as outfile:
         json.dump(data, outfile, indent=2)
@@ -494,7 +493,7 @@ def extact(ilpdir, np, ngram):
             extract_single(prefix, ngram, feature_file, titlefile)
                     
 if __name__ == '__main__':   
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     
     extact(ilpdir, np = 'sentence', ngram=[1,2])
     

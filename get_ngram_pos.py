@@ -70,7 +70,7 @@ def extact_pos(datadir, sennadatadir, np, ngram):
             fio.SaveDict(dict, pos_file, SortbyValueflag = True)
                   
 if __name__ == '__main__':   
-    datadir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
+    datadir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     
     sennadatadir = "../../data/senna/"
     

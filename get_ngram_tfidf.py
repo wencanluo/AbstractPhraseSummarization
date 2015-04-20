@@ -65,6 +65,6 @@ def extact_tfidf(datadir, np, ngram):
             fio.SaveDict(dict, tfidf_file, SortbyValueflag = True)
    
 if __name__ == '__main__':   
-    datadir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
+    datadir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     
     extact_tfidf(datadir, np = 'sentence', ngram=[1,2])

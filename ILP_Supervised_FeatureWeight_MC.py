@@ -10,6 +10,7 @@ import NumpyWrapper
 import ILP_baseline as ILP
 import ILP_SVD
 import ILP_MatrixFramework_SVD
+import ILP_Supervised_FeatureWeight
 
 from feat_vec import FeatureVector
 
@@ -196,18 +197,6 @@ def ILP_Supervised(Weights, prefix, svdfile, svdpharefile, L, Lambda, ngram, Mal
     output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
-def getLastIndex(BigramIndex):
-    maxI = 1
-    for bigram in BigramIndex.values():
-        if int(bigram[1:]) > maxI:
-            maxI = int(bigram[1:])
-    return maxI
-
-def InitializeWeight():
-    # the weights of the feature functions are 0
-    Weights = FeatureVector()
-    return Weights
-
 def ExtractRefSummaryPrefix(prefix):
     key = prefix.rfind('.')
     if key==-1:
@@ -245,44 +234,6 @@ def generate_randomsummary(prefix, L, sumfile):
             break
     
     fio.SaveList(summaries, sumfile)
-
-def UpdateWeight(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter, featurefile):
-    ILP_Supervised(Weights, prefix, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter)
-    
-    #read the summary, update the weight 
-    sumfile = prefix + '.L' + str(L) + "." + str(Lambda) + '.summary'
-    
-    if len(fio.ReadFile(sumfile)) == 0:#no summary is generated, using a random baseline
-        generate_randomsummary(prefix, L, sumfile)
-    
-    _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(sumfile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
-    
-    reffile = ExtractRefSummaryPrefix(prefix) + '.ref.summary'
-    _, IndexRefBigram, SummaryRefBigram = ILP.getPhraseBigram(reffile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
-    
-    RefBigramDict = getBigramDict(IndexRefBigram, SummaryRefBigram)
-    
-    #update the weights
-    global FeatureVecU
-    if FeatureVecU == {}:
-        FeatureVecU = LoadFeatureSet(featurefile)
-    
-    i = getLastIndex(BigramIndex)
-    
-    #if the generated summary matches the golden summary, update the bigrams
-    
-    #get the bigrams
-    #{sentence:bigrams}
-    for summary, bigrams in SummaryBigram.items():
-        for bigram in bigrams:
-            bigramname = IndexBigram[bigram]
-            if bigramname not in FeatureVecU: continue
-            
-            vec = FeatureVector(FeatureVecU[bigramname])
-            
-            if bigramname in RefBigramDict:
-                Weights += vec
-    return Weights
 
 def TrainILP(train, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
     Weights = {} #{Index:Weight}
@@ -330,11 +281,11 @@ def TrainILP(train, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, feat
                     print "first round"
                     firstRound = True
 
-                    Weights = InitializeWeight()
+                    Weights = ILP_Supervised_FeatureWeight.InitializeWeight()
                  
                 if not firstRound:
                     print "update weight, round ", round
-                    UpdateWeight(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter, featurefile)
+                    ILP_Supervised_FeatureWeight.UpdateWeight(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter, featurefile)
                 
         with open(weightfile, 'w') as fout:
              json.dump(Weights, fout, encoding="utf-8",indent=2)

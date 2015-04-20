@@ -52,7 +52,7 @@ def extact_inNP(datadir, sennadatadir, np, ngram):
             fio.SaveDict(dict, np_file, SortbyValueflag = True)
                   
 if __name__ == '__main__':   
-    datadir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
+    datadir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     
     sennadatadir = "../../data/senna/"
     

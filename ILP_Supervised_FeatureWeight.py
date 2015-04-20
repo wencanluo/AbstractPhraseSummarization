@@ -263,8 +263,9 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
             
             if bigramname in RefBigramDict:
                 Weights += vec
-            else:
-                Weights = Weights.sub_cutoff(vec*0.1)
+            #else:
+                #Weights = Weights.sub_cutoff(vec)
+                #Weights -= vec
                 
     return Weights
 
