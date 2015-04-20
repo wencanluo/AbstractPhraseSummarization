@@ -72,7 +72,23 @@ class FeatureVector(dict):
             self += -1.0 * other
         
         return self
-
+    
+    def sub_cutoff(self, other, cutoff=0):
+        """
+        overload operator '-=', merge keys in both vectors
+        """
+        # handle both FeatureVector and CompositeFeatureVector
+        if type(other) == FeatureVector: # handle FeatureVector
+            for k, v in other.iteritems():
+                self[k] = max(cutoff, self.get(k, 0.0) - v)
+        
+        if type(other) == CompositeFeatureVector: # handle CompositeFeatureVector
+            feat_vec, scaling = other.feat_vec, other.scaling
+            for k, v in feat_vec.iteritems():
+                self[k] = max(cutoff, self.get(k, 0.0) - v * scaling)
+        
+        return self
+    
     def __mul__(self, scaling):
         """
         overload operator '*'
@@ -168,17 +184,21 @@ class CompositeFeatureVector(object):
 
 if __name__ == '__main__':
     mydict1 = {('haha',):1, ('hehe',):2}
-    mydict2 = {('hoho',):10, ('hiahia',):4, ('hehe',):2}
+    mydict2 = {('hoho',):10, ('hiahia',):4, ('hehe',):2, ('lala',):1}
+    
     
     feat_vec1 = FeatureVector(mydict1)
     feat_vec2 = FeatureVector(mydict2)
-
-    feat_vec1 += feat_vec1 * (0.1 - 1)
-    print feat_vec1.toString()
+    
+    print feat_vec1.sub_cutoff(feat_vec2)
+    
+    #feat_vec1 += feat_vec2 * (0.1 - 1)
+    #print feat_vec1.toString()
     
     #print feat_vec1.save('log.txt')
     
-    print feat_vec1.load('log.txt')
+    #print feat_vec1.load('log.txt')
+    
     
     
     

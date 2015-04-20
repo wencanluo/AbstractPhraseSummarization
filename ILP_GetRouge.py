@@ -193,8 +193,9 @@ if __name__ == '__main__':
 #             for np in ['syntax', ]: #'chunk'
 #                 getRouge(ilpdir, np, L, ilpdir, Lambda)
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/" 
+    #ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/" 
     #ilpdir = "../../data/ILP_Sentence_Supervised/" 
+    ilpdir = "../../data/ILP_Sentence_Supervised_MC/" 
     
     for Lambda in [1.0]:
         #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
