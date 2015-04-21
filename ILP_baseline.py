@@ -45,6 +45,8 @@ def WriteConstraint1(PhraseBeta, L):
     for phrase, beta in PhraseBeta.items():
         constraint.append(" ".join([str(beta), phrase]))
     print "  ", " + ".join(constraint), "<=", L
+    #print "  ", " + ".join(constraint), ">=", L-10
+    
 
 def WriteConstraint2(BigramPhrase):
     #$\sum_{j=1} {y_j Occ_{ij}} \ge x_i$

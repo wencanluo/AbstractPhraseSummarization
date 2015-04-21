@@ -23,16 +23,13 @@ featureext = ".f"
 
 ngramTag = "___"
 
-global FeatureVecU
-FeatureVecU = {}
-
 def LoadFeatureSet(featurename):
     with open(featurename, 'r') as fin:
         featureV = json.load(fin)
         
     return featureV
     
-def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
+def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
@@ -143,7 +140,7 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=Fals
         
     return IndexPhrase, IndexBigram, PhraseBigram
         
-def ILP_Supervised(Weights, prefix, L, Lambda, ngram, MalformedFlilter):
+def ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
@@ -169,8 +166,10 @@ def ILP_Supervised(Weights, prefix, L, Lambda, ngram, MalformedFlilter):
     #get {student:weight0}
     StudentGamma = ILP.getStudentWeight_One(StudentPhrase)
     
+    FeatureVecU = LoadFeatureSet(featurefile)
+    
     lpfile = prefix
-    formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU)
     
     m = ILP.SloveILP(lpfile)
     
@@ -223,19 +222,22 @@ def generate_randomsummary(prefix, L, sumfile):
         if length <= L:
             summaries.append(line)
         else:
-            break
+            length -= len(line.split())
     
     fio.SaveList(summaries, sumfile)
 
 def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, featurefile):
-    ILP_Supervised(Weights, prefix, L, Lambda, ngram, MalformedFlilter)
+    ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter)
     
     #read the summary, update the weight 
     sumfile = prefix + '.L' + str(L) + "." + str(Lambda) + '.summary'
     
-    if len(fio.ReadFile(sumfile)) == 0:#no summary is generated, using a random baseline
+    if len(fio.ReadFile(sumfile)) == 0:#no summary is generated, using a random baseline      
         generate_randomsummary(prefix, L, sumfile)
     
+    if len(fio.ReadFile(sumfile)) == 0:
+        debug = 1
+        
     _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(sumfile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     
     reffile = ExtractRefSummaryPrefix(prefix) + '.ref.summary'
@@ -244,9 +246,7 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
     RefBigramDict = getBigramDict(IndexRefBigram, SummaryRefBigram)
     
     #update the weights
-    global FeatureVecU
-    if FeatureVecU == {}:
-        FeatureVecU = LoadFeatureSet(featurefile)
+    FeatureVecU = LoadFeatureSet(featurefile)
     
     i = getLastIndex(BigramIndex)
     
@@ -254,19 +254,46 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
     
     #get the bigrams
     #{sentence:bigrams}
+    
+    positve = []
+    negative = []
     for summary, bigrams in SummaryBigram.items():
         for bigram in bigrams:
             bigramname = IndexBigram[bigram]
-            if bigramname not in FeatureVecU: continue
-            
-            vec = FeatureVector(FeatureVecU[bigramname])
+            if bigramname not in FeatureVecU: 
+                print bigramname
+                continue
             
             if bigramname in RefBigramDict:
-                Weights += vec
-            #else:
+                positve.append(bigramname)
+            else:
                 #Weights = Weights.sub_cutoff(vec)
-                #Weights -= vec
-                
+                negative.append(bigramname)
+    
+    #get the feature set
+    positive_feature_set = FeatureVector()
+    for bigram in positve:
+        vec = FeatureVector(FeatureVecU[bigram])
+        positive_feature_set += vec
+    for k, v in positive_feature_set.iteritems():
+        positive_feature_set[k] = 1.0
+    
+    negative_feature_set = FeatureVector()
+    for bigram in negative:
+        vec = FeatureVector(FeatureVecU[bigram])
+        negative_feature_set += vec
+    for k, v in negative_feature_set.iteritems():
+        negative_feature_set[k] = 1.0
+    
+    print "positive", len(positive_feature_set)
+    print "negative", len(negative_feature_set)
+    
+    if len(negative_feature_set) == 0:
+        debug = 1
+    #feature update
+    Weights += positive_feature_set
+    #Weights -= negative_feature_set
+    
     return Weights
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
@@ -326,7 +353,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
         #fio.SaveDict(Weights, weightfile, True)
         #fio.SaveDict(BigramIndex, bigramfile)
 
-def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
+def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
     Weights = {}
     BigramIndex = {}
     
@@ -354,12 +381,14 @@ def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
         for type in ['POI', 'MP', 'LP']:
             prefix = dir + type + "." + np
             print "Test: ", prefix
-            ILP_Supervised(Weights, prefix, L, Lambda, ngram, MalformedFlilter)
+            
+            featurefile = svddir + str(week) + '/' + type + featureext
+            ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter)
 
 def ILP_CrossValidation(ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
     for train, test in LeaveOneLectureOutPermutation():
         TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir)
-        TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter)
+        TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir)
 
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
@@ -388,7 +417,8 @@ if __name__ == '__main__':
     for Lambda in [1.0]:
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [30]:
-             for np in ['sentence']: #'chunk
+             for np in ['sentence']: #'chunk\
+                 #for iter in range(50):
                  ILP_CrossValidation(ilpdir, np, L, Lambda, ngrams, MalformedFlilter, svddir)
     
     print "done"

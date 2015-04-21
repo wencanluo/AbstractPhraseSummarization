@@ -77,7 +77,8 @@ def extract_TF_Rank(prefix, ngram, topK=10):
         
         feat_vec = FeatureVector()
         
-        if i< topK: feat_vec['tf_rank=' + str(i)] = 1.0
+        for k in range(i, topK):
+            feat_vec['tf_rank<=' + str(k)] = 1.0
         
         dict[bigramname] = feat_vec
         
@@ -112,7 +113,8 @@ def extract_TFIDF_Rank(prefix, ngram, topK=10):
     for i, bigram in enumerate(keys):
         feat_vec = FeatureVector()
         
-        if i< topK: feat_vec['tfidf_rank=' + str(i)] = 1.0
+        for k in range(i, topK): 
+            feat_vec['tfidf_rank<=' + str(k)] = 1.0
         
         dict[bigram] = feat_vec
         
@@ -219,11 +221,11 @@ def extract_averageSentenceSimilarity2promp(prefix, ngram):
         ave /= len(phrases)
         
         if ave == 0: feat_vec['ave_sen_sim=0'] = 1.0
-        if ave == 1: feat_vec['ave_sen_sim=1'] = 1.0
-        if ave == 2: feat_vec['ave_sen_sim=2'] = 1.0
-        if ave == 3: feat_vec['ave_sen_sim=3'] = 1.0
-        if ave == 4: feat_vec['ave_sen_sim=4'] = 1.0
-        if ave > 4 and ave <= 10: feat_vec['ave_sen_sim=5-10'] = 1.0
+        if ave <= 1: feat_vec['ave_sen_sim<=1'] = 1.0
+        if ave <= 2: feat_vec['ave_sen_sim<=2'] = 1.0
+        if ave <= 3: feat_vec['ave_sen_sim<=3'] = 1.0
+        if ave <= 4: feat_vec['ave_sen_sim<=4'] = 1.0
+        if ave <= 10: feat_vec['ave_sen_sim<=10'] = 1.0
         if ave > 10: feat_vec['ave_sen_sim>10'] = 1.0
         
         dict[bigramname] = feat_vec
@@ -258,7 +260,8 @@ def extract_averageSentenceLength_rank(prefix, ngram, topK=10):
     for i, bigramname in enumerate(keys):
         feat_vec = FeatureVector()
         
-        if i< topK: feat_vec['ave_sen_length_rank=' + str(i)] = 1.0
+        for k in range(i, topK): 
+            feat_vec['ave_sen_length_rank=' + str(k)] = 1.0
         
         dict[bigramname] = feat_vec
         
@@ -454,22 +457,23 @@ def extract_single(prefix, ngram, output, titlefile=None):
     else:
         title_dict = {}
         
-    #data = add_feature_set(data, tf_dict)
+    data = add_feature_set(data, tf_dict)
+    data = add_feature_set(data, idftf_dict)
+    data = add_feature_set(data, ave_length_dict)
+    data = add_feature_set(data, ngram_length_dict)
+    data = add_feature_set(data, frequency_of_words_dict)
+    
     data = add_feature_set(data, tf_rank_dict)
-    #data = add_feature_set(data, idftf_dict)
     data = add_feature_set(data, idftf_rank_dict)
     
     data = add_feature_set(data, pos_dict)
     data = add_feature_set(data, inNP_dict)
-    #data = add_feature_set(data, ave_length_dict)
     data = add_feature_set(data, ave_length_dict_rank)
     
     data = add_feature_set(data, ave_sim_dict)
     
     data = add_feature_set(data, stop_ratio_dict)
-    #data = add_feature_set(data, ngram_length_dict)
     data = add_feature_set(data, title_dict)
-    #data = add_feature_set(data, frequency_of_words_dict)
     
     with open(output, 'w') as outfile:
         json.dump(data, outfile, indent=2)
