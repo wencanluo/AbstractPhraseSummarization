@@ -15,6 +15,9 @@ from feat_vec import FeatureVector
 
 from ILP_baseline import stopwords
 
+nonwords = [line.lower().strip() for line in fio.ReadFile("../../data/wordsEn.txt")]
+nonwords = [porter.getStemming(w) for w in nonwords]
+
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
@@ -322,6 +325,16 @@ def get_nonstop_ratio(bigram):
     
     return 1-stop_wc/len(words)
 
+def get_word_ratio(bigram):
+    words = bigram.split()
+    
+    stop_wc = 0.0
+    for word in words:
+        if word in nonwords:
+            stop_wc = stop_wc + 1.0
+    
+    return 1-stop_wc/len(words)
+
 def extract_nonstop_ratio(prefix, ngram):
     phrases, bigrams, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
     
@@ -334,6 +347,23 @@ def extract_nonstop_ratio(prefix, ngram):
         
         if r <= 0.5: feat_vec['non_stop_ratio<=0.5'] = 1.0
         if r > 0.5: feat_vec['non_stop_ratio>0.5'] = 1.0 
+        
+        dict[bigramname] = feat_vec
+        
+    return dict
+
+def extract_word_ratio(prefix, ngram):
+    phrases, bigrams, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
+    
+    dict = {}
+    for bigram in bigrams:
+        bigramname = bigrams[bigram]
+        
+        feat_vec = FeatureVector()
+        r = get_word_ratio(bigramname)
+        
+        if r <= 0.5: feat_vec['word_ratio<=0.5'] = 1.0
+        if r > 0.5: feat_vec['word_ratio>0.5'] = 1.0 
         
         dict[bigramname] = feat_vec
         
@@ -448,7 +478,9 @@ def extract_single(prefix, ngram, output, titlefile=None):
     ave_sim_dict = extract_averageSentenceSimilarity2promp(prefix, ngram)
     
     one_dict = extract_one(prefix, ngram)  
-    stop_ratio_dict = extract_nonstop_ratio(prefix, ngram)    
+    stop_ratio_dict = extract_nonstop_ratio(prefix, ngram)
+    word_ratio_dict = extract_word_ratio(prefix, ngram)
+    
     ngram_length_dict = extract_ngram_length(prefix, ngram)
     frequency_of_words_dict = extract_frequency_of_words(prefix, ngram)
 
@@ -473,6 +505,7 @@ def extract_single(prefix, ngram, output, titlefile=None):
     data = add_feature_set(data, ave_sim_dict)
     
     data = add_feature_set(data, stop_ratio_dict)
+    data = add_feature_set(data, word_ratio_dict)
     data = add_feature_set(data, title_dict)
     
     with open(output, 'w') as outfile:
@@ -497,7 +530,7 @@ def extact(ilpdir, np, ngram):
             extract_single(prefix, ngram, feature_file, titlefile)
                     
 if __name__ == '__main__':   
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
     
     extact(ilpdir, np = 'sentence', ngram=[1,2])
     

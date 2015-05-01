@@ -146,7 +146,7 @@ def ILP_Supervised(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambd
     #get word count of phrases
     PhraseBeta = ILP.getWordCounts(IndexPhrase)
     
-    partialPhraseBigram, PartialBigramPhrase = ILP.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile)
+    partialPhraseBigram, PartialBigramPhrase = ILP.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
     
     #get {bigram:[phrase]} dictionary
     BigramPhrase = ILP.getBigramPhrase(PhraseBigram)

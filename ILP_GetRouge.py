@@ -195,8 +195,8 @@ if __name__ == '__main__':
     
     #ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/" 
     #ilpdir = "../../data/ILP_Sentence_Supervised/" 
-    #ilpdir = "../../data/ILP_Sentence_Supervised_MC/" 
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_MC/" 
+    #ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
     
     for Lambda in [1.0]:
         #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
@@ -211,4 +211,5 @@ if __name__ == '__main__':
 #             getRougeSplit(datadir, np, L, datadir, Lambda = None)
                           
     print "done"
+    
     
