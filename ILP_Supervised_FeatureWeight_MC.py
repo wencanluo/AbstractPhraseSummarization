@@ -7,7 +7,7 @@ import os
 import numpy
 import NumpyWrapper
 
-import ILP_baseline as ILP
+import ILP_baseline
 import ILP_SVD
 import ILP_MatrixFramework_SVD
 import ILP_Supervised_FeatureWeight
@@ -26,7 +26,7 @@ featureext = ".f"
 ngramTag = "___"
 
     
-def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix, FeatureVecU):
+def formulateProblem(bigrams, Lambda, Weights, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix, FeatureVecU):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
@@ -41,11 +41,6 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
             w = Weights.dot(fvec)
             objective.append(" ".join([str(w*Lambda), bigram]))
             
-    for student, grama in StudentGamma.items():
-        if Lambda==1:continue
-        
-        objective.append(" ".join([str(grama*(1-Lambda)), student]))
-    
     print "  ", " + ".join(objective)
     
     #write constraints
@@ -55,16 +50,12 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
     ILP_MatrixFramework_SVD.WriteConstraint2(partialBigramPhrase)
     
     ILP_MatrixFramework_SVD.WriteConstraint3(partialPhraseBigram)
-    
-    ILP_MatrixFramework_SVD.WriteConstraint4(StudentPhrase)
-    
+       
     indicators = []
     for bigram in partialBigramPhrase.keys():
         indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
-    for student in StudentGamma.keys():
-        indicators.append(student)
         
     #write Bounds
     print "Bounds"
@@ -102,7 +93,7 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=Fals
     newPhrases = []
     for phrase in phrases:
         if MalformedFlilter:
-            if ILP.isMalformed(phrase.lower()): 
+            if ILP_baseline.isMalformed(phrase.lower()): 
                 print phrase
             else:
                 newPhrases.append(phrase)
@@ -158,7 +149,7 @@ def ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambd
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix+phraseext, Ngram=ngram, MalformedFlilter=MalformedFlilter)
+    IndexPhrase, IndexBigram, PhraseBigram = ILP_baseline.getPhraseBigram(prefix+phraseext, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
@@ -166,30 +157,24 @@ def ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambd
     #BigramTheta = Weights #ILP.getBigramWeight_TF(PhraseBigram, phrases, prefix + countext) # return a dictionary
     
     #get word count of phrases
-    PhraseBeta = ILP.getWordCounts(IndexPhrase)
+    PhraseBeta = ILP_baseline.getWordCounts(IndexPhrase)
     
     #get {bigram:[phrase]} dictionary
-    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
+    BigramPhrase = ILP_baseline.getBigramPhrase(PhraseBigram)
     
     partialPhraseBigram, PartialBigramPhrase = ILP_MatrixFramework_SVD.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
-    
-    #get {student:phrase}
-    #sequence students, students = {index:student}
-    students, StudentPhrase = ILP.getStudentPhrase(IndexPhrase, prefix + studentext)
-    fio.SaveDict(students, prefix + ".student_index.dict")
-    
-    #get {student:weight0}
-    StudentGamma = ILP.getStudentWeight_One(StudentPhrase)
-    
+    fio.SaveDict2Json(partialPhraseBigram, prefix + ".partialPhraseBigram.dict")
+    fio.SaveDict2Json(PartialBigramPhrase, prefix + ".PartialBigramPhrase.dict")
+        
     FeatureVecU = ILP_Supervised_FeatureWeight.LoadFeatureSet(featurefile)
     
     lpfile = prefix
-    formulateProblem(IndexBigram, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile, FeatureVecU)
+    formulateProblem(IndexBigram, Lambda, Weights, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile, FeatureVecU)
     
-    m = ILP.SloveILP(lpfile)
+    m = ILP_baseline.SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
-    ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
+    ILP_baseline.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
 def UpdateWeight(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter, featurefile):
     ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter)
@@ -200,10 +185,10 @@ def UpdateWeight(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambda,
     if len(fio.ReadFile(sumfile)) == 0:#no summary is generated, using a random baseline
         ILP_Supervised_FeatureWeight.generate_randomsummary(prefix, L, sumfile)
     
-    _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(sumfile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
+    _, IndexBigram, SummaryBigram = ILP_baseline.getPhraseBigram(sumfile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     
     reffile = ILP_Supervised_FeatureWeight.ExtractRefSummaryPrefix(prefix) + '.ref.summary'
-    _, IndexRefBigram, SummaryRefBigram = ILP.getPhraseBigram(reffile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
+    _, IndexRefBigram, SummaryRefBigram = ILP_baseline.getPhraseBigram(reffile, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     
     RefBigramDict = ILP_Supervised_FeatureWeight.getBigramDict(IndexRefBigram, SummaryRefBigram)
     

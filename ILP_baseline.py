@@ -12,8 +12,8 @@ stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/su
 punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
 stopwordswithpunctuations = stopwords + punctuations
-stopwords = stopwords + punctuations
-stopwords = [porter.getStemming(w) for w in stopwords]
+#stopwords = stopwords + punctuations
+#stopwords = [porter.getStemming(w) for w in stopwords]
 
 #fio.SaveList(stopwords, "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words_stemmed.txt")
 
@@ -134,7 +134,7 @@ def ProcessLine(input):
     newLine = " ".join(tokens)
     return newLine
 
-def getNgramTokenized(tokens, n, NoStopWords=False):
+def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False):
     #n is the number of grams, such as 1 means unigram
     ngrams = []
     
@@ -153,10 +153,25 @@ def getNgramTokenized(tokens, n, NoStopWords=False):
             
             if not removed:
                 ngrams.append(" ".join(ngram))
-            
+     
+    #get stemming
+    if Stemmed:
+        stemmed = []
+        for w  in ngrams:
+            stemmed.append(porter.getStemming(w))
+        ngrams = stemmed
+               
     return ngrams
     
-def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
+def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False, svdfile=None):
+    if svdfile != None:
+        with open(svdfile, 'r') as fin:
+            svdA = json.load(fin)
+        bigramDict = {}
+        for bigram in svdA:
+            bigram = bigram.replace(ngramTag, " ")
+            bigramDict[bigram] = True
+        
     #get phrases
     lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
@@ -164,7 +179,6 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     newPhrases = []
     for phrase in phrases:
         #phrase = ProcessLine(phrase)
-        
         if MalformedFlilter and isMalformed(phrase.lower()): continue
         
         newPhrases.append(phrase)
@@ -189,19 +203,19 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
     for phrase in phrases:
         pKey = phraseIndex[phrase]
         
-        #get stemming
-        phrase = porter.getStemming(phrase)
         tokens = phrase.lower().split()
         #tokens = list(gensim.utils.tokenize(phrase, lower=True, errors='ignore'))
-        
-        #get bigrams
+
         ngrams = []
         for n in Ngram:
-            grams = getNgramTokenized(tokens, n, NoStopWords=True)
+            grams = getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
             #grams = NLTKWrapper.getNgram(phrase, n)
             ngrams = ngrams + grams
-            
+
         for bigram in ngrams:
+            if svdfile != None:
+                if bigram not in bigramDict: continue
+            
             if bigram not in bigramIndex:
                 bKey = 'X' + str(i)
                 bigramIndex[bigram] = bKey
@@ -210,7 +224,7 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False):
                 bKey = bigramIndex[bigram]
             
             PhraseBigram[pKey].append(bKey)
-    
+
     IndexPhrase = {}
     for k,v in phraseIndex.items():
         IndexPhrase[v] = k

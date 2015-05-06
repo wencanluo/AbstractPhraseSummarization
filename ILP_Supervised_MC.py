@@ -6,8 +6,9 @@ import NLTKWrapper
 import os
 import numpy
 
-import ILP_MatrixFramework_SVD as ILP
+import ILP_MatrixFramework_SVD
 import ILP_Supervised
+import ILP_baseline
 
 ngramTag = "___"
 
@@ -35,7 +36,7 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=Fals
     newPhrases = []
     for phrase in phrases:
         if MalformedFlilter:
-            if ILP.isMalformed(phrase.lower()): 
+            if ILP_baseline.isMalformed(phrase.lower()): 
                 print phrase
             else:
                 newPhrases.append(phrase)
@@ -65,7 +66,7 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=Fals
 
         ngrams = []
         for n in Ngram:
-            grams = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
+            grams = ILP_baseline.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
             #grams = NLTKWrapper.getNgram(phrase, n)
             ngrams = ngrams + grams
             
@@ -100,11 +101,11 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
     
     #write constraints
     print "Subject To"
-    ILP.WriteConstraint1(PhraseBeta, L)
+    ILP_MatrixFramework_SVD.WriteConstraint1(PhraseBeta, L)
     
-    ILP.WriteConstraint2(partialBigramPhrase)
+    ILP_MatrixFramework_SVD.WriteConstraint2(partialBigramPhrase)
     
-    ILP.WriteConstraint3(partialPhraseBigram)
+    ILP_MatrixFramework_SVD.WriteConstraint3(partialPhraseBigram)
     
     indicators = []
     for bigram in BigramTheta.keys():
@@ -144,29 +145,21 @@ def ILP_Supervised(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambd
     BigramTheta = Weights #ILP.getBigramWeight_TF(PhraseBigram, phrases, prefix + countext) # return a dictionary
     
     #get word count of phrases
-    PhraseBeta = ILP.getWordCounts(IndexPhrase)
+    PhraseBeta = ILP_baseline.getWordCounts(IndexPhrase)
     
-    partialPhraseBigram, PartialBigramPhrase = ILP.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
+    partialPhraseBigram, PartialBigramPhrase = ILP_MatrixFramework_SVD.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
     
     #get {bigram:[phrase]} dictionary
-    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
+    BigramPhrase = ILP_baseline.getBigramPhrase(PhraseBigram)
 
-    #get {student:phrase}
-    #sequence students, students = {index:student}
-    students, StudentPhrase = ILP.getStudentPhrase(IndexPhrase, prefix + studentext)
-    fio.SaveDict(students, prefix + ".student_index.dict")
-    
-    #get {student:weight0}
-    StudentGamma = ILP.getStudentWeight_One(StudentPhrase)
-    
     lpfile = prefix
     #formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
     formulateProblem(BigramTheta, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile)
     
-    m = ILP.SloveILP(lpfile)
+    m = ILP_baseline.SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
-    ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
+    ILP_baseline.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
 def getLastIndex(BigramIndex):
     maxI = 1
@@ -178,8 +171,7 @@ def getLastIndex(BigramIndex):
 def UpdateWeight(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram, MalformedFlilter):
     # the weights of the bigram is the frequency appear in the golden summary
     #read the summary
-    _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(sumprefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
-    _, IndexBigramResponse, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram, MalformedFlilter=MalformedFlilter)    
+    _, IndexBigram, SummaryBigram = ILP_baseline.getPhraseBigram(sumprefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     
     i = getLastIndex(BigramIndex)
     

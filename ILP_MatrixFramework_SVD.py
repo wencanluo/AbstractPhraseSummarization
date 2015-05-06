@@ -6,6 +6,8 @@ import NLTKWrapper
 import os
 import json
 
+import ILP_baseline as ILP
+
 ngramTag = "___"
 
 stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
@@ -19,21 +21,6 @@ studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
-
-def removeStopWords(tokens):
-    newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
-    return newTokens
-
-def isMalformed(phrase):
-    N = len(phrase.split())
-    if N == 1: #single stop words
-        if phrase.lower() in stopwords: return True
-        if phrase.isdigit(): return True
-            
-    if len(phrase) > 0:
-        if phrase[0] in punctuations: return True
-    
-    return False
 
 def WriteConstraint1(PhraseBeta, L):
     #$\sum_{j=1}^P y_j \beta _j \le L$
@@ -101,145 +88,8 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
     #write End
     print "End"
     sys.stdout = SavedStdOut
+    
 
-def SloveILP(lpfileprefix):
-    cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + lpfileprefix + lpext
-    os.system(cmd)    
-
-def ExtractSummaryfromILP(lpfileprefix, phrases, output):
-    summaries = []
-    
-    sol = lpfileprefix + lpsolext
-    
-    lines = fio.ReadFile(sol)
-    for line in lines:
-        line = line.strip()
-        if line.startswith('#'): continue
-        
-        tokens = line.split()
-        assert(len(tokens) == 2)
-        
-        key = tokens[0]
-        value = tokens[1]
-        
-        if key in phrases:
-            if value == '1':
-                summaries.append(phrases[key])
-    
-    fio.SaveList(summaries, output)
-
-def ProcessLine(input):
-    tokens = NLTKWrapper.wordtokenizer(input, True)
-    tokens = removeStopWords(tokens)
-    newLine = " ".join(tokens)
-    return newLine
-
-def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=True):
-    #n is the number of grams, such as 1 means unigram
-    ngrams = []
-    
-    N = len(tokens)
-    for i in range(N):
-        if i+n > N: continue
-        ngram = tokens[i:i+n]
-        
-        if not NoStopWords:
-            ngrams.append(" ".join(ngram))
-        else:
-            removed = True
-            for w in ngram:
-                if w not in stopwords:
-                    removed = False
-            
-            if not removed:
-                ngrams.append(" ".join(ngram))
-     
-    #get stemming
-    if Stemmed:
-        stemmed = []
-        for w  in ngrams:
-            stemmed.append(porter.getStemming(w))
-        ngrams = stemmed
-               
-    return ngrams
-    
-def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False, svdfile=None):
-    if svdfile != None:
-        with open(svdfile, 'r') as fin:
-            svdA = json.load(fin)
-        bigramDict = {}
-        for bigram in svdA:
-            bigram = bigram.replace(ngramTag, " ")
-            bigramDict[bigram] = True
-        
-    #get phrases
-    lines = fio.ReadFile(phrasefile)
-    phrases = [line.strip() for line in lines]
-    
-    newPhrases = []
-    for phrase in phrases:
-        #phrase = ProcessLine(phrase)
-        if MalformedFlilter and isMalformed(phrase.lower()): continue
-        
-        newPhrases.append(phrase)
-    
-    phrases = newPhrases
-
-    PhraseBigram = {}
-    
-    #get index of phrase
-    j = 1
-    phraseIndex = {}
-    for phrase in phrases:
-        if phrase not in phraseIndex:
-            index = 'Y' + str(j)
-            phraseIndex[phrase] = index
-            PhraseBigram[index] = []
-            j = j + 1
-    
-    #get bigram index and PhraseBigram
-    bigramIndex = {}
-    i = 1
-    for phrase in phrases:
-        pKey = phraseIndex[phrase]
-        
-        tokens = phrase.lower().split()
-        #tokens = list(gensim.utils.tokenize(phrase, lower=True, errors='ignore'))
-
-        ngrams = []
-        for n in Ngram:
-            grams = getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
-            #grams = NLTKWrapper.getNgram(phrase, n)
-            ngrams = ngrams + grams
-
-        for bigram in ngrams:
-            if svdfile != None:
-                if bigram not in bigramDict: continue
-            
-            if bigram not in bigramIndex:
-                bKey = 'X' + str(i)
-                bigramIndex[bigram] = bKey
-                i = i + 1
-            else:
-                bKey = bigramIndex[bigram]
-            
-            PhraseBigram[pKey].append(bKey)
-    
-    #convert to binary
-#     binaryPhraseBigram = {}
-#     for key, bigrams in PhraseBigram.items():
-#         binaryPhraseBigram[key] = list(set(bigrams))
-#     PhraseBigram = binaryPhraseBigram
-    
-    IndexPhrase = {}
-    for k,v in phraseIndex.items():
-        IndexPhrase[v] = k
-    
-    IndexBigram = {}
-    for k,v in bigramIndex.items():
-        IndexBigram[v] = k
-        
-    return IndexPhrase, IndexBigram, PhraseBigram
 
 def getBigramWeight_TF(PhraseBigram, PhraseIndex, CountFile):
     BigramTheta = {}
@@ -261,24 +111,6 @@ def getBigramWeight_TF(PhraseBigram, PhraseIndex, CountFile):
             BigramTheta[bigram] = BigramTheta[bigram] + fequency
     
     return BigramTheta
-
-def getWordCounts(phrases):
-    PhraseBeta = {}
-    for index, phrase in phrases.items():
-        N = len(phrase.split())
-        PhraseBeta[index] = N
-    return PhraseBeta
-
-def getBigramPhrase(PhraseBigram):
-    BigramPhrase = {}
-    
-    for phrase, bigrams in PhraseBigram.items():
-        for bigram in bigrams:
-            if bigram not in BigramPhrase:
-                BigramPhrase[bigram] = []
-            BigramPhrase[bigram].append(phrase)
-                
-    return BigramPhrase
 
 def getStudentPhrase(phrases, sourcefile):
     with open(sourcefile, "r") as infile:
@@ -407,7 +239,7 @@ def ILP1(prefix, svdfile, svdpharefile, L):
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, svdfile=svdfile)
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, svdfile=svdfile)
     fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
@@ -416,21 +248,21 @@ def ILP1(prefix, svdfile, svdpharefile, L):
     fio.SaveDict(BigramTheta, prefix + ".bigram_theta.dict")
     
     #get word count of phrases
-    PhraseBeta = getWordCounts(IndexPhrase)
+    PhraseBeta = ILP.getWordCounts(IndexPhrase)
     
     #getPartial Bigram Phrase matrix
     partialPhraseBigram, PartialBigramPhrase = getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile)
        
     #get {bigram:[phrase]} dictionary
-    BigramPhrase = getBigramPhrase(PhraseBigram)
+    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
     
     lpfile = prefix
     formulateProblem(BigramTheta, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile)
     
-    m = SloveILP(lpfile)
+    m = ILP.SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + ".summary"
-    ExtractSummaryfromILP(lpfile, IndexPhrase, output)
+    ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
 def ILP_Summarizer(ilpdir, svddir, np, L):
     sheets = range(0,12)

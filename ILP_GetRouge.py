@@ -195,7 +195,8 @@ if __name__ == '__main__':
     
     #ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/" 
     #ilpdir = "../../data/ILP_Sentence_Supervised/" 
-    ilpdir = "../../data/ILP_Sentence_Supervised_MC/" 
+    #ilpdir = "../../data/ILP_Sentence_Supervised_MC/" 
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     #ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
     
     for Lambda in [1.0]:
