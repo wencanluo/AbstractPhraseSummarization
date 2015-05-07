@@ -6,8 +6,11 @@ from pandas import DataFrame
 import os
 import SVD_Test
 
-def LoadR():
-    r('load("newX.gzip")')
+def LoadR(rank, Lambda, type):
+    filename = 'newX_'+str(rank)+'_'+str(Lambda)+'_'+str(type)+'.gzip'
+    cmd = 'load("'+filename+'")'
+    
+    r(cmd)
     newX = r['newX']
     newX = numpy.array(newX)
     return newX.T
@@ -26,7 +29,7 @@ def SoftImpute(X, rank, Lambda, type='svd'):
     print cmd
     os.system(cmd)
     
-    return LoadR()
+    return LoadR(rank, Lambda, type)
 
 def TestSoftImpute():
     row, col = 15, 10

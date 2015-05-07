@@ -134,7 +134,7 @@ def ProcessLine(input):
     newLine = " ".join(tokens)
     return newLine
 
-def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False):
+def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " "):
     #n is the number of grams, such as 1 means unigram
     ngrams = []
     
@@ -152,7 +152,7 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False):
                     removed = False
             
             if not removed:
-                ngrams.append(" ".join(ngram))
+                ngrams.append(ngramTag.join(ngram))
      
     #get stemming
     if Stemmed:

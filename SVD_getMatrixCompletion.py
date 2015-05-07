@@ -8,6 +8,7 @@ import re
 import porter
 import pickle
 import softImputeWrapper
+import ILP_baseline as ILP
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -30,47 +31,13 @@ def removeStopWords(tokens):
     newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
     return newTokens
 
-def ApplyStem(ngrams):
-    stemmed = []
-    for w in ngrams:
-        stemmed.append(porter.getStemming(w))
-    ngrams = stemmed
-               
-    return ngrams
-
-def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=True):
-    #n is the number of grams, such as 1 means unigram
-    ngrams = []
-    
-    N = len(tokens)
-    for i in range(N):
-        if i+n > N: continue
-        ngram = tokens[i:i+n]
-        
-        if not NoStopWords:
-            if Stemmed:
-                ngram = ApplyStem(ngram)
-            ngrams.append(ngramTag.join(ngram))
-        else:
-            removed = True
-            for w in ngram:
-                if w not in stopwords:
-                    removed = False
-            
-            if not removed:
-                if Stemmed:
-                    ngram = ApplyStem(ngram)
-                ngrams.append(ngramTag.join(ngram))
-    
-    return ngrams
-
 def ProcessLine(line,ngrams=[1]):
     #tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
     tokens = line.lower().split()
     
     new_tokens = []
     for n in ngrams:
-        ngram = getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
+        ngram = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True, ngramTag=ngramTag)
         new_tokens = new_tokens + ngram
     
     return " ".join(new_tokens)
@@ -207,9 +174,8 @@ def SaveSparseMatrix(A, filename):
     
     with open(filename, 'w') as fin:
         json.dump(data, fin, indent = 2)
-        
 
-def SaveNewA(A, dict, path, K, ngrams):
+def SaveNewA(A, dict, path, ngrams, prefixname=""):
     types = ['POI', 'MP', 'LP']
     
     sheets = range(0,25)
@@ -250,7 +216,9 @@ def SaveNewA(A, dict, path, K, ngrams):
                 
                 PartA[bigram] = [row[x] for x in LineRange]
             
-            svdAname = dir + type + "." + str(K) + '.softA'
+            svdAname = dir + type + '.' +prefixname + '.softA'
+            print svdAname
+            
             with open(svdAname, 'w') as fout:
                 json.dump(PartA, fout, indent=2)            
                     
@@ -277,16 +245,19 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
     print scipy_csc_matrix.shape
     
-    SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, 'org', ngrams)
+    SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
     
-    newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T, rank=50, Lambda=1.5)
+    rank = min(scipy_csc_matrix.shape) - 1
+    print rank
     
-    newAname = path + "_".join(types) + '_' + str(K) + '_' + corpusname + mcexe
-    #fio.WriteMatrix(newAname, newA.tolist(), None)
-    #SaveSparseMatrix(newA.tolist(), newAname)
-    #pickle.dump(newA.tolist(), open(newAname, "wb" ))
-    
-    SaveNewA(newA.T, corpus.dictionary.token2id, path, K, ngrams)
+    for L in [0.1, 0.5, 1.0, 0.05, 0.01, 0.005, 0.001]:    
+        newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T, rank=rank, Lambda=L)
+        #newA = scipy_csc_matrix.toarray().T
+        
+        newAname = path + "_".join(types) + '_' + str(K) + '_' + corpusname + mcexe
+        
+        prefix = str(rank) + '_' +  str(L)
+        SaveNewA(newA.T, corpus.dictionary.token2id, path, ngrams, prefix)
     
 if __name__ == '__main__':
     
