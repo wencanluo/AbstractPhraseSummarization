@@ -256,6 +256,28 @@ def getBigramWeight_TF(PhraseBigram, PhraseIndex, CountFile):
     
     return BigramTheta
 
+def getBigramWeight_StudentNo(PhraseBigram, PhraseIndex, CountFile):
+    BigramTheta = {}
+    
+    CountDict = fio.LoadDict(CountFile, 'float')
+    
+    for phrase, bigrams in PhraseBigram.items():
+        assert(phrase in PhraseIndex)
+        p = PhraseIndex[phrase]
+        try:
+            fequency = CountDict[p]
+        except Exception as e:
+            print p
+            exit()
+        
+        unique_bigram = set(bigrams)
+        for bigram in unique_bigram:
+            if bigram not in BigramTheta:
+                BigramTheta[bigram] = 0
+            BigramTheta[bigram] = BigramTheta[bigram] + fequency
+    
+    return BigramTheta
+
 def getWordCounts(phrases):
     PhraseBeta = {}
     for index, phrase in phrases.items():
@@ -326,7 +348,7 @@ def ILP1(prefix, L):
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
     #get weight of bigrams
-    BigramTheta = getBigramWeight_TF(PhraseBigram, IndexPhrase, prefix + countext) # return a dictionary
+    BigramTheta = getBigramWeight_StudentNo(PhraseBigram, IndexPhrase, prefix + countext) # return a dictionary
     fio.SaveDict(BigramTheta, prefix + ".bigram_theta.dict")
     
     #get word count of phrases

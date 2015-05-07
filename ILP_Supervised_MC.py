@@ -6,9 +6,10 @@ import NLTKWrapper
 import os
 import numpy
 
-import ILP_MatrixFramework_SVD
+import ILP_MC
 import ILP_Supervised
 import ILP_baseline
+import ILP_Supervised_FeatureWeight
 
 ngramTag = "___"
 
@@ -101,11 +102,11 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
     
     #write constraints
     print "Subject To"
-    ILP_MatrixFramework_SVD.WriteConstraint1(PhraseBeta, L)
+    ILP_MC.WriteConstraint1(PhraseBeta, L)
     
-    ILP_MatrixFramework_SVD.WriteConstraint2(partialBigramPhrase)
+    ILP_MC.WriteConstraint2(partialBigramPhrase)
     
-    ILP_MatrixFramework_SVD.WriteConstraint3(partialPhraseBigram)
+    ILP_MC.WriteConstraint3(partialPhraseBigram)
     
     indicators = []
     for bigram in BigramTheta.keys():
@@ -147,7 +148,7 @@ def ILP_Supervised(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambd
     #get word count of phrases
     PhraseBeta = ILP_baseline.getWordCounts(IndexPhrase)
     
-    partialPhraseBigram, PartialBigramPhrase = ILP_MatrixFramework_SVD.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
+    partialPhraseBigram, PartialBigramPhrase = ILP_MC.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
     
     #get {bigram:[phrase]} dictionary
     BigramPhrase = ILP_baseline.getBigramPhrase(PhraseBigram)
@@ -161,19 +162,12 @@ def ILP_Supervised(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambd
     output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
     ILP_baseline.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
-def getLastIndex(BigramIndex):
-    maxI = 1
-    for bigram in BigramIndex.values():
-        if int(bigram[1:]) > maxI:
-            maxI = int(bigram[1:])
-    return maxI
-
 def UpdateWeight(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram, MalformedFlilter):
     # the weights of the bigram is the frequency appear in the golden summary
     #read the summary
     _, IndexBigram, SummaryBigram = ILP_baseline.getPhraseBigram(sumprefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     
-    i = getLastIndex(BigramIndex)
+    i = ILP_Supervised_FeatureWeight.getLastIndex(BigramIndex)
     
     #get the bigrams
     for summary, bigrams in SummaryBigram.items():

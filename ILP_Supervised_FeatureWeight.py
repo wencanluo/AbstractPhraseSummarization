@@ -15,7 +15,7 @@ from ltpservice.LTPOption import POS
 
 maxIter = 100
 
-minthreshold = 100
+minthreshold = -100
 
 #Stemming
 phraseext = ".key" #a list
@@ -41,12 +41,25 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
     #write objective
     print "Maximize"
     objective = []
+    
+#     #get minValue
+#     minthreshold = 0
+#         
+#     for bigram in BigramPhrase:
+#         bigramname = bigrams[bigram]
+#             
+#         if bigramname in FeatureVecU:
+#             fvec = FeatureVector(FeatureVecU[bigramname])
+#             w = Weights.dot(fvec)
+#             if w < minthreshold:
+#                 minthreshold = w
+    
     for bigram in BigramPhrase:
         bigramname = bigrams[bigram]
-        
+                
         if bigramname in FeatureVecU:
             fvec = FeatureVector(FeatureVecU[bigramname])
-            w = Weights.dot(fvec) + minthreshold
+            w = Weights.dot(fvec) - minthreshold
             if w <= 0: continue
             objective.append(" ".join([str(w*Lambda), bigram]))
             
@@ -87,64 +100,6 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
     #write End
     print "End"
     sys.stdout = SavedStdOut
-
-def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=False):
-    #get phrases
-    lines = fio.ReadFile(phrasefile)
-    phrases = [line.strip() for line in lines]
-    
-    newPhrases = []
-    for phrase in phrases:
-        if MalformedFlilter:
-            if ILP.isMalformed(phrase.lower()): 
-                print phrase
-            else:
-                newPhrases.append(phrase)
-    
-    if MalformedFlilter:
-        phrases = newPhrases
-    
-    PhraseBigram = {}
-    
-    #get index of phrase
-    j = 1
-    phraseIndex = {}
-    for phrase in phrases:
-        if phrase not in phraseIndex:
-            index = 'Y' + str(j)
-            phraseIndex[phrase] = index
-            PhraseBigram[index] = []
-            j = j + 1
-    
-    #get bigram index and PhraseBigram
-    i = 1
-    for phrase in phrases:
-        pKey = phraseIndex[phrase]
-        
-        #get stemming
-        phrase = porter.getStemming(phrase)
-        
-        #get bigrams
-        ngrams = []
-        for n in Ngram:
-            grams = NLTKWrapper.getNgram(phrase, n)
-            ngrams = ngrams + grams
-            
-        for bigram in ngrams:
-            if bigram not in BigramIndex: continue
-            bKey = BigramIndex[bigram]
-            
-            PhraseBigram[pKey].append(bKey)
-    
-    IndexPhrase = {}
-    for k,v in phraseIndex.items():
-        IndexPhrase[v] = k
-    
-    IndexBigram = {}
-    for k,v in BigramIndex.items():
-        IndexBigram[v] = k
-        
-    return IndexPhrase, IndexBigram, PhraseBigram
         
 def ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter):
     # get each stemmed bigram, sequence the bigram and the phrase
@@ -245,12 +200,7 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
     FeatureVecU = LoadFeatureSet(featurefile)
     
     i = getLastIndex(BigramIndex)
-    
-    #if the generated summary matches the golden summary, update the bigrams
-    
-    #get the bigrams
-    #{sentence:bigrams}
-    
+        
     pos = 0
     neg = 0
     correct_pos = 0
@@ -422,7 +372,7 @@ def UpdateWeight_old(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFl
     
     return Weights
 
-def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
+def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
     Weights = {} #{Index:Weight}
     BigramIndex = {} #{bigram:index}
     
@@ -458,7 +408,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
             for type in ['POI', 'MP', 'LP']:
                 prefix = dir + type + "." + np
                 summprefix = dir + type
-                featurefile = svddir + str(week) + '/' + type + featureext
+                featurefile = featuredir + str(week) + '/' + type + featureext
                 
                 r0weightfile = ilpdir + str(0) + '_' + '_'.join(train) + '_weight_' + "_" + '.json'
                 if not fio.IsExist(r0weightfile):#round 0
@@ -479,7 +429,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
         #fio.SaveDict(Weights, weightfile, True)
         #fio.SaveDict(BigramIndex, bigramfile)
 
-def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
+def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
     Weights = {}
     BigramIndex = {}
     
@@ -508,20 +458,20 @@ def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir)
             prefix = dir + type + "." + np
             print "Test: ", prefix
             
-            featurefile = svddir + str(week) + '/' + type + featureext
+            featurefile = featuredir + str(week) + '/' + type + featureext
             ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter)
 
-def ILP_CrossValidation(ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir):
+def ILP_CrossValidation(ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
     for train, test in LeaveOneLectureOutPermutation():
-        TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir)
-        TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir)
+        TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
+        TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
 
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        train = [str(k) for k in range(N) if k != i]
-        #train = [str(i)]
+        #train = [str(k) for k in range(N) if k != i]
+        train = [str(i)]
         test = [str(i)]
         yield train, test
             
@@ -531,7 +481,7 @@ if __name__ == '__main__':
     ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     
     #svddir = "../../data/SVD_Sentence/"
-    svddir = ilpdir
+    featuredir = ilpdir
     
     corpusname = "book"
     K = 50
@@ -545,6 +495,6 @@ if __name__ == '__main__':
          for L in [30]:
              for np in ['sentence']: #'chunk\
                  for iter in range(5):
-                     ILP_CrossValidation(ilpdir, np, L, Lambda, ngrams, MalformedFlilter, svddir)
+                     ILP_CrossValidation(ilpdir, np, L, Lambda, ngrams, MalformedFlilter, featuredir)
     
     print "done"

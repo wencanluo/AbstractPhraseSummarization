@@ -188,7 +188,77 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
     body.append(row)
     
     fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(metric) + ".txt", body, header)
-             
+
+def getOracleRougeSplit(oracledir, np, L, metric, outputdir):
+    #sheets = range(0,1)
+    sheets = range(0,12)
+    
+    body = []
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+            
+        #Add a cache to make it faster
+        Cache = {}
+        cachefile = oracledir + str(week) + '/' + 'cache.json'
+        print cachefile
+        if fio.IsExist(cachefile):
+            with open(cachefile, 'r') as fin:
+                Cache = json.load(fin)
+        
+        row = []
+        for type in ['POI', 'MP', 'LP']:
+            row.append(week)
+        
+            #read TA's summmary
+            reffile = oracledir + str(week) + '/' + type + '.ref.summary'
+            lines = fio.ReadFile(reffile)
+            ref = [line.strip() for line in lines]
+            
+            Round = 1
+            while True:
+                sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
+                if not fio.IsExist(sumfile): break
+                Round = Round + 1
+            
+            Round = Round - 1
+            sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
+            
+            if fio.IsExist(sumfile):
+                lines = fio.ReadFile(sumfile)
+                TmpSum = [line.strip() for line in lines]
+                
+                cacheKey = getKey(ref, TmpSum)
+                if cacheKey in Cache:
+                    scores = Cache[cacheKey]
+                    print "Hit"
+                else:
+                    print "Miss", cacheKey
+                    print sumfile
+                    scores = getRouge(ref, TmpSum)
+                    Cache[cacheKey] = scores
+                    #exit()
+                
+                row = row + scores
+            else:
+                row = row + [0]*len(RougeHeader)
+            
+        body.append(row)
+    
+    print body
+    print "RougeHeader", len(RougeHeader)
+    header = ['week'] + RougeHeader*3
+    row = []
+    row.append("average")
+    print len(header)
+    for i in range(1, len(header)):
+        scores = [float(xx[i]) for xx in body]
+        row.append(numpy.mean(scores))
+    body.append(row)
+    
+    fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(metric) + ".txt", body, header)
+  
+               
 def TestRouge():
     #ref = ["police killed the gunman"]
     #S1 = ["police kill the gunman"]
@@ -290,14 +360,14 @@ if __name__ == '__main__':
 #                 getOracleRouge(oracledir, np, L, metric, datadir)
     
 #     for L in [30]:
-#         for np in ['syntax']:
+#         for np in ['sentence']:
 #             for metric in ['R2-F']:
 #                 Greedy(oracledir, np, L, metric)
-#      
-#     for L in [30]:
-#         for np in ['syntax']:
-#             for metric in ['R2-F']:
-#                 getOracleRouge(oracledir, np, L, metric, datadir)
+#       
+    for L in [30]:
+        for np in ['sentence']:
+            for metric in ['R2-F']:
+                getOracleRougeSplit(oracledir, np, L, metric, datadir)
         
     print "done"
     
