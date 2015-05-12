@@ -5,11 +5,12 @@ import porter
 import NLTKWrapper
 import os
 import json
+import ILP_MC
 
+from Survey import punctuations
 ngramTag = "___"
 
 stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
-punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
 
 stopwordswithpunctuations = stopwords + punctuations
 #stopwords = stopwords + punctuations
@@ -128,12 +129,6 @@ def ExtractSummaryfromILP(lpfileprefix, phrases, output):
     
     fio.SaveList(summaries, output)
 
-def ProcessLine(input):
-    tokens = NLTKWrapper.wordtokenizer(input, True)
-    tokens = removeStopWords(tokens)
-    newLine = " ".join(tokens)
-    return newLine
-
 def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " "):
     #n is the number of grams, such as 1 means unigram
     ngrams = []
@@ -143,8 +138,16 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " 
         if i+n > N: continue
         ngram = tokens[i:i+n]
         
+        if Stemmed:
+            stemmed_ngram = []
+            for w in ngram:
+                stemmed_ngram.append(porter.getStemming(w))
+            
         if not NoStopWords:
-            ngrams.append(" ".join(ngram))
+            if Stemmed:
+                ngrams.append(ngramTag.join(stemmed_ngram))
+            else:
+                ngrams.append(ngramTag.join(ngram))
         else:
             removed = True
             for w in ngram:
@@ -152,25 +155,16 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " 
                     removed = False
             
             if not removed:
-                ngrams.append(ngramTag.join(ngram))
-     
-    #get stemming
-    if Stemmed:
-        stemmed = []
-        for w  in ngrams:
-            stemmed.append(porter.getStemming(w))
-        ngrams = stemmed
-               
+                if Stemmed:
+                    ngrams.append(ngramTag.join(stemmed_ngram))
+                else:
+                    ngrams.append(ngramTag.join(ngram))
+                   
     return ngrams
     
-def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False, svdfile=None):
+def getPhraseBigram(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=None, NoStopWords=True, Stemmed=True):
     if svdfile != None:
-        with open(svdfile, 'r') as fin:
-            svdA = json.load(fin)
-        bigramDict = {}
-        for bigram in svdA:
-            bigram = bigram.replace(ngramTag, " ")
-            bigramDict[bigram] = True
+        bigramDict = ILP_MC.LoadMC(svdfile)
         
     #get phrases
     lines = fio.ReadFile(phrasefile)
@@ -208,7 +202,7 @@ def getPhraseBigram(phrasefile, Ngram=[2], MalformedFlilter=False, svdfile=None)
 
         ngrams = []
         for n in Ngram:
-            grams = getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
+            grams = getNgramTokenized(tokens, n, NoStopWords=NoStopWords, Stemmed=Stemmed)
             #grams = NLTKWrapper.getNgram(phrase, n)
             ngrams = ngrams + grams
 

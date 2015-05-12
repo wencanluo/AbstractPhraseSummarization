@@ -13,6 +13,7 @@ def LoadR(rank, Lambda, type):
     r(cmd)
     newX = r['newX']
     newX = numpy.array(newX)
+    
     return newX.T
     
 #matrix competition using the SoftImpute algorithm
@@ -25,9 +26,10 @@ def SoftImpute(X, rank, Lambda, type='svd'):
     r.assign("X", df)
     r("save(X, file='X.gzip', compress=TRUE)")
      
-    cmd = 'Rscript softImpute.R %d %.1f %s' % (rank, Lambda, type)
+    #cmd = 'Rscript softImpute.R %d %f %s' % (rank, Lambda, type)
+    cmd = 'Rscript softImputeDemo.R %d %f %s' % (rank, Lambda, type)
     print cmd
-    os.system(cmd)
+    #os.system(cmd)
     
     return LoadR(rank, Lambda, type)
 

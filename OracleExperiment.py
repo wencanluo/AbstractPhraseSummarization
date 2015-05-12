@@ -347,7 +347,7 @@ def TestRouge():
 if __name__ == '__main__':
     oracledir = "../../data/oracle/" 
     datadir = "../../data/oracle/"
-    TestRouge()
+    #TestRouge()
     
 #     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
 #         for np in ['syntax', 'chunk']:
@@ -359,11 +359,11 @@ if __name__ == '__main__':
 #             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
 #                 getOracleRouge(oracledir, np, L, metric, datadir)
     
-#     for L in [30]:
-#         for np in ['sentence']:
-#             for metric in ['R2-F']:
-#                 Greedy(oracledir, np, L, metric)
-#       
+    for L in [30]:
+        for np in ['sentence']:
+            for metric in ['R2-F']:
+                Greedy(oracledir, np, L, metric)
+       
     for L in [30]:
         for np in ['sentence']:
             for metric in ['R2-F']:

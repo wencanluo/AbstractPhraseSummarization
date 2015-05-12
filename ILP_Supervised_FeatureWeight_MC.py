@@ -30,21 +30,23 @@ featureext = ".f"
 ngramTag = "___"
 
     
-def formulateProblem(bigrams, Lambda, Weights, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix, FeatureVecU):
+def formulateProblem(IndexBigram, Lambda, Weights, PhraseBeta, PhraseBigram, BigramPhrase, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix, FeatureVecU):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
     #write objective
     print "Maximize"
     objective = []
-    for bigram in partialBigramPhrase:
-        bigramname = bigrams[bigram]
+    for bigram in BigramPhrase.keys():
+        bigramname = IndexBigram[bigram]
         
         if bigramname in FeatureVecU:
             fvec = FeatureVector(FeatureVecU[bigramname])
-            w = Weights.dot(fvec) + minthreshold
+            w = Weights.dot(fvec) - minthreshold
             if w <= 0: continue
             objective.append(" ".join([str(w*Lambda), bigram]))
+        else:
+            print "bigramname not in FeatureVecU", bigramname
             
     print "  ", " + ".join(objective)
     
@@ -57,7 +59,7 @@ def formulateProblem(bigrams, Lambda, Weights, PhraseBeta, partialBigramPhrase, 
     ILP_MC.WriteConstraint3(partialPhraseBigram)
        
     indicators = []
-    for bigram in partialBigramPhrase.keys():
+    for bigram in BigramPhrase.keys():
         indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
@@ -81,7 +83,7 @@ def formulateProblem(bigrams, Lambda, Weights, PhraseBeta, partialBigramPhrase, 
     print "End"
     sys.stdout = SavedStdOut
         
-def ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter):
+def ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter, prefixA, threshold):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
@@ -99,21 +101,21 @@ def ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambd
     #get {bigram:[phrase]} dictionary
     BigramPhrase = ILP_baseline.getBigramPhrase(PhraseBigram)
     
-    partialPhraseBigram, PartialBigramPhrase = ILP_MC.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=0.5)
+    partialPhraseBigram, PartialBigramPhrase = ILP_MC.getPartialPhraseBigram(IndexPhrase, IndexBigram, prefix + phraseext, svdfile, svdpharefile, threshold=threshold)
     fio.SaveDict2Json(partialPhraseBigram, prefix + ".partialPhraseBigram.dict")
     fio.SaveDict2Json(PartialBigramPhrase, prefix + ".PartialBigramPhrase.dict")
         
     FeatureVecU = ILP_Supervised_FeatureWeight.LoadFeatureSet(featurefile)
     
     lpfile = prefix
-    formulateProblem(IndexBigram, Lambda, Weights, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile, FeatureVecU)
+    formulateProblem(IndexBigram, Lambda, Weights, PhraseBeta, PhraseBigram, BigramPhrase, PartialBigramPhrase, partialPhraseBigram, L, lpfile, FeatureVecU)
     
     m = ILP_baseline.SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
     ILP_baseline.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
-def TestILP(train, test, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
+def TestILP(train, test, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir, prefixA, threshold):
     Weights = {}
     BigramIndex = {}
     
@@ -142,17 +144,17 @@ def TestILP(train, test, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter,
             prefix = dir + type + "." + np
             print "Test: ", prefix
             
-            svdfile = svddir + str(week) + '/' + type + ".50.softA"
+            svdfile = svddir + str(week) + '/' + type + prefixA
             svdpharefile = svddir + str(week) + '/' + type + '.' + np + ".key"
             
             featurefile = featuredir + str(week) + '/' + type + featureext
             
-            ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter)
+            ILP_Supervised(Weights, prefix, featurefile, svdfile, svdpharefile, L, Lambda, ngram, MalformedFlilter, prefixA, threshold)
 
-def ILP_CrossValidation(ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
+def ILP_CrossValidation(ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir, prefixA=".org.softA", threshold=1.0):
     for train, test in LeaveOneLectureOutPermutation():
         ILP_Supervised_FeatureWeight.TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
-        TestILP(train, test, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
+        TestILP(train, test, ilpdir, svddir, np, L, Lambda, ngram, MalformedFlilter, featuredir, prefixA, threshold)
 
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
@@ -179,12 +181,14 @@ if __name__ == '__main__':
     MalformedFlilter = False
     ngrams = [1,2]
     
+    #ILP_baseline.SloveILP(ilpdir + "3/MP.sentence")
+    
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
     for Lambda in [1.0]:
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [30]:
              for np in ['sentence']: #'chunk
-                 for iter in range(2):
-                    ILP_CrossValidation(ilpdir, svddir, np, L, Lambda, ngrams, MalformedFlilter, featuredir)
+                 for iter in range(1):
+                    ILP_CrossValidation(ilpdir, svddir, np, L, Lambda, ngrams, MalformedFlilter, featuredir, prefixA=".200_2.softA", threshold=0.5)
     
     print "done"

@@ -63,10 +63,10 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
             if w <= 0: continue
             objective.append(" ".join([str(w*Lambda), bigram]))
             
-    for student, grama in StudentGamma.items():
-        if Lambda==1:continue
-        
-        objective.append(" ".join([str(grama*(1-Lambda)), student]))
+#     for student, grama in StudentGamma.items():
+#         if Lambda==1:continue
+#         
+#         objective.append(" ".join([str(grama*(1-Lambda)), student]))
     
     print "  ", " + ".join(objective)
     
@@ -78,15 +78,15 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
     
     ILP.WriteConstraint3(PhraseBigram)
     
-    ILP.WriteConstraint4(StudentPhrase)
+    #ILP.WriteConstraint4(StudentPhrase)
     
     indicators = []
     for bigram in BigramPhrase.keys():
         indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
-    for student in StudentGamma.keys():
-        indicators.append(student)
+    #for student in StudentGamma.keys():
+    #    indicators.append(student)
         
     #write Bounds
     print "Bounds"
@@ -470,8 +470,8 @@ def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        #train = [str(k) for k in range(N) if k != i]
-        train = [str(i)]
+        train = [str(k) for k in range(N) if k != i]
+        #train = [str(i)]
         test = [str(i)]
         yield train, test
             
@@ -483,9 +483,6 @@ if __name__ == '__main__':
     #svddir = "../../data/SVD_Sentence/"
     featuredir = ilpdir
     
-    corpusname = "book"
-    K = 50
-       
     MalformedFlilter = False
     ngrams = [1,2]
     
@@ -494,7 +491,7 @@ if __name__ == '__main__':
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [30]:
              for np in ['sentence']: #'chunk\
-                 for iter in range(5):
+                 for iter in range(4):
                      ILP_CrossValidation(ilpdir, np, L, Lambda, ngrams, MalformedFlilter, featuredir)
     
     print "done"

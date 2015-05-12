@@ -11,6 +11,7 @@ import SennaParser
 stopwordfilename = "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt"
 filters = ["?", "[blank]", 'n/a', 'blank'] #a classifier to predict whether the student has problem
 #filters = []
+punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
     
 spellcheckerfile = "../../data/spellchecker.txt"
 spellchecker = fio.LoadDict(spellcheckerfile)

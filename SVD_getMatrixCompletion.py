@@ -22,15 +22,6 @@ mcexe = ".mc.txt"
 
 ngramTag = "___"
 
-stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
-punctuations = ['.', '?', '-', ',', '[', ']', '-', ';', '\'', '"', '+', '&', '!', '/', '>', '<', ')', '(', '#', '=']
-
-stopwordswithpunctuations = stopwords + punctuations
-
-def removeStopWords(tokens):
-    newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
-    return newTokens
-
 def ProcessLine(line,ngrams=[1]):
     #tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
     tokens = line.lower().split()
@@ -247,24 +238,41 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     
     SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
     
-    rank = min(scipy_csc_matrix.shape) - 1
+    #rank = min(scipy_csc_matrix.shape) - 1
+    rank = 200
     print rank
     
-    for L in [0.1, 0.5, 1.0, 0.05, 0.01, 0.005, 0.001]:    
+    #for L in [0.1, 0.5, 1, 0.05, 0.01, 0.005, 0.001]:
+    for L in [2]:
         newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T, rank=rank, Lambda=L)
-        #newA = scipy_csc_matrix.toarray().T
         
+        print newA.shape
+         
         newAname = path + "_".join(types) + '_' + str(K) + '_' + corpusname + mcexe
-        
+         
         prefix = str(rank) + '_' +  str(L)
-        SaveNewA(newA.T, corpus.dictionary.token2id, path, ngrams, prefix)
+        SaveNewA(newA, corpus.dictionary.token2id, path, ngrams, prefix)
+
+def TestProcessLine():
+    line = "how to determine the answers to part iii , in the activity ."
+    print ProcessLine(line, [1, 2]).split()
     
+    tokens = line.lower().split()
+    
+    ngrams = []
+    for n in [1,2]:
+        grams = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
+        ngrams = ngrams + grams
+    print ngrams
+                
 if __name__ == '__main__':
     
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
     outdir = "../../data/SVD_Sentence/"
     bookname = "../../tools/TextBook_Materials.txt"
+    
+    #TestProcessLine()
     
     #Step1: get senna input
     #Survey.getStudentResponses4Senna(excelfile, sennadatadir)
@@ -284,7 +292,6 @@ if __name__ == '__main__':
     #SaveNewA(None, None, outdir)
     
     for np in ['sentence']:
-        #for K in [50, 100, 200]:
         for K in [50]:
             getSVD(outdir, np, K, ngrams=[1,2])
             #getSVD(outdir, bookname, K, 'book', ngrams=[1,2])

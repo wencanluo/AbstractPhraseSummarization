@@ -15,6 +15,10 @@ from feat_vec import FeatureVector
 
 from ILP_baseline import stopwords
 
+import get_ngram_NP
+import get_ngram_pos
+import get_ngram_tfidf
+
 nonwords = [line.lower().strip() for line in fio.ReadFile("../../data/wordsEn.txt")]
 nonwords = [porter.getStemming(w) for w in nonwords]
 
@@ -606,8 +610,13 @@ def extact(ilpdir, np, ngram):
             extract_single(prefix, ngram, feature_file, titlefile)
                     
 if __name__ == '__main__':   
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
-    extact(ilpdir, np = 'sentence', ngram=[1,2])
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
-    extact(ilpdir, np = 'sentence', ngram=[1,2])
+    sennadatadir = "../../data/senna/"
+    
+    for ilpdir in ["../../data/ILP_Sentence_Supervised_FeatureWeightingMC/",
+                   "../../data/ILP_Sentence_Supervised_FeatureWeighting/"]:
+        get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = 'sentence', ngram=[1,2])
+        get_ngram_tfidf.extact_tfidf(ilpdir, np = 'sentence', ngram=[1,2])
+        get_ngram_pos.extact_pos(ilpdir, sennadatadir, np = 'sentence', ngram=[1,2])
+        
+        extact(ilpdir, np = 'sentence', ngram=[1,2])

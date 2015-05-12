@@ -31,8 +31,8 @@ def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBet
         if theta == 0: continue
         
         objective.append(" ".join([str(theta*Lambda), bigram]))
-    for student, grama in StudentGamma.items():
-        objective.append(" ".join([str(grama*(1-Lambda)), student]))
+    #for student, grama in StudentGamma.items():
+    #    objective.append(" ".join([str(grama*(1-Lambda)), student]))
     print "  ", " + ".join(objective)
     
     #write constraints
@@ -43,15 +43,15 @@ def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBet
     
     ILP.WriteConstraint3(PhraseBigram)
     
-    ILP.WriteConstraint4(StudentPhrase)
+    #ILP.WriteConstraint4(StudentPhrase)
     
     indicators = []
     for bigram in BigramTheta.keys():
         indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
-    for student in StudentGamma.keys():
-        indicators.append(student)
+    #for student in StudentGamma.keys():
+    #    indicators.append(student)
         
     #write Bounds
     print "Bounds"
