@@ -28,7 +28,6 @@ sumexe = ".ref.summary"
 featureext = ".f"
 
 ngramTag = "___"
-
     
 def formulateProblem(IndexBigram, Lambda, Weights, PhraseBeta, PhraseBigram, BigramPhrase, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix, FeatureVecU):
     SavedStdOut = sys.stdout

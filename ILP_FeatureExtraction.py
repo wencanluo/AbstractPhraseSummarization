@@ -118,15 +118,15 @@ def extract_TFIDF(prefix, ngram):
         if tfidf >= 0.005: feat_vec['tfidf>=0.005'] = 1.0
         if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
         
-        if tfidf < 0.5: feat_vec['tfidf<0.5'] = 1.0
-        if tfidf < 0.1: feat_vec['tfidf<0.1'] = 1.0
-        if tfidf < 0.05: feat_vec['tfidf<0.05'] = 1.0
-        if tfidf < 0.04: feat_vec['tfidf<0.04'] = 1.0
-        if tfidf < 0.03: feat_vec['tfidf<0.03'] = 1.0
-        if tfidf < 0.02: feat_vec['tfidf<0.02'] = 1.0
-        if tfidf < 0.01: feat_vec['tfidf<0.01'] = 1.0
-        if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
-        if tfidf >= 0.005: feat_vec['tfidf>0.005'] = 1.0
+#         if tfidf < 0.5: feat_vec['tfidf<0.5'] = 1.0
+#         if tfidf < 0.1: feat_vec['tfidf<0.1'] = 1.0
+#         if tfidf < 0.05: feat_vec['tfidf<0.05'] = 1.0
+#         if tfidf < 0.04: feat_vec['tfidf<0.04'] = 1.0
+#         if tfidf < 0.03: feat_vec['tfidf<0.03'] = 1.0
+#         if tfidf < 0.02: feat_vec['tfidf<0.02'] = 1.0
+#         if tfidf < 0.01: feat_vec['tfidf<0.01'] = 1.0
+#         if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
+#         if tfidf >= 0.005: feat_vec['tfidf>0.005'] = 1.0
         
         dict[bigram] = feat_vec
         
