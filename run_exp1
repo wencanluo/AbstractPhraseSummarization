@@ -1,0 +1,30 @@
+#generated the data, if necessary
+	#prepare the Senna Input
+	#python get_senna_input.py
+
+	#Run the Senna Parser
+	#cmd /C "runSenna.bat"
+
+	#generate the files
+	#python ILP_Prepare.py
+
+#unsupervised ILP baseline
+#python ILP_baseline.py
+#python ILP_GetRouge.py "../../data/ILP1_Sentence/"
+
+
+#unsupervised ILP + matrix completion
+	#get matrix completion
+
+#clean the log files
+#./clean
+	
+#supervised ILP + feature weighting
+	#get features
+	#python ILP_FeatureExtraction.py
+	python ILP_Supervised_FeatureWeight.py
+	python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
+	
+#supervised ILP + feature weighting + matrix completion
+
+#gather the ROUGE scores

@@ -1,0 +1,2 @@
+rm ../../data/ILP_Sentence_Supervised_FeatureWeighting/*.json
+rm ../../data/ILP_Sentence_Supervised_FeatureWeightingMC/*.json
