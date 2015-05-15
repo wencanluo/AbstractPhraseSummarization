@@ -10,10 +10,10 @@ import Survey
 import ILP_baseline as ILP
 import ILP_SVD
 from collections import defaultdict
-
+import util
 from feat_vec import FeatureVector 
 
-from ILP_baseline import stopwords
+from ILP_baseline import stopwords, stopwordswithpunctuations
 
 import get_ngram_NP
 import get_ngram_pos
@@ -118,15 +118,15 @@ def extract_TFIDF(prefix, ngram):
         if tfidf >= 0.005: feat_vec['tfidf>=0.005'] = 1.0
         if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
         
-#         if tfidf < 0.5: feat_vec['tfidf<0.5'] = 1.0
-#         if tfidf < 0.1: feat_vec['tfidf<0.1'] = 1.0
-#         if tfidf < 0.05: feat_vec['tfidf<0.05'] = 1.0
-#         if tfidf < 0.04: feat_vec['tfidf<0.04'] = 1.0
-#         if tfidf < 0.03: feat_vec['tfidf<0.03'] = 1.0
-#         if tfidf < 0.02: feat_vec['tfidf<0.02'] = 1.0
-#         if tfidf < 0.01: feat_vec['tfidf<0.01'] = 1.0
-#         if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
-#         if tfidf >= 0.005: feat_vec['tfidf>0.005'] = 1.0
+        if tfidf < 0.5: feat_vec['tfidf<0.5'] = 1.0
+        if tfidf < 0.1: feat_vec['tfidf<0.1'] = 1.0
+        if tfidf < 0.05: feat_vec['tfidf<0.05'] = 1.0
+        if tfidf < 0.04: feat_vec['tfidf<0.04'] = 1.0
+        if tfidf < 0.03: feat_vec['tfidf<0.03'] = 1.0
+        if tfidf < 0.02: feat_vec['tfidf<0.02'] = 1.0
+        if tfidf < 0.01: feat_vec['tfidf<0.01'] = 1.0
+        if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
+        if tfidf >= 0.005: feat_vec['tfidf>0.005'] = 1.0
         
         dict[bigram] = feat_vec
         
@@ -156,10 +156,17 @@ def extract_Pos(prefix, ngram):
     
     dict = {}
     for bigram, pos in BigramPos.items():
-        
         feat_vec = FeatureVector()
         feat_vec['pos='+pos] = 1.0
+        
+        if len(bigram.split()) == 2:
+            pos2 = pos.split(' ')
+            assert(len(pos2) == 2)
+            feat_vec['pos_first='+pos2[0]] = 1.0
+            feat_vec['pos_second='+pos2[1]] = 1.0
+            
         dict[bigram] = feat_vec
+        
         
         #TODO
         
@@ -398,10 +405,18 @@ def extract_nonstop_ratio(prefix, ngram):
         bigramname = bigrams[bigram]
         
         feat_vec = FeatureVector()
-        r = get_nonstop_ratio(bigramname)
         
-        if r <= 0.5: feat_vec['non_stop_ratio<=0.5'] = 1.0
-        if r > 0.5: feat_vec['non_stop_ratio>0.5'] = 1.0 
+        if len(bigramname.split()) == 2:
+            words = bigramname.split()
+            
+            if words[0] in stopwordswithpunctuations:
+                feat_vec['stop_first=True'] = 1.0
+            if words[1] in stopwordswithpunctuations:
+                feat_vec['stop_second=True'] = 1.0
+        
+#         r = get_nonstop_ratio(bigramname)
+#         if r <= 0.5: feat_vec['non_stop_ratio<=0.5'] = 1.0
+#         if r > 0.5: feat_vec['non_stop_ratio>0.5'] = 1.0 
         
         dict[bigramname] = feat_vec
         
@@ -524,6 +539,39 @@ def extract_ngram_length(prefix, ngram):
         
         dict[bigramname] = feat_vec
     return dict
+
+def getPosition(bigram, phrase, bin=5):
+    tokens = phrase.lower().split()
+    
+    if len(bigram.split()) == 2:
+        bigrams = ILP.getNgramTokenized(tokens, 2, NoStopWords=False, Stemmed=True)
+    else:
+        bigrams = ILP.getNgramTokenized(tokens, 1, NoStopWords=False, Stemmed=True)
+        
+    N = len(bigrams)
+    index = bigrams.index(bigram)
+    assert(index != -1)
+
+    return util.get_bin_index(index, 0, N, bin)
+    
+def extract_position(prefix, ngram, bin):
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
+    BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
+    
+    dict = {}
+    for bigram, phrases in BigramPhrase.items():
+        bigramname = IndexBigram[bigram]
+        
+        feat_vec = FeatureVector()
+        
+        for phrase in phrases: #union of the position feature
+            p = getPosition(bigramname, IndexPhrase[phrase])
+            
+            feat_vec['position_'+str(p)] = 1.0
+        
+        dict[bigramname] = feat_vec
+        
+    return dict
         
 def add_feature_set(todict, fromdict):
     for k, v in fromdict.items():
@@ -540,7 +588,7 @@ def add_bias(fromdict):
             fromdict[k]['b'] = 1.0
     return fromdict
            
-def extract_single(prefix, ngram, output, titlefile=None):
+def extract_single(prefix, ngram, output, titlefile=None, features = None, position_bin = 5):
     data = {}
     
     tf_dict = extract_TF(prefix, ngram)
@@ -562,36 +610,59 @@ def extract_single(prefix, ngram, output, titlefile=None):
     
     ngram_length_dict = extract_ngram_length(prefix, ngram)
     frequency_of_words_dict = extract_frequency_of_words(prefix, ngram)
-
+    
     if titlefile != None:
         title_dict = extract_title(prefix, ngram, titlefile)
     else:
         title_dict = {}
+    
+    position_dict = extract_position(prefix, ngram, bin=position_bin)
+    
+    if 'tf' in features:    
+        data = add_feature_set(data, tf_dict)
+    if 'tf_rank' in features:
+        data = add_feature_set(data, tf_rank_dict)
+    
+    if 'idftf' in features:
+        data = add_feature_set(data, idftf_dict)
+    if 'idftf_rank' in features:
+        data = add_feature_set(data, idftf_rank_dict)
+    
+    if 'pos' in features:
+        data = add_feature_set(data, pos_dict)
+    
+    if 'inNP' in features:
+        data = add_feature_set(data, inNP_dict)
+            
+    if 'ave_length' in features:
+        data = add_feature_set(data, ave_length_dict)
+    if 'ave_length_rank' in features:
+        data = add_feature_set(data, ave_length_dict_rank)
+    
+    if 'ave_sim' in features:
+        data = add_feature_set(data, ave_sim_dict)
+    
+    if 'stop_word' in features:
+        data = add_feature_set(data, stop_ratio_dict)
+    if 'word_ratio' in features:
+        data = add_feature_set(data, word_ratio_dict)
+            
+    if 'ngram_length' in features:
+        data = add_feature_set(data, ngram_length_dict)
+    if 'frequency_of_words' in features:
+        data = add_feature_set(data, frequency_of_words_dict)
+    
+    if 'title' in features:
+        data = add_feature_set(data, title_dict)
+    
+    if 'position' in features:
+        data = add_feature_set(data, position_dict)
         
-    data = add_feature_set(data, tf_dict)
-    data = add_feature_set(data, idftf_dict)
-    data = add_feature_set(data, ave_length_dict)
-    data = add_feature_set(data, ngram_length_dict)
-    data = add_feature_set(data, frequency_of_words_dict)
-    
-    data = add_feature_set(data, tf_rank_dict)
-    data = add_feature_set(data, idftf_rank_dict)
-    
-    data = add_feature_set(data, pos_dict)
-    data = add_feature_set(data, inNP_dict)
-    data = add_feature_set(data, ave_length_dict_rank)
-    
-    data = add_feature_set(data, ave_sim_dict)
-    
-    data = add_feature_set(data, stop_ratio_dict)
-    data = add_feature_set(data, word_ratio_dict)
-    data = add_feature_set(data, title_dict)
-    
     data = add_bias(data)
     with open(output, 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
-def extact(ilpdir, np, ngram):
+def extact(ilpdir, np, ngram, features, position_bin):
     sheets = range(0,12)
     
     for i, sheet in enumerate(sheets):
@@ -607,16 +678,18 @@ def extact(ilpdir, np, ngram):
             
             titlefile = titledir + str(week) + '.TXT'
             
-            extract_single(prefix, ngram, feature_file, titlefile)
+            extract_single(prefix, ngram, feature_file, titlefile, features, position_bin)
                     
 if __name__ == '__main__':   
+    from config import ConfigFile
+    config = ConfigFile()
     
     sennadatadir = "../../data/senna/"
     
-    for ilpdir in ["../../data/ILP_Sentence_Supervised_FeatureWeightingMC/",
-                   "../../data/ILP_Sentence_Supervised_FeatureWeighting/"]:
-        get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = 'sentence', ngram=[1,2])
-        get_ngram_tfidf.extact_tfidf(ilpdir, np = 'sentence', ngram=[1,2])
-        get_ngram_pos.extact_pos(ilpdir, sennadatadir, np = 'sentence', ngram=[1,2])
+    for ilpdir in ["../../data/ILP_Sentence_Supervised_FeatureWeighting/",
+                   "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"]:
+        get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = 'sentence', ngram=config.get_ngrams())
+        get_ngram_tfidf.extact_tfidf(ilpdir, np = 'sentence', ngram=config.get_ngrams())
+        get_ngram_pos.extact_pos(ilpdir, sennadatadir, np = 'sentence', ngram=config.get_ngrams())
         
-        extact(ilpdir, np = 'sentence', ngram=[1,2])
+        extact(ilpdir, np = 'sentence', ngram=config.get_ngrams(), features=config.get_features(), position_bin = config.get_position_bin())

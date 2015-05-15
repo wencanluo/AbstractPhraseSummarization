@@ -11,11 +11,9 @@ import ILP_baseline as ILP
 import ILP_SVD
 
 from feat_vec import FeatureVector
-from ltpservice.LTPOption import POS
+#from ltpservice.LTPOption import POS
 
 maxIter = 100
-
-minthreshold = -100
 
 #Stemming
 phraseext = ".key" #a list
@@ -34,7 +32,7 @@ def LoadFeatureSet(featurename):
         
     return featureV
     
-def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU):
+def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
@@ -54,19 +52,29 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
 #             if w < minthreshold:
 #                 minthreshold = w
     
-    for bigram in BigramPhrase:
-        bigramname = bigrams[bigram]
-                
-        if bigramname in FeatureVecU:
-            fvec = FeatureVector(FeatureVecU[bigramname])
-            w = Weights.dot(fvec) - minthreshold
-            if w <= 0: continue
-            objective.append(" ".join([str(w*Lambda), bigram]))
-            
-#     for student, grama in StudentGamma.items():
-#         if Lambda==1:continue
-#         
-#         objective.append(" ".join([str(grama*(1-Lambda)), student]))
+    if student_coverage:
+        for bigram in BigramPhrase:
+            bigramname = bigrams[bigram]
+                    
+            if bigramname in FeatureVecU:
+                fvec = FeatureVector(FeatureVecU[bigramname])
+                w = Weights.dot(fvec) - minthreshold
+                if w <= 0: continue
+                objective.append(" ".join([str(w*Lambda), bigram]))
+                     
+        for student, grama in StudentGamma.items():
+            if Lambda==1:continue
+             
+            objective.append(" ".join([str(grama*(1-Lambda)), student]))
+    else:
+        for bigram in BigramPhrase:
+            bigramname = bigrams[bigram]
+                    
+            if bigramname in FeatureVecU:
+                fvec = FeatureVector(FeatureVecU[bigramname])
+                w = Weights.dot(fvec) - minthreshold
+                if w <= 0: continue
+                objective.append(" ".join([str(w), bigram]))
     
     print "  ", " + ".join(objective)
     
@@ -78,15 +86,18 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
     
     ILP.WriteConstraint3(PhraseBigram)
     
-    #ILP.WriteConstraint4(StudentPhrase)
+    if student_coverage:
+        ILP.WriteConstraint4(StudentPhrase)
     
     indicators = []
     for bigram in BigramPhrase.keys():
         indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
-    #for student in StudentGamma.keys():
-    #    indicators.append(student)
+        
+    if student_coverage:
+        for student in StudentGamma.keys():
+            indicators.append(student)
         
     #write Bounds
     print "Bounds"
@@ -101,7 +112,7 @@ def formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, Phra
     print "End"
     sys.stdout = SavedStdOut
         
-def ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter):
+def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
@@ -130,11 +141,11 @@ def ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlil
     FeatureVecU = LoadFeatureSet(featurefile)
     
     lpfile = prefix
-    formulateProblem(bigrams, Lambda, StudentGamma, StudentPhrase, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU)
+    formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold)
     
     m = ILP.SloveILP(lpfile)
     
-    output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
+    output = lpfile + '.L' + str(L) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, phrases, output)
 
 def getLastIndex(BigramIndex):
@@ -429,7 +440,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
         #fio.SaveDict(Weights, weightfile, True)
         #fio.SaveDict(BigramIndex, bigramfile)
 
-def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
+def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold):
     Weights = {}
     BigramIndex = {}
     
@@ -459,12 +470,12 @@ def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, feature
             print "Test: ", prefix
             
             featurefile = featuredir + str(week) + '/' + type + featureext
-            ILP_Supervised(Weights, prefix, featurefile, L, Lambda, ngram, MalformedFlilter)
+            ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold)
 
-def ILP_CrossValidation(ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
+def ILP_CrossValidation(ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold):
     for train, test in LeaveOneLectureOutPermutation():
         TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
-        TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
+        TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold)
 
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
@@ -476,22 +487,23 @@ def LeaveOneLectureOutPermutation():
         yield train, test
             
 if __name__ == '__main__':   
-    #ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
-    #ilpdir = "../../data/ILP_Sentence_Supervised_SVD_BOOK/"
+    
+    from config import ConfigFile
+    config = ConfigFile()
+    
     ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
     
-    #svddir = "../../data/SVD_Sentence/"
     featuredir = ilpdir
     
     MalformedFlilter = False
-    ngrams = [1,2]
+    ngrams = config.get_ngrams()
     
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-    for Lambda in [1.0]:
+    for Lambda in [config.get_student_lambda()]:
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-         for L in [30]:
+         for L in [config.get_length_limit()]:
              for np in ['sentence']: #'chunk\
-                 for iter in range(4):
-                     ILP_CrossValidation(ilpdir, np, L, Lambda, ngrams, MalformedFlilter, featuredir)
+                 for iter in range(config.get_perceptron_maxIter()):
+                     ILP_CrossValidation(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), minthreshold=config.get_perceptron_threshold())
     
     print "done"

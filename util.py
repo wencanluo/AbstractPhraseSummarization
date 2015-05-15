@@ -1,4 +1,8 @@
 
+def get_bin_index(x, start, end, bin):
+    assert(x <= end and x >= start)
+    return int(x*bin/(end-start))
+
 def normalize(X):
     
     if type(X) == type([]):
@@ -33,4 +37,5 @@ def UnionDict(d1, d2):
     return dict
 
 if __name__=="__main__":
-    print normalize({1:1,2:2,3:4})
+    #print normalize({1:1,2:2,3:4})
+    print get_bin_index(10, 0, 9, 5)

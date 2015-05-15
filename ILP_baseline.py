@@ -65,15 +65,23 @@ def WriteConstraint4(StudentPhrase):
     for student, phrases in StudentPhrase.items():
         print "  ", " + ".join(phrases), "-", student, ">=", 0
         
-def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
+def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, student_coverage, StudentGamma, StudentPhrase,  student_lambda):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
     
     #write objective
     print "Maximize"
     objective = []
-    for bigram, theta in BigramTheta.items():
-        objective.append(" ".join([str(theta), bigram]))
+    
+    if student_coverage:
+        for bigram, theta in BigramTheta.items():
+            objective.append(" ".join([str(theta*student_lambda), bigram]))
+            
+        for student, grama in StudentGamma.items():
+            objective.append(" ".join([str(grama*(1-student_lambda)), student]))
+    else:
+        for bigram, theta in BigramTheta.items():
+            objective.append(" ".join([str(theta), bigram]))
     print "  ", " + ".join(objective)
     
     #write constraints
@@ -84,12 +92,18 @@ def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpf
     
     WriteConstraint3(PhraseBigram)
     
+    if student_coverage:
+        WriteConstraint4(StudentPhrase)
+    
     indicators = []
     for bigram in BigramTheta.keys():
         indicators.append(bigram)
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
-        
+    if student_coverage:
+        for student in StudentGamma.keys():
+            indicators.append(student)
+    
     #write Bounds
     print "Bounds"
     for indicator in indicators:
@@ -163,6 +177,73 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " 
     return ngrams
     
 def getPhraseBigram(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=None, NoStopWords=True, Stemmed=True):
+    if svdfile != None:
+        bigramDict = ILP_MC.LoadMC(svdfile)
+        
+    #get phrases
+    lines = fio.ReadFile(phrasefile)
+    phrases = [line.strip() for line in lines]
+    
+    newPhrases = []
+    for phrase in phrases:
+        #phrase = ProcessLine(phrase)
+        if MalformedFlilter and isMalformed(phrase.lower()): continue
+        
+        newPhrases.append(phrase)
+    
+    phrases = newPhrases
+
+    PhraseBigram = {}
+    
+    #get index of phrase
+    j = 1
+    phraseIndex = {}
+    for phrase in phrases:
+        if phrase not in phraseIndex:
+            index = 'Y' + str(j)
+            phraseIndex[phrase] = index
+            PhraseBigram[index] = []
+            j = j + 1
+    
+    #get bigram index and PhraseBigram
+    bigramIndex = {}
+    i = 1
+    for phrase in phrases:
+        pKey = phraseIndex[phrase]
+        
+        tokens = phrase.lower().split()
+        #tokens = list(gensim.utils.tokenize(phrase, lower=True, errors='ignore'))
+
+        ngrams = []
+        for n in Ngram:
+            grams = getNgramTokenized(tokens, n, NoStopWords=NoStopWords, Stemmed=Stemmed)
+            #grams = NLTKWrapper.getNgram(phrase, n)
+            ngrams = ngrams + grams
+
+        for bigram in ngrams:
+            if svdfile != None:
+                if bigram not in bigramDict: continue
+            
+            if bigram not in bigramIndex:
+                bKey = 'X' + str(i)
+                bigramIndex[bigram] = bKey
+                i = i + 1
+            else:
+                bKey = bigramIndex[bigram]
+            
+            PhraseBigram[pKey].append(bKey)
+
+    IndexPhrase = {}
+    for k,v in phraseIndex.items():
+        IndexPhrase[v] = k
+    
+    IndexBigram = {}
+    for k,v in bigramIndex.items():
+        IndexBigram[v] = k
+        
+    return IndexPhrase, IndexBigram, PhraseBigram
+
+def getPhraseBigram2(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=None, NoStopWords=True, Stemmed=True):
     if svdfile != None:
         bigramDict = ILP_MC.LoadMC(svdfile)
         
@@ -332,12 +413,12 @@ def getStudentWeight_One(StudentPhrase):
         StudentGamma[student] = 1.0
     return StudentGamma
             
-def ILP1(prefix, L):
+def ILP1(prefix, L, Ngram = [1,2], student_coverage = False, student_lambda = None):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, Ngram=Ngram)
     fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
@@ -351,15 +432,18 @@ def ILP1(prefix, L):
     #get {bigram:[phrase]} dictionary
     BigramPhrase = getBigramPhrase(PhraseBigram)
     
+    students, StudentPhrase = getStudentPhrase(IndexPhrase, prefix + studentext)
+    StudentGamma = getStudentWeight_One(StudentPhrase)
+    
     lpfile = prefix
-    formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, student_coverage, StudentGamma, StudentPhrase, student_lambda)
     
     m = SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + ".summary"
     ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
-def ILP_Summarizer(ilpdir, np, L):
+def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, student_lambda = None):
     sheets = range(0,12)
     
     for i, sheet in enumerate(sheets):
@@ -369,19 +453,17 @@ def ILP_Summarizer(ilpdir, np, L):
         for type in ['POI', 'MP', 'LP']:
             prefix = dir + type + "." + np
             
-            ILP1(prefix, L)
+            ILP1(prefix, L, Ngram=Ngram, student_coverage = student_coverage, student_lambda = student_lambda)
             
 if __name__ == '__main__':
     ilpdir = "../../data/ILP1_Sentence/"
     
-    #ILP1(ilpdir + "test/MP.syntax", 10)
+    from config import ConfigFile
     
-#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-#         for np in ['syntax', 'chunk']:
-#             ILP_Summarizer(ilpdir, np, L)
+    config = ConfigFile()
     
-    for L in [30]:
+    for L in [config.get_length_limit()]:
         for np in ['sentence']:
-            ILP_Summarizer(ilpdir, np, L)
+            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda())
             
     print "done"

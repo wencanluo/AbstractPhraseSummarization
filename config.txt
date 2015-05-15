@@ -1,0 +1,10 @@
+response_split	1
+L	30
+student_coverage	0
+student_lambda	1.0
+ngrams	3
+features	tf, tf_rank, idftf, idftf_rank, pos, inNP, ave_length, ave_length_rank, ave_sim, stop_word, word_ratio, ngram_length, frequency_of_words, title, position
+position_bin	5
+perceptron_maxIter	5
+perceptron_threshold	-100
+weight_normalization	1
