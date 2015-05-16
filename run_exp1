@@ -12,7 +12,6 @@
 #python ILP_baseline.py
 #python ILP_GetRouge.py "../../data/ILP1_Sentence/"
 
-
 #unsupervised ILP + matrix completion
 	#get matrix completion
 	
@@ -23,8 +22,8 @@
 #supervised ILP + feature weighting
 	#get features
 	#python ILP_FeatureExtraction.py
-	#python ILP_Supervised_FeatureWeight.py
-	#python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
+	python ILP_Supervised_FeatureWeight.py
+	python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
 	
 #supervised ILP + feature weighting + matrix completion
 

@@ -10,4 +10,6 @@ weight_normalization	2
 perceptron_maxIter	1
 matrix_dir	E:/project/AbstractPhraseSummarization/data/matrix/exp1/
 rank_max	200
-mc_lambda	2
+softImpute_lambda	2
+binary_matrix	1
+

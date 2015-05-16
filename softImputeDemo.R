@@ -2,40 +2,46 @@
 
 require('softImpute')
 
-
-#rankMaxs <- c(10, 50, 100, 500, 1000)
-#rankMaxs <- 2690
-rankMaxs <- 200
-#lambdas <- 10^seq(from = -5, to = 1)
-#lambdas <- c(10, 5, 1, 0.1)
-lambdas <- c(2, 1.5, 1, 0.5, 0.1)
+rankMaxs <- c(20, 50, 100, 200, 500, 1000, 2690)
+lambdas <- c(10000, 1000, 100, 10, 8, 4, 3, 2.5, 2, 1.5, 1, 0.5, 0.1, 0.01)
 
 ranks <- rep(1, times = length(lambdas))
 
-setwd("E:/project/AbstractPhraseSummarization/data/matrix/exp1/")
-load("X.gzip")
+exps <- c(1,2,3,4)
 
-X = as.matrix(X)
-print(dim(X))
+for (k in 1:length(exps)){
+	id = exps[k]
+	folder = paste("E:/project/AbstractPhraseSummarization/data/matrix/exp", id, sep="")
+	cat("folder=", folder)
 
-X[ which(X==0, arr.ind = T) ] = NA
-xna=X
+	setwd(folder)
+	load("X.gzip")
 
-for (j in 1:length(rankMaxs)){
-	rankMax = rankMaxs[j]
+	X = as.matrix(X)
+	print(dim(X))
+
+	X[ which(X==0, arr.ind = T) ] = NA
+	xna=X
+
+	for (j in 1:length(rankMaxs)){
+		rankMax = rankMaxs[j]
 	
-	warm = NULL
+		warm = NULL
 	
-	for( i in 1:length(lambdas)) {		
-		fit=softImpute(xna, rank=rankMax, lambda = lambdas[i], thresh = 1e-04, maxit = 100, trace.it=TRUE, warm=warm)
-		newX = complete(xna,fit)
+		for( i in 1:length(lambdas)) {		
+			fit=softImpute(xna, rank=rankMax, lambda = lambdas[i], thresh = 1e-04, maxit = 100, trace.it=TRUE, warm=warm)
+			fit_filename=paste("fit_", rankMax, "_", lambdas[i], "_svd.gzip", sep="")
+			save(fit, file=fit_filename, compress=TRUE)
 		
-		ranks[i]=sum(round(fit$d, 3)>0)
-		warm=fit
+			newX = complete(xna,fit)
 		
-		cat(i,"lambda=",lambdas[i],"rank.max",rankMax,"rank",ranks[i],"\n")
+			ranks[i]=sum(round(fit$d, 3)>0)
+			warm=fit
 		
-		filename=paste("newX_", rankMax, "_", lambdas[i], "_svd.gzip", sep="")
+			cat(i,"lambda=",lambdas[i],"rank.max",rankMax,"rank",ranks[i],"\n")
+		
+			filename=paste("newX_", rankMax, "_", lambdas[i], "_svd.gzip", sep="")
+			save(newX, file=filename, compress=TRUE)
+		}
 	}
 }
-

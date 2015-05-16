@@ -187,7 +187,7 @@ def extract_inNP(prefix, ngram):
     return dict
 
 def extract_averageSentenceLength(prefix, ngram):
-    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
     
     #get word count of phrases
     PhraseBeta = ILP.getWordCounts(IndexPhrase)
@@ -255,7 +255,7 @@ def extract_averageSentenceSimilarity2promp(prefix, ngram):
     
     promp = prompts[type] 
     
-    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
     
     #get word count of phrases
     BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
@@ -292,7 +292,7 @@ def extract_averageSentenceSimilarity2promp(prefix, ngram):
     return dict
     
 def extract_averageSentenceLength_rank(prefix, ngram, topK=10):
-    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2])
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
     
     #get word count of phrases
     PhraseBeta = ILP.getWordCounts(IndexPhrase)

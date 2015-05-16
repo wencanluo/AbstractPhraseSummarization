@@ -31,7 +31,7 @@ def SoftImpute(X, rank, Lambda, type='svd'):
     print cmd
     #os.system(cmd)
     
-    return LoadR(rank, Lambda, type)
+    #return LoadR(rank, Lambda, type)
 
 def TestSoftImpute():
     row, col = 15, 10

@@ -212,8 +212,38 @@ def SaveNewA(A, dict, path, ngrams, prefixname=""):
             
             with open(svdAname, 'w') as fout:
                 json.dump(PartA, fout, indent=2)            
-                    
-def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]): 
+
+def ToBinary(csc):
+    A = csc.toarray()
+    
+    s = csc.shape
+    m = s[0]
+    n = s[1]
+    
+    m = len(A)
+    n = len(A[0])
+    
+    for i in range(m):
+        row = []
+        for j in range(n):
+            if A[i][j] >= 1: 
+                A[i][j] = 1
+    
+    return A
+
+def CheckBinary(A):
+    m = len(A)
+    n = len(A[0])
+    
+    for i in range(m):
+        row = []
+        for j in range(n):
+            if A[i][j] != 0 and A[i][j] != 1: return False 
+    
+    return True
+            
+                        
+def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix): 
     types = ['POI', 'MP', 'LP']
     
     sheets = range(0,25)
@@ -225,7 +255,7 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
         corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams)
     
     path = prefix
-    dictname = path + "_".join(types) + '_' + str(K) + '_' + corpusname + corpusdictexe
+    dictname = path + "_".join(types) + '_' + corpusname + corpusdictexe
     fio.SaveDict(corpus.dictionary.token2id, dictname)
 
     # or run truncated Singular Value Decomposition (SVD) on the streamed corpus
@@ -236,21 +266,24 @@ def getSVD(prefix, np, K, corpusname="corpus", ngrams=[1,2]):
     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
     print scipy_csc_matrix.shape
     
-    SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
+    print "binary_matrix: ", binary_matrix
     
-    #rank = min(scipy_csc_matrix.shape) - 1
-    rank = 200
+    if binary_matrix:
+        A = ToBinary(scipy_csc_matrix)
+        SaveNewA(A, corpus.dictionary.token2id, path, ngrams, 'org.binary')
+    else:
+        A = scipy_csc_matrix.toarray()
+        SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
+    
+    rank = rank_max
     print rank
+     
+    newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda)
     
-    #for L in [0.1, 0.5, 1, 0.05, 0.01, 0.005, 0.001]:
-    for L in [2]:
-        newA = softImputeWrapper.SoftImpute(scipy_csc_matrix.toarray().T, rank=rank, Lambda=L)
-        
+    if newA != None:
         print newA.shape
-         
-        newAname = path + "_".join(types) + '_' + str(K) + '_' + corpusname + mcexe
-         
-        prefix = str(rank) + '_' +  str(L)
+        
+        prefix = str(rank) + '_' +  str(softImpute_lambda)
         SaveNewA(newA, corpus.dictionary.token2id, path, ngrams, prefix)
 
 def TestProcessLine():
@@ -278,7 +311,6 @@ if __name__ == '__main__':
     config = ConfigFile()
     
     for np in ['sentence']:
-        getSVD(outdir, np, config.get_rank_max(), ngrams=config.get_ngrams())
-        #getSVD(outdir, bookname, K, 'book', ngrams=[1,2])
+        getSVD(outdir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())
     
     print "done"

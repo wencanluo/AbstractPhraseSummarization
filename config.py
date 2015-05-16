@@ -68,6 +68,15 @@ class ConfigFile:
     def get_rank_max(self):
         v = int(self.dict['rank_max'])
         return v
+    
+    def get_softImpute_lambda(self):
+        v = float(self.dict['softImpute_lambda'])
+        return v
+    
+    def get_binary_matrix(self):
+        v = self.dict['binary_matrix']
+        assert(v == '1' or v == '0')
+        return v == '1'
             
     def toString(self):
         s= ""
