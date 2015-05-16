@@ -270,30 +270,15 @@ if __name__ == '__main__':
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
     outdir = "../../data/SVD_Sentence/"
-    bookname = "../../tools/TextBook_Materials.txt"
+    #bookname = "../../tools/TextBook_Materials.txt"
     
     #TestProcessLine()
+    from config import ConfigFile
     
-    #Step1: get senna input
-    #Survey.getStudentResponses4Senna(excelfile, sennadatadir)
-    
-    #Step2: get senna output
-    
-    #Step3: get phrases
-    #for np in ['syntax', 'chunk']:
-#     for np in ['syntax']:
-#          postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np)
-#          postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np)
-#          postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np)
-#      
-#     #Step4: write TA's reference 
-#     Survey.WriteTASummary(excelfile, outdir)
-    
-    #SaveNewA(None, None, outdir)
+    config = ConfigFile()
     
     for np in ['sentence']:
-        for K in [50]:
-            getSVD(outdir, np, K, ngrams=[1,2])
-            #getSVD(outdir, bookname, K, 'book', ngrams=[1,2])
+        getSVD(outdir, np, config.get_rank_max(), ngrams=config.get_ngrams())
+        #getSVD(outdir, bookname, K, 'book', ngrams=[1,2])
     
     print "done"

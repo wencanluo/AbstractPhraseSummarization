@@ -31,8 +31,42 @@ def LoadFeatureSet(featurename):
         featureV = json.load(fin)
         
     return featureV
+
+def getWeight(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization):
+    BigramWeights = {}
     
-def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold):
+    for bigram in BigramPhrase:
+        bigramname = IndexBigram[bigram]
+                
+        if bigramname in FeatureVecU:
+            fvec = FeatureVector(FeatureVecU[bigramname])
+            w = Weights.dot(fvec)
+            BigramWeights[bigram] = w
+    
+    median_w = numpy.median(BigramWeights.values())
+    mean_w = numpy.mean(BigramWeights.values())
+    std_w = numpy.std(BigramWeights.values())
+    max_w = numpy.max(BigramWeights.values())
+    min_w = numpy.min(BigramWeights.values())
+                    
+    if weight_normalization == 0:
+        for bigram in BigramWeights:
+            w = BigramWeights[bigram]
+            BigramWeights[bigram] = w - minthreshold            
+    elif weight_normalization == 1:#normalize to 0 ~ 1
+        for bigram in BigramWeights:
+            w = BigramWeights[bigram]
+            BigramWeights[bigram] = (w - min_w)/(max_w - min_w)
+    elif weight_normalization == 2:#normalize to 0 ~ 1
+        for bigram in BigramWeights:
+            w = BigramWeights[bigram]
+            BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
+    else:
+        pass
+                
+    return BigramWeights
+
+def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
@@ -40,27 +74,25 @@ def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L
     print "Maximize"
     objective = []
     
-#     #get minValue
-#     minthreshold = 0
-#         
-#     for bigram in BigramPhrase:
-#         bigramname = bigrams[bigram]
-#             
-#         if bigramname in FeatureVecU:
-#             fvec = FeatureVector(FeatureVecU[bigramname])
-#             w = Weights.dot(fvec)
-#             if w < minthreshold:
-#                 minthreshold = w
+    BigramWeights = getWeight(Weights, BigramPhrase, bigrams, FeatureVecU, minthreshold, weight_normalization)
+    
+    if os.name == 'nt':
+        import matplotlib.pyplot as plt
+        plt.clf()
+        plt.hist(BigramWeights.values(), bins=50)
+        plt.savefig(lpfileprefix + '.png')
+        fio.SaveDict(BigramWeights, lpfileprefix + '.bigram_weight.txt', SortbyValueflag=True)
     
     if student_coverage:
         for bigram in BigramPhrase:
-            bigramname = bigrams[bigram]
-                    
-            if bigramname in FeatureVecU:
-                fvec = FeatureVector(FeatureVecU[bigramname])
-                w = Weights.dot(fvec) - minthreshold
-                if w <= 0: continue
-                objective.append(" ".join([str(w*Lambda), bigram]))
+            if bigram not in BigramWeights: 
+                print bigrams[bigram]
+                continue
+            
+            w = BigramWeights[bigram]
+            
+            if w <= 0: continue
+            objective.append(" ".join([str(w*Lambda), bigram]))
                      
         for student, grama in StudentGamma.items():
             if Lambda==1:continue
@@ -68,13 +100,12 @@ def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L
             objective.append(" ".join([str(grama*(1-Lambda)), student]))
     else:
         for bigram in BigramPhrase:
+            if bigram not in BigramWeights: continue
             bigramname = bigrams[bigram]
                     
-            if bigramname in FeatureVecU:
-                fvec = FeatureVector(FeatureVecU[bigramname])
-                w = Weights.dot(fvec) - minthreshold
-                if w <= 0: continue
-                objective.append(" ".join([str(w), bigram]))
+            w = BigramWeights[bigram]
+            if w <= 0: continue
+            objective.append(" ".join([str(w), bigram]))
     
     print "  ", " + ".join(objective)
     
@@ -112,7 +143,7 @@ def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L
     print "End"
     sys.stdout = SavedStdOut
         
-def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold):
+def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold, weight_normalization):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
@@ -141,7 +172,7 @@ def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, stu
     FeatureVecU = LoadFeatureSet(featurefile)
     
     lpfile = prefix
-    formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold)
+    formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization)
     
     m = ILP.SloveILP(lpfile)
     
@@ -440,7 +471,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
         #fio.SaveDict(Weights, weightfile, True)
         #fio.SaveDict(BigramIndex, bigramfile)
 
-def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold):
+def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization):
     Weights = {}
     BigramIndex = {}
     
@@ -470,12 +501,12 @@ def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, stu
             print "Test: ", prefix
             
             featurefile = featuredir + str(week) + '/' + type + featureext
-            ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold)
+            ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold, weight_normalization)
 
-def ILP_CrossValidation(ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold):
+def ILP_CrossValidation(ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization):
     for train, test in LeaveOneLectureOutPermutation():
         TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
-        TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold)
+        TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization)
 
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
@@ -504,6 +535,6 @@ if __name__ == '__main__':
          for L in [config.get_length_limit()]:
              for np in ['sentence']: #'chunk\
                  for iter in range(config.get_perceptron_maxIter()):
-                     ILP_CrossValidation(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), minthreshold=config.get_perceptron_threshold())
+                     ILP_CrossValidation(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), minthreshold=config.get_perceptron_threshold(), weight_normalization=config.get_weight_normalization())
     
     print "done"

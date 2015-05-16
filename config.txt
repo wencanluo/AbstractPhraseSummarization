@@ -5,6 +5,9 @@ student_lambda	1.0
 ngrams	3
 features	tf, tf_rank, idftf, idftf_rank, pos, inNP, ave_length, ave_length_rank, ave_sim, stop_word, word_ratio, ngram_length, frequency_of_words, title, position
 position_bin	5
-perceptron_maxIter	5
 perceptron_threshold	-100
-weight_normalization	1
+weight_normalization	2
+perceptron_maxIter	1
+matrix_dir	E:/project/AbstractPhraseSummarization/data/matrix/exp1/
+rank_max	200
+mc_lambda	2

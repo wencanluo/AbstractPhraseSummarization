@@ -58,9 +58,16 @@ class ConfigFile:
         return v
     
     def get_weight_normalization(self):
-        v = self.dict['weight_normalization']
-        assert(v == '1' or v == '0')
-        return v == '1'
+        #0: no normalization, cutoff = minthreshold
+        #1: normalization to {0, 1}
+        #2: normalization to {0, 1} with a cutoff, (x - mean - std)/(max-mean-std)
+        #else: raw weight
+        v = int(self.dict['weight_normalization'])
+        return v
+    
+    def get_rank_max(self):
+        v = int(self.dict['rank_max'])
+        return v
             
     def toString(self):
         s= ""

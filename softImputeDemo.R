@@ -4,15 +4,15 @@ require('softImpute')
 
 
 #rankMaxs <- c(10, 50, 100, 500, 1000)
-rankMaxs <- 2690
-#rankMaxs <- 200
-lambdas <- 10^seq(from = -5, to = 1)
+#rankMaxs <- 2690
+rankMaxs <- 200
+#lambdas <- 10^seq(from = -5, to = 1)
 #lambdas <- c(10, 5, 1, 0.1)
-#lambdas <- c(2, 1.5, 1)
+lambdas <- c(2, 1.5, 1, 0.5, 0.1)
 
 ranks <- rep(1, times = length(lambdas))
 
-setwd("E:/project/AbstractPhraseSummarization/code/AbstractPhraseSummarization")
+setwd("E:/project/AbstractPhraseSummarization/data/matrix/exp1/")
 load("X.gzip")
 
 X = as.matrix(X)
@@ -36,8 +36,6 @@ for (j in 1:length(rankMaxs)){
 		cat(i,"lambda=",lambdas[i],"rank.max",rankMax,"rank",ranks[i],"\n")
 		
 		filename=paste("newX_", rankMax, "_", lambdas[i], "_svd.gzip", sep="")
-		save(newX, file=filename, compress=TRUE)
-		
 	}
 }
 
