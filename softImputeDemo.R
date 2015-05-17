@@ -2,12 +2,12 @@
 
 require('softImpute')
 
-rankMaxs <- c(20, 50, 100, 200, 500, 1000, 2690)
-lambdas <- c(10000, 1000, 100, 10, 8, 4, 3, 2.5, 2, 1.5, 1, 0.5, 0.1, 0.01)
+rankMaxs <- c(2690)
+lambdas <- c(1, 0.1)
 
 ranks <- rep(1, times = length(lambdas))
 
-exps <- c(1,2,3,4)
+exps <- c(1)
 
 for (k in 1:length(exps)){
 	id = exps[k]

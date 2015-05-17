@@ -4,10 +4,26 @@ from rpy2.robjects import r
 import pandas.rpy.common as com
 from pandas import DataFrame
 import os
-import SVD_Test
+import fio
 
-def LoadR(rank, Lambda, type):
-    filename = 'newX_'+str(rank)+'_'+str(Lambda)+'_'+str(type)+'.gzip'
+def LoadX(path = './'):
+    filename = path + 'X.gzip'
+    if not fio.IsExist(filename):
+        return None
+    
+    cmd = 'load("'+filename+'")'
+    
+    r(cmd)
+    X = r['X']
+    X = numpy.array(X)
+    
+    return X
+    
+def LoadR(rank, Lambda, type='svd', path='./'):
+    filename = path + 'newX_'+str(rank)+'_'+str(Lambda)+'_'+str(type)+'.gzip'
+    if not fio.IsExist(filename):
+        return None
+    
     cmd = 'load("'+filename+'")'
     
     r(cmd)
@@ -45,6 +61,8 @@ def TestSoftImpute():
     newA = SoftImpute(A, K, 1.5)
     
     print newA.shape
+    
+    import SVD_Test
     SVD_Test.PrintMatrix(newA)
            
 if __name__ == '__main__':

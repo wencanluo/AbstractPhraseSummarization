@@ -8,8 +8,9 @@ position_bin	5
 perceptron_threshold	-100
 weight_normalization	2
 perceptron_maxIter	1
-matrix_dir	E:/project/AbstractPhraseSummarization/data/matrix/exp1/
+matrix_dir	E:/project/AbstractPhraseSummarization/data/matrix/
+exp_id	1
+binary_matrix	1
+sparse_thresh	1.0
 rank_max	200
 softImpute_lambda	2
-binary_matrix	1
-

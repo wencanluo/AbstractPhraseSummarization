@@ -166,21 +166,18 @@ def SaveSparseMatrix(A, filename):
     with open(filename, 'w') as fin:
         json.dump(data, fin, indent = 2)
 
-def SaveNewA(A, dict, path, ngrams, prefixname=""):
+def SaveNewA(A, dict, path, ngrams, prefixname="", sheets = range(0,25)):
     types = ['POI', 'MP', 'LP']
     
-    sheets = range(0,25)
-    
     TotoalLine = 0
-    
-    nBegin = 0
-    
+        
     for i in sheets:
         week = i + 1
         dir = path + str(week) + '/'
         
         for type in types:
             prefix = dir + type + "." + 'sentence'
+            print prefix
             
             document = open(prefix + phraseext).readlines()
             
@@ -240,8 +237,7 @@ def CheckBinary(A):
         for j in range(n):
             if A[i][j] != 0 and A[i][j] != 1: return False 
     
-    return True
-            
+    return True   
                         
 def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix): 
     types = ['POI', 'MP', 'LP']

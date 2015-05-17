@@ -77,6 +77,28 @@ class ConfigFile:
         v = self.dict['binary_matrix']
         assert(v == '1' or v == '0')
         return v == '1'
+    
+    def get_exp_id(self):
+        v = int(self.dict['exp_id'])
+        
+        if v==1:
+            assert(self.get_ngrams() == [1,2])
+            assert(self.get_binary_matrix() == False)
+        elif v==2:
+            assert(self.get_ngrams() == [2])
+            assert(self.get_binary_matrix() == False)
+        elif v==3:
+            assert(self.get_ngrams() == [1,2])
+            assert(self.get_binary_matrix() == True)
+        elif v==4:
+            assert(self.get_ngrams() == [2])
+            assert(self.get_binary_matrix() == True)
+            
+        return v
+    
+    def get_matrix_dir(self):
+        v = self.dict['matrix_dir']
+        return v + 'exp' + str(self.get_exp_id()) + '/'
             
     def toString(self):
         s= ""
