@@ -13,7 +13,6 @@ import ILP_MC
 import ILP_Supervised_FeatureWeight
 import ILP_Supervised_MC
 
-from ILP_Supervised_FeatureWeight import minthreshold
 from ILP_Supervised_FeatureWeight import maxIter
 
 from feat_vec import FeatureVector

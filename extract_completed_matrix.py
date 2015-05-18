@@ -2,28 +2,8 @@ import softImputeWrapper
 import SVD_getMatrixCompletion
 import fio
 import re
-
-dict_lambda = { 
-              1:
-                {20: 4, 50: 4, 100:4, 200:2, 500:1.5, 1000:0.5, 2690:0
-                 },
-               2:
-                {20: 3, 50: 4, 100:3, 200:2.5, 500:1.5, 1000:0.5, 2690:0
-                 },
-               3:
-                {20: 4, 50: 4, 100:4, 200:2, 500:1.5, 1000:0.5, 2690:0
-                 },
-               4:
-                {20: 3, 50: 4, 100:3, 200:2.5, 500:1.5, 1000:1, 2690:0
-                 },
-    }
-
-dict_ngrams = {1:[1,2],
-          2:[2],
-          3:[1,2],
-          4:[2]
-          }
-            
+from config import dict_ngrams, dict_lambda
+        
 def extract_mc(path, ngrams, rank_max, softImpute_lambda): 
     newA = softImputeWrapper.LoadR(rank_max, softImpute_lambda, path=path)
     
@@ -70,9 +50,9 @@ if __name__ == '__main__':
         ngram = dict_ngrams[exp]
         extract_orgA(path, ngrams=ngram)
         
-#         for rank in [20, 50, 100, 200, 500, 1000, 2690]:
-#             Lambda = dict_lambda[exp][rank]
-#             #for Lambda in [10000, 100, 10, 8, 4, 3, 2.5, 2, 1.5, 1, 0.5, 0.1, 0.01]:
-#             extract_mc(path, ngrams=ngram, rank_max=rank, softImpute_lambda=Lambda)
+        for rank in [20, 50, 100, 200, 500, 1000, 2690]:
+            Lambda = dict_lambda[exp][rank]
+            #for Lambda in [10000, 100, 10, 8, 4, 3, 2.5, 2, 1.5, 1, 0.5, 0.1, 0.01]:
+            extract_mc(path, ngrams=ngram, rank_max=rank, softImpute_lambda=Lambda)
         
     print "done"

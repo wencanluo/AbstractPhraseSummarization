@@ -129,26 +129,8 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
     #write End
     print "End"
     sys.stdout = SavedStdOut
-
-def getBigramKey(bigram):
-    bigram = bigram.replace(" ", ngramTag)
-    bigramKey = porter.getStemming(bigram)
-    return bigramKey
-
-# Default bigram dict: stemmed bigram individual
-# SVD bigram dict: bigram tag, + stemmed
-def getRecoveredKeyDict(phrasefile):
-    phrases, bigrams_org, PhraseBigram = ILP.getPhraseBigram(phrasefile, Ngram=[1,2], NoStopWords=True, Stemmed=False)
     
-    dict = {}
-    for index, bigram in bigrams_org.items():
-        default_bigram = porter.getStemming(bigram)
-        svd_bigram = getBigramKey(bigram)
-        
-        dict[svd_bigram] = default_bigram
-    return dict
-    
-def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile, threshold=0.5):
+def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile, threshold):
     lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
     
@@ -225,12 +207,12 @@ def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpha
     
     return PartialPhraseBigram, PartialBigramPhrase
     
-def ILP1(prefix, svdfile, svdpharefile, L, threshold=0.5):
+def ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=[1,2], svdfile=svdfile)
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=Ngram, svdfile=svdfile)
     fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
@@ -255,9 +237,8 @@ def ILP1(prefix, svdfile, svdpharefile, L, threshold=0.5):
     output = lpfile + '.L' + str(L) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
-def ILP_Summarizer(ilpdir, svddir, np, L, prefixA=".org.softA", threshold=0.5):
+def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold):
     sheets = range(0,12)
-    #sheets = range(2,3)
     
     for sheet in sheets:
         week = sheet + 1
@@ -265,23 +246,22 @@ def ILP_Summarizer(ilpdir, svddir, np, L, prefixA=".org.softA", threshold=0.5):
         
         for type in ['POI', 'MP', 'LP']:
             prefix = dir + type + "." + np
-            svdfile = svddir + str(week) + '/' + type + prefixA
-            svdpharefile = svddir + str(week) + '/' + type + '.' + np + ".key"
+            svdfile = matrix_dir + str(week) + '/' + type + prefixA
+            svdpharefile = matrix_dir + str(week) + '/' + type + '.' + np + ".key"
             print prefix
             print svdfile
                 
-            ILP1(prefix, svdfile, svdpharefile, L, threshold=threshold)
+            ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold=threshold)
             
 if __name__ == '__main__':
     ilpdir = "../../data/ILP1_Sentence_MC/"
-    svddir = "../../data/SVD_Sentence/"
-    #ILP1(ilpdir + "test/MP.syntax", 10)
     
-#     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-#         for np in ['syntax', 'chunk']:
-#             ILP_Summarizer(ilpdir, np, L)
-#     SloveILP("../../data/ILP1_Sentence_SVD/3/MP.sentence")
-#    
+    from config import ConfigFile
+    
+    config = ConfigFile()
+    
+    matrix_dir = config.get_matrix_dir()
+    
 #     A = {'a':[1,0], 'b':[0,0,1]}
 #     A = LoadMC("../../data/SVD_Sentence/3/MP.org.softA")
 #     print getNoneZero(A)
@@ -290,8 +270,15 @@ if __name__ == '__main__':
 #         getSparseRatio(svddir, prefixA=".200_2.softA", eps=eps)
 #     exit()
     
-    for L in [30]:
+    for L in [config.get_length_limit()]:
         for np in ['sentence']:
-            ILP_Summarizer(ilpdir, svddir, np, L, prefixA=".200_2.softA", threshold=-100) #".2690_0.1.softA"
+            rank = config.get_rank_max()
+            Lambda = config.get_softImpute_lambda()
+            if rank == 0:
+                prefixA = '.org.softA'
+            else:
+                prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+            
+            ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold()) 
             
     print "done"

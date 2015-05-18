@@ -9,12 +9,13 @@
 	#python ILP_Prepare.py
 
 #unsupervised ILP baseline
-#python ILP_baseline.py
-#python ILP_GetRouge.py "../../data/ILP1_Sentence/"
+	#python ILP_baseline.py
+	#python ILP_GetRouge.py "../../data/ILP1_Sentence/"
 
 #unsupervised ILP + matrix completion
 	#get matrix completion
-	
+	python ILP_MC.py
+	python ILP_GetRouge.py "../../data/ILP1_Sentence_MC/"
 
 #clean the log files
 #./clean
