@@ -56,17 +56,19 @@ def getWeight(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, wei
     elif weight_normalization == 1:#normalize to 0 ~ 1
         for bigram in BigramWeights:
             w = BigramWeights[bigram]
-            BigramWeights[bigram] = (w - min_w)/(max_w - min_w)
+            if (max_w - min_w) != 0:
+                BigramWeights[bigram] = (w - min_w)/(max_w - min_w)
     elif weight_normalization == 2:#normalize to 0 ~ 1
         for bigram in BigramWeights:
             w = BigramWeights[bigram]
-            BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
+            if (max_w - mean_w - std_w) != 0:
+                BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
     else:
         pass
                 
     return BigramWeights
 
-def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization):
+def formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
@@ -74,7 +76,7 @@ def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L
     print "Maximize"
     objective = []
     
-    BigramWeights = getWeight(Weights, BigramPhrase, bigrams, FeatureVecU, minthreshold, weight_normalization)
+    BigramWeights = getWeight(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization)
     
     if os.name == 'nt':
         import matplotlib.pyplot as plt
@@ -86,22 +88,22 @@ def formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L
     if student_coverage:
         for bigram in BigramPhrase:
             if bigram not in BigramWeights: 
-                print bigrams[bigram]
+                print IndexBigram[bigram]
                 continue
             
             w = BigramWeights[bigram]
             
             if w <= 0: continue
-            objective.append(" ".join([str(w*Lambda), bigram]))
+            objective.append(" ".join([str(w*student_lambda), bigram]))
                      
         for student, grama in StudentGamma.items():
             if Lambda==1:continue
              
-            objective.append(" ".join([str(grama*(1-Lambda)), student]))
+            objective.append(" ".join([str(grama*(1-student_lambda)), student]))
     else:
         for bigram in BigramPhrase:
             if bigram not in BigramWeights: continue
-            bigramname = bigrams[bigram]
+            bigramname = IndexBigram[bigram]
                     
             w = BigramWeights[bigram]
             if w <= 0: continue
@@ -148,22 +150,22 @@ def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, stu
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    phrases, bigrams, PhraseBigram = ILP.getPhraseBigram(prefix+phraseext, Ngram=ngram, MalformedFlilter=MalformedFlilter)
-    fio.SaveDict(phrases, prefix + ".phrase_index.dict")
-    fio.SaveDict(bigrams, prefix + ".bigram_index.dict")
+    IndexPhrase, IndexBigram, PhraseBigram = ILP.getPhraseBigram(prefix+phraseext, Ngram=ngram)
+    fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
+    fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
     #get weight of bigrams {bigram:weigth}
     #BigramTheta = Weights #ILP.getBigramWeight_TF(PhraseBigram, phrases, prefix + countext) # return a dictionary
     
     #get word count of phrases
-    PhraseBeta = ILP.getWordCounts(phrases)
+    PhraseBeta = ILP.getWordCounts(IndexPhrase)
     
     #get {bigram:[phrase]} dictionary
     BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
 
     #get {student:phrase}
     #sequence students, students = {index:student}
-    students, StudentPhrase = ILP.getStudentPhrase(phrases, prefix + studentext)
+    students, StudentPhrase = ILP.getStudentPhrase(IndexPhrase, prefix + studentext)
     fio.SaveDict(students, prefix + ".student_index.dict")
     
     #get {student:weight0}
@@ -172,12 +174,13 @@ def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, stu
     FeatureVecU = LoadFeatureSet(featurefile)
     
     lpfile = prefix
-    formulateProblem(bigrams, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization)
+    formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, 
+                     student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization)
     
     m = ILP.SloveILP(lpfile)
     
     output = lpfile + '.L' + str(L) + ".summary"
-    ILP.ExtractSummaryfromILP(lpfile, phrases, output)
+    ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
 def getLastIndex(BigramIndex):
     maxI = 1
@@ -503,9 +506,10 @@ def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, stu
             featurefile = featuredir + str(week) + '/' + type + featureext
             ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, student_coverage, student_lambda, minthreshold, weight_normalization)
 
-def ILP_CrossValidation(ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization):
+def ILP_CrossValidation(ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization, no_training):
     for train, test in LeaveOneLectureOutPermutation():
-        TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
+        if not no_training:
+            TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
         TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization)
 
 def LeaveOneLectureOutPermutation():
@@ -535,6 +539,10 @@ if __name__ == '__main__':
          for L in [config.get_length_limit()]:
              for np in ['sentence']: #'chunk\
                  for iter in range(config.get_perceptron_maxIter()):
-                     ILP_CrossValidation(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), minthreshold=config.get_perceptron_threshold(), weight_normalization=config.get_weight_normalization())
+                     ILP_CrossValidation(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, 
+                                         student_coverage = config.get_student_coverage(), 
+                                         student_lambda = config.get_student_lambda(), 
+                                         minthreshold=config.get_perceptron_threshold(), 
+                                         weight_normalization=config.get_weight_normalization(), no_training=config.get_no_training())
     
     print "done"

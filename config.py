@@ -179,6 +179,13 @@ class ConfigFile:
     
     def set_sparse_threshold(self, v):
         self.dict['sparse_threshold'] = v
+    
+    def get_no_training(self):
+        v = self.dict['no_training']
+        if v == '1':
+            assert(self.get_perceptron_maxIter() == 1)
+        assert(v == '1' or v == '0')
+        return v == '1'
                     
     def toString(self):
         s= ""
@@ -204,7 +211,8 @@ class ConfigFile:
             'matrix_dir', 
             'sparse_threshold', 
             'rank_max', 
-            'exp_id'
+            'exp_id',
+            'no_training'
             ]
         
         for key in keys:
