@@ -1,14 +1,14 @@
 L	30
 student_coverage	0
 student_lambda	1.0
-ngrams	3
+ngrams	2
 features	tf, tf_rank, idftf, idftf_rank, pos, inNP, ave_length, ave_length_rank, ave_sim, stop_word, word_ratio, ngram_length, frequency_of_words, title, position
 position_bin	5
 perceptron_threshold	0
-weight_normalization	0
+weight_normalization	1
 perceptron_maxIter	1
 matrix_dir	E:/project/AbstractPhraseSummarization/data/matrix/
-sparse_threshold	0.1
-rank_max	20
-exp_id	1
+sparse_threshold	0.0
+rank_max	1000
+exp_id	4
 no_training	1

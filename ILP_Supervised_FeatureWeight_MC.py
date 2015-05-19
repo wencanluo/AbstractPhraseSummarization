@@ -47,7 +47,7 @@ def formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigra
             
             w = BigramWeights[bigram]
             
-            if w <= 0: continue
+            #if w <= 0: continue
             objective.append(" ".join([str(w*student_lambda), bigram]))
                      
         for student, grama in StudentGamma.items():
