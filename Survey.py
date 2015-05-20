@@ -29,7 +29,7 @@ def HasSummary(orig, header, summarykey):
             return False
     return False
 
-def getWeight(summary):
+def get_weight_product(summary):
     summary = summary.strip()
     g = re.search('^\d+\).*\[(\d+)\]$', summary)
     if g != None:
@@ -137,7 +137,7 @@ def getTASummary(orig, header, summarykey, type='POI', weight = False):
             value = inst[keyword].strip()
             summaries = value.split("\n")
             for sum in summaries:
-                w = getWeight(sum)
+                w = get_weight_product(sum)
                 summary.append(NormalizedTASummary(sum))
                 weights.append(w)
     if weight:

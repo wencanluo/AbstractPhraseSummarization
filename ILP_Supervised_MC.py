@@ -155,7 +155,7 @@ def ILP_Supervised(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambd
     output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
     ILP_baseline.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
 
-def UpdateWeight(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram, MalformedFlilter):
+def preceptron_update(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram, MalformedFlilter):
     # the weights of the bigram is the frequency appear in the golden summary
     #read the summary
     _, IndexBigram, SummaryBigram = ILP_baseline.getPhraseBigram(sumprefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
@@ -194,7 +194,7 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
             prefix = dir + type + "." + np
             summprefix = dir + type
             
-            UpdateWeight(BigramIndex, Weights, summprefix, prefix, L, Lambda, ngram, MalformedFlilter)
+            preceptron_update(BigramIndex, Weights, summprefix, prefix, L, Lambda, ngram, MalformedFlilter)
             #ILP3(prefix, L, Lambda, ngram, MalformedFlilter)
         
     fio.SaveDict(Weights, weightfile, True)

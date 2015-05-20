@@ -173,7 +173,7 @@ def getLastIndex(BigramIndex):
             maxI = int(bigram[1:])
     return maxI
 
-def InitializeWeight(BigramIndex, Weights, summprefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
+def initialize_weight(BigramIndex, Weights, summprefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
     # the weights of the bigram is the frequency appear in the golden summary
     #read the summary
     _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(summprefix + sumexe, Ngram=ngram, MalformedFlilter=MalformedFlilter)
@@ -252,7 +252,7 @@ def getUpdateRatio(RefBigramDict, vec, U):
     return getMaxRatio(RefBigramDict, vec, U)
     #return getAveRatio(RefBigramDict, vec, U)
 
-def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
+def preceptron_update(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K):
     ILP_Supervised(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter)
     
     #read the summary, update the weight 
@@ -346,11 +346,11 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, svddir, corp
                 if not fio.IsExist(r0weightfile):#round 0
                     print "first round"
                     firstRound = True
-                    InitializeWeight(BigramIndex, Weights, summprefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K)
+                    initialize_weight(BigramIndex, Weights, summprefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K)
                  
                 if not firstRound:
                     print "update weight, round ", round
-                    UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K)
+                    preceptron_update(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, svddir, corpusname, K)
                 
         with open(weightfile, 'w') as fout:
              json.dump(Weights, fout, encoding="utf-8",indent=2)

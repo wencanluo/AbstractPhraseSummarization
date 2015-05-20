@@ -32,7 +32,7 @@ def LoadFeatureSet(featurename):
         
     return featureV
 
-def getWeight(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization):
+def get_weight_product(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization):
     BigramWeights = {}
     
     for bigram in BigramPhrase:
@@ -76,7 +76,7 @@ def formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigra
     print "Maximize"
     objective = []
     
-    BigramWeights = getWeight(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization)
+    BigramWeights = get_weight_product(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization)
     
     if os.name == 'nt':
         import matplotlib.pyplot as plt
@@ -189,7 +189,7 @@ def getLastIndex(BigramIndex):
             maxI = int(bigram[1:])
     return maxI
 
-def InitializeWeight():
+def initialize_weight():
     # the weights of the feature functions are 0
     Weights = FeatureVector()
     return Weights
@@ -232,7 +232,7 @@ def generate_randomsummary(prefix, L, sumfile):
     
     fio.SaveList(summaries, sumfile)
 
-def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, featurefile):
+def preceptron_update(Weights, prefix, L, Lambda, ngram, MalformedFlilter, featurefile):
     #scan all the bigrams in the responses
     _, IndexBigram, SummaryBigram = ILP.getPhraseBigram(prefix+phraseext, Ngram=ngram, MalformedFlilter=MalformedFlilter)
     
@@ -244,7 +244,7 @@ def UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilte
     #update the weights
     FeatureVecU = LoadFeatureSet(featurefile)
     
-    i = getLastIndex(BigramIndex)
+    #i = getLastIndex(BigramIndex)
         
     pos = 0
     neg = 0
@@ -419,7 +419,7 @@ def UpdateWeight_old(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFl
 
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
     Weights = {} #{Index:Weight}
-    BigramIndex = {} #{bigram:index}
+    #BigramIndex = {} #{bigram:index}
     
     round = 0
     for round in range(maxIter):
@@ -452,7 +452,6 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
             
             for type in ['POI', 'MP', 'LP']:
                 prefix = dir + type + "." + np
-                summprefix = dir + type
                 featurefile = featuredir + str(week) + '/' + type + featureext
                 
                 r0weightfile = ilpdir + str(0) + '_' + '_'.join(train) + '_weight_' + "_" + '.json'
@@ -460,11 +459,11 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
                     print "first round"
                     firstRound = True
 
-                    Weights = InitializeWeight()
+                    Weights = initialize_weight()
                  
                 if not firstRound:
                     print "update weight, round ", round
-                    UpdateWeight(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlilter, featurefile)
+                    preceptron_update(Weights, prefix, L, Lambda, ngram, MalformedFlilter, featurefile)
                 
         with open(weightfile, 'w') as fout:
              json.dump(Weights, fout, encoding="utf-8",indent=2)
@@ -476,7 +475,6 @@ def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir):
 
 def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization):
     Weights = {}
-    BigramIndex = {}
     
     round = 0
     for round in range(maxIter):
@@ -492,8 +490,6 @@ def TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, stu
     
     with open(weightfile, 'r') as fin:
         Weights = FeatureVector(json.load(fin, encoding="utf-8"))   
-            
-    #BigramIndex = fio.LoadDict(bigramfile, "str")
         
     for sheet in test:
         week = int(sheet) + 1

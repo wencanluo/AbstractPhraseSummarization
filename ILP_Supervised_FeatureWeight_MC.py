@@ -36,7 +36,7 @@ def formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigra
     print "Maximize"
     objective = []
     
-    BigramWeights = ILP_Supervised_FeatureWeight.getWeight(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization)
+    BigramWeights = ILP_Supervised_FeatureWeight.get_weight_product(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthreshold, weight_normalization)
     #BigramWeights = Weights
     
     if student_coverage:

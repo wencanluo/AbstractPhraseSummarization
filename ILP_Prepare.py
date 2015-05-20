@@ -59,31 +59,32 @@ if __name__ == '__main__':
     #Step3: get phrases
     #for np in ['syntax', 'chunk']:
     
-    for outdir in [
-                    "../../data/SVD_Sentence/", 
-                   ]:
-        fio.NewPath(outdir)
-          
-        for np in ['sentence']:
-             postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
-             postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
-             postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
-         
-        #Step4: write TA's reference 
-        Survey.WriteTASummary(excelfile, outdir)
+#     for outdir in [
+#                     "../../data/SVD_Sentence/", 
+#                    ]:
+#         fio.NewPath(outdir)
+#           
+#         for np in ['sentence']:
+#              postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+#              postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+#              postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+#          
+#         #Step4: write TA's reference 
+#         Survey.WriteTASummary(excelfile, outdir)
 #     
 #     for np in ['syntax']:
 #         ExtractNgram(outdir, np)
     
     for outdir in [
-                   "../../data/oracle/",
-                   "../../data/ILP_Sentence_Supervised_Oracle/",
+                   "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
+                   #"../../data/oracle/",
+                   #"../../data/ILP_Sentence_Supervised_Oracle/",
                    
-                    "../../data/ILP1_Sentence/", 
-                    "../../data/ILP1_Sentence_MC/", 
+                    #"../../data/ILP1_Sentence/", 
+                    #"../../data/ILP1_Sentence_MC/", 
                     #"../../data/ILP_Sentence_Supervised/",
-                    "../../data/ILP_Sentence_Supervised_FeatureWeighting/", 
-                    "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/", 
+                    #"../../data/ILP_Sentence_Supervised_FeatureWeighting/", 
+                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingMC/", 
                     #"../../data/ILP_Sentence_Supervised_MC/",  
                    ]:
         fio.NewPath(outdir)
