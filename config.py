@@ -85,6 +85,14 @@ class ConfigFile:
     def set_features(self, v):
         self.dict['features'] = v
     
+    def get_types(self):
+        v = self.dict['types']
+        types = v.split(',')
+        return [f.strip() for f in types]
+    
+    def set_types(self, v):
+        self.dict['types'] = v
+    
     def get_position_bin(self):
         v = int(self.dict['position_bin'])
         assert(v >= 0 and v <= 10)

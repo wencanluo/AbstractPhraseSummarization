@@ -42,35 +42,43 @@ def isMalformed(phrase):
 
 def WriteConstraint1(PhraseBeta, L):
     #$\sum_{j=1}^P y_j \beta _j \le L$
+    lines = []
     constraint = []
     for phrase, beta in PhraseBeta.items():
         constraint.append(" ".join([str(beta), phrase]))
-    print "  ", " + ".join(constraint), "<=", L
+    lines.append("  "+ " + ".join(constraint) + " <= " + str(L))
+    return lines
     #print "  ", " + ".join(constraint), ">=", L-10
     
 
 def WriteConstraint2(BigramPhrase):
     #$\sum_{j=1} {y_j Occ_{ij}} \ge x_i$
+    lines = []
     for bigram, phrases in BigramPhrase.items():
-        print "  ", " + ".join(phrases), "-", bigram, ">=", 0
+        lines.append("  "+ " + ".join(phrases) + " - " + bigram+ " >= " + str(0))
+    return lines
 
 def WriteConstraint3(PhraseBigram):
     #$y_j Occ_{ij} \le x_i$
+    lines = []
     for phrase, bigrams in PhraseBigram.items():
         for bigram in bigrams:
-            print "  ", phrase, "-", bigram, "<=", 0
+            lines.append("  " + phrase + " - " + bigram + " <= " + '0')
+    return lines
             
 def WriteConstraint4(StudentPhrase):
     #$\sum_{j=1}^P {y_j Occ_{jk}} \ge z_k$
+    lines = []
     for student, phrases in StudentPhrase.items():
-        print "  ", " + ".join(phrases), "-", student, ">=", 0
+        lines.append("  " + " + ".join(phrases) + " - " + student + " >= " + '0')
+    return lines
         
 def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, student_coverage, StudentGamma, StudentPhrase,  student_lambda):
-    SavedStdOut = sys.stdout
-    sys.stdout = open(lpfileprefix + lpext, 'w')
+    lines = []
     
     #write objective
-    print "Maximize"
+    lines.append("Maximize")
+    
     objective = []
     
     if student_coverage:
@@ -82,18 +90,19 @@ def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpf
     else:
         for bigram, theta in BigramTheta.items():
             objective.append(" ".join([str(theta), bigram]))
-    print "  ", " + ".join(objective)
+    lines.append("  ", " + ".join(objective))
     
     #write constraints
-    print "Subject To"
-    WriteConstraint1(PhraseBeta, L)
+    lines.append("Subject To")
     
-    WriteConstraint2(BigramPhrase)
+    lines += WriteConstraint1(PhraseBeta, L)
     
-    WriteConstraint3(PhraseBigram)
+    lines += WriteConstraint2(BigramPhrase)
+    
+    lines += WriteConstraint3(PhraseBigram)
     
     if student_coverage:
-        WriteConstraint4(StudentPhrase)
+        lines += WriteConstraint4(StudentPhrase)
     
     indicators = []
     for bigram in BigramTheta.keys():
@@ -105,20 +114,22 @@ def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpf
             indicators.append(student)
     
     #write Bounds
-    print "Bounds"
+    lines.append("Bounds")
     for indicator in indicators:
-        print "  ", indicator, "<=", 1
+        lines.append("  ", indicator, "<=", 1)
     
     #write Integers
-    print "Integers"
-    print "  ", " ".join(indicators)
+    lines.append("Integers")
+    lines.append("  ", " ".join(indicators))
     
     #write End
-    print "End"
-    sys.stdout = SavedStdOut
+    lines.append("End")
+    
+    fio.SaveList(lines, lpfileprefix + lpext)
 
 def SloveILP(lpfileprefix):
-    cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + lpfileprefix + lpext
+    output = lpfileprefix + lpext
+    cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + output
     os.system(cmd)    
 
 def ExtractSummaryfromILP(lpfileprefix, phrases, output):

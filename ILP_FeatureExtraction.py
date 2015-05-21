@@ -60,17 +60,23 @@ def extract_TF(prefix, ngram):
         bigramname = bigrams[bigram]
         
         feat_vec = FeatureVector()
-        if tf == 0: feat_vec['term_freq=0'] = 1.0
-        if tf >= 1: feat_vec['term_freq>=1'] = 1.0   
-        if tf >= 2: feat_vec['term_freq>=2'] = 1.0  
-        if tf >= 5: feat_vec['term_freq>=5'] = 1.0   
-        if tf >= 10: feat_vec['term_freq>=10'] = 1.0
+        #if tf == 0: feat_vec['term_freq=0'] = 1.0 #remove
+        if tf > 1: feat_vec['term_freq>=1'] = 1.0   
+        if tf > 2: feat_vec['term_freq>=2'] = 1.0  
+        if tf > 5: feat_vec['term_freq>=5'] = 1.0
         
-        if tf != 0: feat_vec['term_freq!=0'] = 1.0
-        if tf < 1: feat_vec['term_freq<1'] = 1.0   
-        if tf < 2: feat_vec['term_freq<2'] = 1.0  
-        if tf < 5: feat_vec['term_freq<5'] = 1.0   
-        if tf < 10: feat_vec['term_freq<10'] = 1.0
+        #double
+        #if tf <= 1: feat_vec['term_freq>=1'] = 1.0   
+        if tf <= 2: feat_vec['term_freq<=2'] = 1.0  
+        if tf <= 5: feat_vec['term_freq<=5'] = 1.0
+           
+#         if tf >= 10: feat_vec['term_freq>=10'] = 1.0 #remove
+        
+#         if tf != 0: feat_vec['term_freq!=0'] = 1.0 #remove
+#         if tf < 1: feat_vec['term_freq<1'] = 1.0   
+#         if tf < 2: feat_vec['term_freq<2'] = 1.0  
+#         if tf < 5: feat_vec['term_freq<5'] = 1.0   
+#         if tf < 10: feat_vec['term_freq<10'] = 1.0
 
         dict[bigramname] = feat_vec
         
@@ -90,12 +96,15 @@ def extract_TF_Rank(prefix, ngram, topK=10):
         
         feat_vec = FeatureVector()
         
-        for k in range(i, topK):
-            feat_vec['tf_rank<=' + str(k)] = 1.0
+        if i<5: feat_vec['tf_rank<5'] = 1.0
+        if i<10: feat_vec['tf_rank<10'] = 1.0
         
-        minK = min(topK, i)
-        for k in range(0, minK):
-            feat_vec['tf_rank>' + str(k)] = 1.0
+#         for k in range(i, topK):
+#             feat_vec['tf_rank<=' + str(k)] = 1.0
+#         
+#         minK = min(topK, i)
+#         for k in range(0, minK):
+#             feat_vec['tf_rank>' + str(k)] = 1.0
         
         dict[bigramname] = feat_vec
         
@@ -108,25 +117,29 @@ def extract_TFIDF(prefix, ngram):
     for bigram, tfidf in BigramTFIDF.items():
         
         feat_vec = FeatureVector()
-        if tfidf >= 0.5: feat_vec['tfidf>=0.5'] = 1.0
-        if tfidf >= 0.1: feat_vec['tfidf>=0.1'] = 1.0
-        if tfidf >= 0.05: feat_vec['tfidf>=0.05'] = 1.0
-        if tfidf >= 0.04: feat_vec['tfidf>=0.04'] = 1.0
-        if tfidf >= 0.03: feat_vec['tfidf>=0.03'] = 1.0
-        if tfidf >= 0.02: feat_vec['tfidf>=0.02'] = 1.0
-        if tfidf >= 0.01: feat_vec['tfidf>=0.01'] = 1.0
-        if tfidf >= 0.005: feat_vec['tfidf>=0.005'] = 1.0
-        if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
+        #if tfidf >= 0.5: feat_vec['tfidf>=0.5'] = 1.0
+        #if tfidf >= 0.1: feat_vec['tfidf>=0.1'] = 1.0
+        if tfidf > 0.05: feat_vec['tfidf>0.05'] = 1.0
+        #if tfidf >= 0.04: feat_vec['tfidf>=0.04'] = 1.0
+        #if tfidf >= 0.03: feat_vec['tfidf>=0.03'] = 1.0
+        if tfidf > 0.02: feat_vec['tfidf>0.02'] = 1.0
+        if tfidf > 0.01: feat_vec['tfidf>0.01'] = 1.0
+        #if tfidf >= 0.005: feat_vec['tfidf>=0.005'] = 1.0
+        #if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
         
-        if tfidf < 0.5: feat_vec['tfidf<0.5'] = 1.0
-        if tfidf < 0.1: feat_vec['tfidf<0.1'] = 1.0
-        if tfidf < 0.05: feat_vec['tfidf<0.05'] = 1.0
-        if tfidf < 0.04: feat_vec['tfidf<0.04'] = 1.0
-        if tfidf < 0.03: feat_vec['tfidf<0.03'] = 1.0
-        if tfidf < 0.02: feat_vec['tfidf<0.02'] = 1.0
-        if tfidf < 0.01: feat_vec['tfidf<0.01'] = 1.0
-        if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
-        if tfidf >= 0.005: feat_vec['tfidf>0.005'] = 1.0
+        if tfidf <= 0.05: feat_vec['tfidf<=0.05'] = 1.0
+        if tfidf <= 0.02: feat_vec['tfidf<=0.02'] = 1.0
+        if tfidf <= 0.01: feat_vec['tfidf<=0.01'] = 1.0
+        
+#         if tfidf < 0.5: feat_vec['tfidf<0.5'] = 1.0
+#         if tfidf < 0.1: feat_vec['tfidf<0.1'] = 1.0
+#         if tfidf < 0.05: feat_vec['tfidf<0.05'] = 1.0
+#         if tfidf < 0.04: feat_vec['tfidf<0.04'] = 1.0
+#         if tfidf < 0.03: feat_vec['tfidf<0.03'] = 1.0
+#         if tfidf < 0.02: feat_vec['tfidf<0.02'] = 1.0
+#         if tfidf < 0.01: feat_vec['tfidf<0.01'] = 1.0
+#         if tfidf < 0.005: feat_vec['tfidf<0.005'] = 1.0
+#         if tfidf >= 0.005: feat_vec['tfidf>0.005'] = 1.0
         
         dict[bigram] = feat_vec
         
@@ -140,12 +153,14 @@ def extract_TFIDF_Rank(prefix, ngram, topK=10):
     for i, bigram in enumerate(keys):
         feat_vec = FeatureVector()
         
-        for k in range(i, topK): 
-            feat_vec['tfidf_rank<=' + str(k)] = 1.0
-        
-        minK = min(topK, i)
-        for k in range(0, minK):
-            feat_vec['tfidf_rank>' + str(k)] = 1.0
+        if i < 5: feat_vec['tfidf_rank<5'] = 1.0
+        if i < 10: feat_vec['tfidf_rank<10'] = 1.0
+#         for k in range(i, topK): 
+#             feat_vec['tfidf_rank<=' + str(k)] = 1.0
+#         
+#         minK = min(topK, i)
+#         for k in range(0, minK):
+#             feat_vec['tfidf_rank>' + str(k)] = 1.0
             
         dict[bigram] = feat_vec
         
@@ -204,27 +219,34 @@ def extract_averageSentenceLength(prefix, ngram):
             ave += PhraseBeta[p]
         ave /= len(phrases)
         
-        if ave <= 2: feat_vec['ave_sen_length<=2'] = 1.0
-        if ave > 2 and ave <= 4: feat_vec['ave_sen_length=3-4'] = 1.0
-        if ave > 4 and ave <= 6: feat_vec['ave_sen_length=5-6'] = 1.0
-        if ave > 6 and ave <= 8: feat_vec['ave_sen_length=7-8'] = 1.0
-        if ave > 8 and ave <= 10: feat_vec['ave_sen_length=9-10'] = 1.0
-        if ave > 10 and ave <= 15: feat_vec['ave_sen_length=11-15'] = 1.0
-        if ave > 15 and ave <= 20: feat_vec['ave_sen_length=16-20'] = 1.0
-        if ave > 20 and ave <= 25: feat_vec['ave_sen_length=21-25'] = 1.0
-        if ave > 25 and ave <= 30: feat_vec['ave_sen_length=26-30'] = 1.0
+#         if ave <= 2: feat_vec['ave_sen_length<=2'] = 1.0
+#         if ave > 2 and ave <= 4: feat_vec['ave_sen_length=3-4'] = 1.0
+#         if ave > 4 and ave <= 6: feat_vec['ave_sen_length=5-6'] = 1.0
+#         if ave > 6 and ave <= 8: feat_vec['ave_sen_length=7-8'] = 1.0
+        if ave > 5: feat_vec['ave_sen_length=9-10'] = 1.0
+        if ave > 10: feat_vec['ave_sen_length=11-15'] = 1.0
+        if ave > 15: feat_vec['ave_sen_length=16-20'] = 1.0
+        if ave > 20: feat_vec['ave_sen_length=21-25'] = 1.0
+        if ave > 25: feat_vec['ave_sen_length=26-30'] = 1.0
         if ave > 30: feat_vec['ave_sen_length>=30'] = 1.0
         
-        if ave > 2: feat_vec['ave_sen_length>2'] = 1.0
-        if ave <= 2 or ave > 4: feat_vec['ave_sen_length<=2,>4'] = 1.0
-        if ave <= 4 or ave > 6: feat_vec['ave_sen_length<=4,>6'] = 1.0
-        if ave <= 6 or ave > 8: feat_vec['ave_sen_length<=6,>8'] = 1.0
-        if ave <= 8 or ave > 10: feat_vec['ave_sen_length<=8,>10'] = 1.0
-        if ave <= 10 or ave > 15: feat_vec['ave_sen_length<=10,>15'] = 1.0
-        if ave <= 15 or ave > 20: feat_vec['ave_sen_length<=15,>20'] = 1.0
-        if ave <= 20 or ave > 25: feat_vec['ave_sen_length<=20,>25'] = 1.0
-        if ave <= 25 or ave > 30: feat_vec['ave_sen_length<=25,>30'] = 1.0
+        if ave <= 5: feat_vec['ave_sen_length<=9-10'] = 1.0
+        if ave <= 10: feat_vec['ave_sen_length<=11-15'] = 1.0
+        if ave <= 15: feat_vec['ave_sen_length<=16-20'] = 1.0
+        if ave <= 20: feat_vec['ave_sen_length<=21-25'] = 1.0
+        if ave <= 25: feat_vec['ave_sen_length<=26-30'] = 1.0
         if ave <= 30: feat_vec['ave_sen_length<=30'] = 1.0
+        
+#         if ave > 2: feat_vec['ave_sen_length>2'] = 1.0
+#         if ave <= 2 or ave > 4: feat_vec['ave_sen_length<=2,>4'] = 1.0
+#         if ave <= 4 or ave > 6: feat_vec['ave_sen_length<=4,>6'] = 1.0
+#         if ave <= 6 or ave > 8: feat_vec['ave_sen_length<=6,>8'] = 1.0
+#         if ave <= 8 or ave > 10: feat_vec['ave_sen_length<=8,>10'] = 1.0
+#         if ave <= 10 or ave > 15: feat_vec['ave_sen_length<=10,>15'] = 1.0
+#         if ave <= 15 or ave > 20: feat_vec['ave_sen_length<=15,>20'] = 1.0
+#         if ave <= 20 or ave > 25: feat_vec['ave_sen_length<=20,>25'] = 1.0
+#         if ave <= 25 or ave > 30: feat_vec['ave_sen_length<=25,>30'] = 1.0
+#         if ave <= 30: feat_vec['ave_sen_length<=30'] = 1.0
         
         dict[bigramname] = feat_vec
         
@@ -478,49 +500,49 @@ def extract_frequency_of_words(prefix, ngram):
             n1 = wf_dict[words[0]]
             n2 = wf_dict[words[1]]
             
-            if n1 >= 1: feat_vec['freq_firstw>=1'] = 1.0 
-            if n1 >= 2: feat_vec['freq_firstw>=2'] = 1.0 
-            if n1 >= 3: feat_vec['freq_firstw>=3'] = 1.0 
-            if n1 >= 4: feat_vec['freq_firstw>=4'] = 1.0 
-            if n1 >= 5: feat_vec['freq_firstw>=5'] = 1.0 
-            if n1 >= 10: feat_vec['freq_firstw>=10'] = 1.0 
+            if n1 > 1: feat_vec['freq_firstw>1'] = 1.0 
+            if n1 > 2: feat_vec['freq_firstw>2'] = 1.0 
+            #if n1 > 3: feat_vec['freq_firstw>3'] = 1.0 
+            #if n1 > 4: feat_vec['freq_firstw>4'] = 1.0 
+            if n1 > 5: feat_vec['freq_firstw>5'] = 1.0 
+            #if n1 > 10: feat_vec['freq_firstw>10'] = 1.0 
             
-            if n2 >= 1: feat_vec['freq_secondw>=1'] = 1.0 
-            if n2 >= 2: feat_vec['freq_secondw>=2'] = 1.0 
-            if n2 >= 3: feat_vec['freq_secondw>=3'] = 1.0 
-            if n2 >= 4: feat_vec['freq_secondw>=4'] = 1.0 
-            if n2 >= 5: feat_vec['freq_secondw>=5'] = 1.0 
-            if n2 >= 10: feat_vec['freq_secondw>=10'] = 1.0 
+            if n2 > 1: feat_vec['freq_secondw>1'] = 1.0 
+            if n2 > 2: feat_vec['freq_secondw>2'] = 1.0 
+            #if n2 > 3: feat_vec['freq_secondw>3'] = 1.0 
+            #if n2 > 4: feat_vec['freq_secondw>4'] = 1.0 
+            if n2 > 5: feat_vec['freq_secondw>5'] = 1.0 
+            #if n2 > 10: feat_vec['freq_secondw>10'] = 1.0 
             
-            if n1 < 1: feat_vec['freq_firstw<1'] = 1.0 
-            if n1 < 2: feat_vec['freq_firstw<2'] = 1.0 
-            if n1 < 3: feat_vec['freq_firstw<3'] = 1.0 
-            if n1 < 4: feat_vec['freq_firstw<4'] = 1.0 
-            if n1 < 5: feat_vec['freq_firstw<5'] = 1.0 
-            if n1 < 10: feat_vec['freq_firstw<10'] = 1.0 
+            #if n1 <= 1: feat_vec['freq_firstw<1'] = 1.0 
+            if n1 <= 2: feat_vec['freq_firstw<=2'] = 1.0 
+            #if n1 < 3: feat_vec['freq_firstw<3'] = 1.0 
+            #if n1 < 4: feat_vec['freq_firstw<4'] = 1.0 
+            if n1 <= 5: feat_vec['freq_firstw<=5'] = 1.0 
+            #if n1 < 10: feat_vec['freq_firstw<10'] = 1.0 
             
-            if n2 < 1: feat_vec['freq_secondw<1'] = 1.0 
-            if n2 < 2: feat_vec['freq_secondw<2'] = 1.0 
-            if n2 < 3: feat_vec['freq_secondw<3'] = 1.0 
-            if n2 < 4: feat_vec['freq_secondw<4'] = 1.0 
-            if n2 < 5: feat_vec['freq_secondw<5'] = 1.0 
-            if n2 < 10: feat_vec['freq_secondw<10'] = 1.0 
+            #if n2 < 1: feat_vec['freq_secondw<1'] = 1.0 
+            if n2 <= 2: feat_vec['freq_secondw<=2'] = 1.0 
+            #if n2 < 3: feat_vec['freq_secondw<3'] = 1.0 
+            #if n2 < 4: feat_vec['freq_secondw<4'] = 1.0 
+            if n2 <= 5: feat_vec['freq_secondw<=5'] = 1.0 
+            #if n2 <= 10: feat_vec['freq_secondw<=10'] = 1.0 
         else:#unigram
             n1 = wf_dict[words[0]]
             
-            if n1 >= 1: feat_vec['freq_firstw>=1'] = 1.0 
-            if n1 >= 2: feat_vec['freq_firstw>=2'] = 1.0 
-            if n1 >= 3: feat_vec['freq_firstw>=3'] = 1.0 
-            if n1 >= 4: feat_vec['freq_firstw>=4'] = 1.0 
-            if n1 >= 5: feat_vec['freq_firstw>=5'] = 1.0 
-            if n1 >= 10: feat_vec['freq_firstw>=10'] = 1.0 
+            if n1 > 1: feat_vec['freq_firstw>1'] = 1.0 
+            if n1 > 2: feat_vec['freq_firstw>2'] = 1.0 
+            #if n1 > 3: feat_vec['freq_firstw>3'] = 1.0 
+            #if n1 > 4: feat_vec['freq_firstw>4'] = 1.0 
+            if n1 > 5: feat_vec['freq_firstw>5'] = 1.0 
+            #if n1 > 10: feat_vec['freq_firstw>10'] = 1.0 
             
-            if n1 < 1: feat_vec['freq_firstw<1'] = 1.0 
-            if n1 < 2: feat_vec['freq_firstw<2'] = 1.0 
-            if n1 < 3: feat_vec['freq_firstw<3'] = 1.0 
-            if n1 < 4: feat_vec['freq_firstw<4'] = 1.0 
-            if n1 < 5: feat_vec['freq_firstw<5'] = 1.0 
-            if n1 < 10: feat_vec['freq_firstw<10'] = 1.0
+            #if n1 < 1: feat_vec['freq_firstw<1'] = 1.0 
+            if n1 <= 2: feat_vec['freq_firstw<=2'] = 1.0 
+            #if n1 < 3: feat_vec['freq_firstw<3'] = 1.0 
+            #if n1 < 4: feat_vec['freq_firstw<4'] = 1.0 
+            if n1 <= 5: feat_vec['freq_firstw<=5'] = 1.0 
+            #if n1 < 10: feat_vec['freq_firstw<10'] = 1.0
             
         dict[bigramname] = feat_vec
         
@@ -658,7 +680,7 @@ def extract_single(prefix, ngram, output, titlefile=None, features = None, posit
     if 'position' in features:
         data = add_feature_set(data, position_dict)
         
-    data = add_bias(data)
+    #data = add_bias(data)
     with open(output, 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
@@ -686,8 +708,8 @@ if __name__ == '__main__':
     
     sennadatadir = "../../data/senna/"
     
-    for ilpdir in ["../../data/ILP_Sentence_Supervised_FeatureWeighting/",
-                   #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
+    for ilpdir in [#"../../data/ILP_Sentence_Supervised_FeatureWeighting/",
+                   "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
                    ]:
         get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = 'sentence', ngram=config.get_ngrams())

@@ -6,13 +6,14 @@ import NLTKWrapper
 import os
 import numpy
 import NumpyWrapper
+import math
 
 import ILP_baseline as ILP
 import ILP_SVD
 
 from feat_vec import FeatureVector
 
-maxIter = 100
+maxIter = 1000
 
 #Stemming
 phraseext = ".key" #a list
@@ -25,11 +26,14 @@ featureext = ".f"
 
 ngramTag = "___"
 
+stage_train = 0
+stage_test =1
+
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
-    N = len(sheets)
-    for i in range(N):
-        train = [str(k) for k in range(N) if k != i]
+    #sheets = range(0,1)
+    for i in sheets:
+        train = [str(k) for k in range(len(sheets)) if k != i]
         #train = [str(i)]
         test = [str(i)]
         yield train, test
@@ -56,7 +60,8 @@ def generate_randomsummary(prefix, L, sumfile):
     fio.SaveList(summaries, sumfile)
             
 class ConceptWeightILP:
-    def __init__(self, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization, no_training):
+    def __init__(self, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, 
+                 minthreshold, weight_normalization, no_training, types):
         self.ilpdir = ilpdir
         self.np = np
         self.L = L
@@ -68,6 +73,7 @@ class ConceptWeightILP:
         self.minthreshold = minthreshold
         self.weight_normalization = weight_normalization
         self.no_training = no_training
+        self.types = types
         
         self.Weights = FeatureVector()
         self.WeightsNeg = FeatureVector()
@@ -131,12 +137,15 @@ class ConceptWeightILP:
         m = ILP.SloveILP(self.lpfile)
         
         output = self.lpfile + '.L' + str(L) + ".summary"
+        
+        fio.remove(output)
+        
         ILP.ExtractSummaryfromILP(self.lpfile, self.IndexPhrase, output)
     
     def get_round(self, train_lectures):
         round = 0
         for round in range(maxIter):
-            weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_' + "_" + '.json'
+            weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight' + "_" + '.json'
             if not fio.IsExist(weightfile):
                 break
         
@@ -149,16 +158,54 @@ class ConceptWeightILP:
         return round, nextround
             
     def load_weight(self, train_lectures, round):
-        if round == 0:
+        weightfile = self.ilpdir + str(0) + '_' + '_'.join(train_lectures) + '_weight' + "_" + '.json'
+        if not fio.IsExist(weightfile):
             self.initialize_weight()
+            return
         
-        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_' + "_" + '.json'
-        
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight' + "_" + '.json'
         with open(weightfile, 'r') as fin:
             self.Weights = FeatureVector(json.load(fin, encoding="utf-8"))
+            
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_neg' + "_" + '.json'
+        with open(weightfile, 'r') as fin:
+            self.WeightsNeg = FeatureVector(json.load(fin, encoding="utf-8"))
+            
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_sum' + "_" + '.json'
+        with open(weightfile, 'r') as fin:
+            self.SumWeights = FeatureVector(json.load(fin, encoding="utf-8"))
+            
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_neg_sum' + "_" + '.json'
+        with open(weightfile, 'r') as fin:
+            self.SumWeightsNeg = FeatureVector(json.load(fin, encoding="utf-8"))
+        
+        tfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_t'+ '.json'
+        with open(tfile, 'r') as fin:
+            self.t = json.load(fin, encoding="utf-8")
     
+    def save_weight(self, train_lectures, round):
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight'  + "_" + '.json'
+        with open(weightfile, 'w') as fout:
+            json.dump(self.Weights, fout, encoding="utf-8",indent=2)
+        
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_neg'  + "_" + '.json'
+        with open(weightfile, 'w') as fout:
+            json.dump(self.WeightsNeg, fout, encoding="utf-8",indent=2)
+        
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_sum'  + "_" + '.json'
+        with open(weightfile, 'w') as fout:
+            json.dump(self.SumWeights, fout, encoding="utf-8",indent=2)
+        
+        weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_neg_sum'  + "_" + '.json'
+        with open(weightfile, 'w') as fout:
+            json.dump(self.SumWeightsNeg, fout, encoding="utf-8",indent=2)
+        
+        tfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_t'+ '.json'
+        with open(tfile, 'w') as fout:
+            json.dump(self.t, fout, encoding="utf-8",indent=2)
+            
     def train(self, train_lectures):
-        self.stage = 'train'
+        self.stage = stage_train
         
         round, nextround = self.get_round(train_lectures)
         
@@ -172,72 +219,110 @@ class ConceptWeightILP:
                 week = int(sheet) + 1
                 dir = self.ilpdir + str(week) + '/'
                 
-                for type in ['POI', 'MP', 'LP']:
+                for type in self.types:
                     self.prefix = dir + type + "." + np
                     self.featurefile = featuredir + str(week) + '/' + type + featureext
                     
                     print "update weight, round ", round
                     self.preceptron_update()
                     
-            with open(weightfile, 'w') as fout:
-                 json.dump(self.Weights, fout, encoding="utf-8",indent=2)
+            self.save_weight(train_lectures, round)
     
     def preceptron_update(self):
         #generate a system summary
-        self.decode()
+        self.decode() #Line 6
         
         #update Weights, and WeightsNeg
         #read the summary, update the weight 
         sumfile = self.prefix + '.L' + str(self.L) + '.summary'
     
-        if len(fio.ReadFile(sumfile)) == 0:#no summary is generated, using a random baseline      
-            generate_randomsummary(self.prefix, self.L, sumfile)
+        #if len(fio.ReadFile(sumfile)) == 0:#no summary is generated, using a random baseline      
+        #    generate_randomsummary(self.prefix, self.L, sumfile)
         
-        _, System_IndexBigram, System_PhraseBigram = ILP.getPhraseBigram(self.prefix+phraseext, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
+        _, System_IndexBigram, System_PhraseBigram = ILP.getPhraseBigram(sumfile, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
         
         #scan all the bigrams in the responses
-        _, IndexBigram, Response_PhraseBigram = ILP.getPhraseBigram(self.prefix+phraseext, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
+        _, Response_IndexBigram, Response_PhraseBigram = ILP.getPhraseBigram(self.prefix+phraseext, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
         
         reffile = ExtractRefSummaryPrefix(self.prefix) + '.ref.summary'
         _, Model_IndexBigram, Model_PhraseBigram = ILP.getPhraseBigram(reffile, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
         
         Model_BigramDict = getBigramDict(Model_IndexBigram, Model_PhraseBigram)
+        System_BigramDict = getBigramDict(System_IndexBigram, System_PhraseBigram)
         
         #update the weights
         FeatureVecU = LoadFeatureSet(self.featurefile)
             
         pos = 0
         neg = 0
-        correct_pos = 0
-        correct_neg = 0
+        
+        pos_bigram = []
+        neg_bigram = []
         
         for summary, bigrams in Response_PhraseBigram.items():
             for bigram in bigrams:
-                bigramname = IndexBigram[bigram]
+                bigramname = Response_IndexBigram[bigram]
                 if bigramname not in FeatureVecU: 
                     print bigramname
                     continue
                 
                 vec = FeatureVector(FeatureVecU[bigramname])
-                y = 1.0 if bigramname in Model_BigramDict else -1.0
                 
-                if self.Weights.dot(vec)*y <= 0:
-                    self.Weights += y*vec
+                my_flag = False
+                if bigramname in Model_BigramDict and bigramname not in System_BigramDict:
+                    print bigramname
                     
-                    if y==1.0:
-                        pos += 1
-                    else:
-                        neg += 1
-                else:
-                    if y==1.0:
-                        correct_pos += 1
-                    else:
-                        correct_neg += 1
+                    pos_bigram.append(bigramname)
+                    
+                    #self.Weights += vec
+                    #self.WeightsNeg -= vec
+                    
+                    my_flag = True
+                
+                if bigramname not in Model_BigramDict and bigramname in System_BigramDict:
+                    neg_bigram.append(bigramname)
+                    #neg += 1
+                    
+                    #self.Weights -= vec
+                    #self.WeightsNeg += vec
+                    
+                    my_flag = True
+                
+#                 if my_flag:
+#                     self.SumWeights += self.Weights
+#                     self.SumWeightsNeg += self.WeightsNeg
+#                     self.t += 1
         
-        print "pos:", pos
-        print "neg:", neg
-        print "correct_pos:", correct_pos
-        print "correct_neg:", correct_neg
+        #shuffer the negative
+        negative_updates_index = numpy.random.permutation(len(neg_bigram))
+        
+        for bigran in pos_bigram:
+            assert(bigramname in FeatureVecU)
+            vec = FeatureVector(FeatureVecU[bigramname])
+            
+            self.Weights += vec
+            self.WeightsNeg -= vec
+            
+            self.SumWeights += self.Weights
+            self.SumWeightsNeg += self.WeightsNeg
+            self.t += 1
+        
+        for i, k in enumerate(negative_updates_index):
+            if i >= len(pos_bigram): continue
+            bigramname = neg_bigram[k]
+            
+            assert(bigramname in FeatureVecU)
+            vec = FeatureVector(FeatureVecU[bigramname])
+            
+            self.Weights -= vec
+            self.WeightsNeg += vec
+            
+            self.SumWeights += self.Weights
+            self.SumWeightsNeg += self.WeightsNeg
+            self.t += 1
+        
+        print "pos:", len(pos_bigram)
+        print "neg:", min(len(pos_bigram), len(neg_bigram))
     
     def get_weight_product(self):
         BigramWeights = {}
@@ -248,10 +333,19 @@ class ConceptWeightILP:
             if bigramname in self.FeatureVecU:
                 fvec = FeatureVector(self.FeatureVecU[bigramname])
                 
-                if self.stage=='train':
+                #w = (self.Weights - self.WeightsNeg)
+                #w = self.WeightsNeg.dot(fvec)
+                
+                if self.stage == stage_train:
                     w = self.Weights.dot(fvec)
-                else:#use averaged weight
-                    w = self.Weights.dot(fvec)
+                elif self.stage == stage_test:#use averaged weight, TODO
+                    #w = (self.SumWeights/self.t).dot(fvec)
+                    #AveW = self.SumWeights* (1.0/self.t)
+                    AveW = FeatureVector(self.SumWeights)
+                    w = AveW.scaling(1.0/self.t).dot(fvec)
+                else:
+                    print "stage is wrong"
+                    exit(-1)
                 BigramWeights[bigram] = w
         
         median_w = numpy.median(BigramWeights.values())
@@ -274,16 +368,21 @@ class ConceptWeightILP:
                 w = BigramWeights[bigram]
                 if (max_w - mean_w - std_w) != 0:
                     BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
+        elif self.weight_normalization == 3:#normalize to 0 ~ 1
+            for bigram in BigramWeights:
+                w = BigramWeights[bigram]
+                if (max_w - mean_w - std_w) != 0:
+                    BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
         else:
             pass
                     
         return BigramWeights
 
-    def formulateProblem(self):
+    def formulateProblem2(self):
         
         SavedStdOut = sys.stdout
         sys.stdout = open(self.lpfile + lpext, 'w')
-    
+
         #write objective
         print "Maximize"
         objective = []
@@ -295,7 +394,8 @@ class ConceptWeightILP:
             plt.clf()
             plt.hist(BigramWeights.values(), bins=50)
             plt.savefig(self.lpfile + '.png')
-            fio.SaveDict(BigramWeights, self.lpfile + '.bigram_weight.txt', SortbyValueflag=True)
+        
+        fio.SaveDict(BigramWeights, self.lpfile + '.bigram_weight.txt', SortbyValueflag=True)
         
         if self.student_coverage:
             for bigram in self.BigramPhrase:
@@ -318,6 +418,7 @@ class ConceptWeightILP:
                 bigramname = self.IndexBigram[bigram]
                         
                 w = BigramWeights[bigram]
+                
                 if w <= 0: continue
                 objective.append(" ".join([str(w), bigram]))
         
@@ -357,8 +458,88 @@ class ConceptWeightILP:
         print "End"
         sys.stdout = SavedStdOut
     
+    def formulateProblem(self):
+        os.remove(self.lpfile + lpext)
+        
+        lines = []
+        
+        #write objective
+        lines.append("Maximize")
+        objective = []
+        
+        BigramWeights = self.get_weight_product()
+        
+#         if os.name == 'nt':
+#             import matplotlib.pyplot as plt
+#             plt.clf()
+#             plt.hist(BigramWeights.values(), bins=50)
+#             plt.savefig(self.lpfile + '.png')
+        
+        fio.SaveDict(BigramWeights, self.lpfile + '.bigram_weight.txt', SortbyValueflag=True)
+        
+        if self.student_coverage:
+            for bigram in self.BigramPhrase:
+                if bigram not in BigramWeights: 
+                    lines.append(self.IndexBigram[bigram])
+                    continue
+                
+                w = BigramWeights[bigram]
+                
+                if w <= 0: continue
+                objective.append(" ".join([str(w*self.student_lambda), bigram]))
+                         
+            for student, grama in self.StudentGamma.items():
+                if self.student_lambda==1:continue
+                 
+                objective.append(" ".join([str(grama*(1-self.student_lambda)), student]))
+        else:
+            for bigram in self.BigramPhrase:
+                if bigram not in BigramWeights: continue
+                bigramname = self.IndexBigram[bigram]
+                        
+                w = BigramWeights[bigram]
+                
+                if w <= 0: continue
+                objective.append(" ".join([str(w), bigram]))
+        
+        lines.append("  " + " + ".join(objective))
+        
+        #write constraints
+        lines.append("Subject To")
+        lines += ILP.WriteConstraint1(self.PhraseBeta, self.L)
+        
+        lines += ILP.WriteConstraint2(self.BigramPhrase)
+        
+        lines += ILP.WriteConstraint3(self.PhraseBigram)
+        
+        if self.student_coverage:
+            lines += ILP.WriteConstraint4(self.StudentPhrase)
+        
+        indicators = []
+        for bigram in self.BigramPhrase.keys():
+            indicators.append(bigram)
+        for phrase in self.PhraseBeta.keys():
+            indicators.append(phrase)
+            
+        if self.student_coverage:
+            for student in self.StudentGamma.keys():
+                indicators.append(student)
+            
+        #write Bounds
+        lines.append("Bounds")
+        for indicator in indicators:
+            lines.append("  " + indicator + " <= " + str(1))
+        
+        #write Integers
+        lines.append("Integers")
+        lines.append("  " + " ".join(indicators))
+        
+        #write End
+        lines.append("End")
+        fio.SaveList(lines, self.lpfile + lpext)
+        
     def test(self, train_lectures, test_lectures):
-        self.stage = 'test'
+        self.stage = stage_test
         
         round, nextround = self.get_round(train_lectures)
         self.load_weight(train_lectures, round)
@@ -367,7 +548,7 @@ class ConceptWeightILP:
             week = int(sheet) + 1
             dir = ilpdir + str(week) + '/'
             
-            for type in ['POI', 'MP', 'LP']:
+            for type in self.types:
                 self.prefix = dir + type + "." + np
                 print "Test: ", self.prefix
                 
@@ -404,27 +585,6 @@ def getBigramDict(IndexBigram, PhraseBigram):
                 dict[bigramname] = 0
             dict[bigramname] = dict[bigramname] + 1
     return dict
-
-def generate_randomsummary(prefix, L, sumfile):
-    print "no summary is found, generating random ones"
-    lines = fio.ReadFile(prefix + phraseext)
-    lines = [line.strip() for line in lines]
-    
-    index = numpy.random.permutation(len(lines))
-    
-    summaries = []
-    
-    length = 0
-    for i in index:
-        line = lines[i]
-        length += len(line.split())
-        
-        if length <= L:
-            summaries.append(line)
-        else:
-            length -= len(line.split())
-    
-    fio.SaveList(summaries, sumfile)
     
 if __name__ == '__main__':   
     
@@ -447,7 +607,7 @@ if __name__ == '__main__':
                                          student_coverage = config.get_student_coverage(), 
                                          student_lambda = config.get_student_lambda(), 
                                          minthreshold=config.get_perceptron_threshold(), 
-                                         weight_normalization=config.get_weight_normalization(), no_training=config.get_no_training())
+                                         weight_normalization=config.get_weight_normalization(), no_training=config.get_no_training(), types = config.get_types())
                  for iter in range(config.get_perceptron_maxIter()):
                      ilp.run_crossvalidation()
     

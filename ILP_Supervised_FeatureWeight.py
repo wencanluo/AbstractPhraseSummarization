@@ -512,8 +512,8 @@ def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        train = [str(k) for k in range(N) if k != i]
-        #train = [str(i)]
+        #train = [str(k) for k in range(N) if k != i]
+        train = [str(i)]
         test = [str(i)]
         yield train, test
             

@@ -105,6 +105,18 @@ class FeatureVector(dict):
         if not type(scaling) == float: return
         return CompositeFeatureVector(self, scaling)
     
+    def scaling(self, scaling):
+        """
+        overload operator '*' (right-hand-side equivalent to __mul__)
+        multiply feature vector with a scaling factor (float)
+        """
+        if not type(scaling) == float: return
+        
+        for k, v in self.iteritems():
+            self[k] = self.get(k, 0.0)*scaling
+        
+        return self
+        
     def toString(self):
         """
         output to string, assume keys are [tuples]
@@ -190,7 +202,8 @@ if __name__ == '__main__':
     feat_vec1 = FeatureVector(mydict1)
     feat_vec2 = FeatureVector(mydict2)
     
-    print feat_vec1.sub_cutoff(feat_vec2)
+    #print feat_vec1.sub_cutoff(feat_vec2)
+    print feat_vec1.scaling(0.1)
     
     #feat_vec1 += feat_vec2 * (0.1 - 1)
     #print feat_vec1.toString()
