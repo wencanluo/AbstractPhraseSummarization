@@ -15,7 +15,7 @@ countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
     
-def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
+def formulate_problem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
     
@@ -86,7 +86,7 @@ def ILP2(prefix, L, Lambda, ngram, MalformedFlilter):
     StudentGamma = ILP.getStudentWeight_One(StudentPhrase)
     
     lpfile = prefix
-    formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    formulate_problem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
     
     m = ILP.SloveILP(lpfile)
     

@@ -70,6 +70,8 @@ class ConceptWeightILP_MC:
         for train_lectures, test_lectures in LeaveOneLectureOutPermutation():
             if not self.no_training:
                 self.train(train_lectures)
+        
+        for train_lectures, test_lectures in LeaveOneLectureOutPermutation():
             self.test(train_lectures, test_lectures)
     
     def initialize_weight(self):
@@ -107,9 +109,9 @@ class ConceptWeightILP_MC:
         #get {bigram:[phrase]} dictionary
         self.BigramPhrase = ILP.getBigramPhrase(self.PhraseBigram)
         
-        self.partialPhraseBigram, self.PartialBigramPhrase = ILP_MC.getPartialPhraseBigram(self.IndexPhrase, self.IndexBigram, self.prefix + phraseext, svdfile, self.svdpharefile, threshold=self.sparse_threshold)
+        self.partialPhraseBigram, self.partialBigramPhrase = ILP_MC.getPartialPhraseBigram(self.IndexPhrase, self.IndexBigram, self.prefix + phraseext, svdfile, self.svdpharefile, threshold=self.sparse_threshold)
         fio.SaveDict2Json(self.partialPhraseBigram, prefix + ".partialPhraseBigram.dict")
-        fio.SaveDict2Json(self.PartialBigramPhrase, prefix + ".PartialBigramPhrase.dict")
+        fio.SaveDict2Json(self.partialBigramPhrase, prefix + ".PartialBigramPhrase.dict")
     
     
         #get {student:phrase}
@@ -123,7 +125,7 @@ class ConceptWeightILP_MC:
         self.FeatureVecU = LoadFeatureSet(featurefile)
         
         self.lpfile = prefix
-        self.formulateProblem()
+        self.formulate_problem()
         
         m = ILP.SloveILP(self.lpfile)
         
@@ -195,29 +197,7 @@ class ConceptWeightILP_MC:
         with open(tfile, 'w') as fout:
             json.dump(self.t, fout, encoding="utf-8",indent=2)
             
-    def train(self, train_lectures):
-        self.stage = stage_train
-        
-        round, nextround = self.get_round(train_lectures)
-        
-        self.load_weight(train_lectures, round)
-        
-        for round in range(nextround, nextround+1):
-            weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_'  + "_" + '.json'
-            bigramfile = ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_bigram_'  + "_" + '.json'
-        
-            for sheet in train_lectures:
-                week = int(sheet) + 1
-                dir = self.ilpdir + str(week) + '/'
-                
-                for type in self.types:
-                    self.prefix = dir + type + "." + np
-                    self.featurefile = featuredir + str(week) + '/' + type + featureext
-                    
-                    print "update weight, round ", round
-                    self.preceptron_update()
-                    
-            self.save_weight(train_lectures, round)
+    
     
     def preceptron_update(self):
         #generate a system summary
@@ -359,97 +339,16 @@ class ConceptWeightILP_MC:
                 w = BigramWeights[bigram]
                 if (max_w - mean_w - std_w) != 0:
                     BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
-        elif self.weight_normalization == 3:#normalize to 0 ~ 1
+        elif self.weight_normalization == 3:#sigmoid 
             for bigram in BigramWeights:
                 w = BigramWeights[bigram]
-                if (max_w - mean_w - std_w) != 0:
-                    BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
+                BigramWeights[bigram] = 1 / (1 + math.exp(-w))
         else:
             pass
                     
         return BigramWeights
 
-    def formulateProblem2(self):
-        
-        SavedStdOut = sys.stdout
-        sys.stdout = open(self.lpfile + lpext, 'w')
-
-        #write objective
-        print "Maximize"
-        objective = []
-        
-        BigramWeights = self.get_weight_product()
-        
-        if os.name == 'nt':
-            import matplotlib.pyplot as plt
-            plt.clf()
-            plt.hist(BigramWeights.values(), bins=50)
-            plt.savefig(self.lpfile + '.png')
-        
-        fio.SaveDict(BigramWeights, self.lpfile + '.bigram_weight.txt', SortbyValueflag=True)
-        
-        if self.student_coverage:
-            for bigram in self.BigramPhrase:
-                if bigram not in BigramWeights: 
-                    print self.IndexBigram[bigram]
-                    continue
-                
-                w = BigramWeights[bigram]
-                
-                if w <= 0: continue
-                objective.append(" ".join([str(w*self.student_lambda), bigram]))
-                         
-            for student, grama in self.StudentGamma.items():
-                if Lambda==1:continue
-                 
-                objective.append(" ".join([str(grama*(1-self.student_lambda)), student]))
-        else:
-            for bigram in self.BigramPhrase:
-                if bigram not in BigramWeights: continue
-                bigramname = self.IndexBigram[bigram]
-                        
-                w = BigramWeights[bigram]
-                
-                if w <= 0: continue
-                objective.append(" ".join([str(w), bigram]))
-        
-        print "  ", " + ".join(objective)
-        
-        #write constraints
-        print "Subject To"
-        ILP.WriteConstraint1(self.PhraseBeta, L)
-        
-        ILP.WriteConstraint2(self.BigramPhrase)
-        
-        ILP.WriteConstraint3(self.PhraseBigram)
-        
-        if self.student_coverage:
-            ILP.WriteConstraint4(self.StudentPhrase)
-        
-        indicators = []
-        for bigram in self.BigramPhrase.keys():
-            indicators.append(bigram)
-        for phrase in self.PhraseBeta.keys():
-            indicators.append(phrase)
-            
-        if self.student_coverage:
-            for student in self.StudentGamma.keys():
-                indicators.append(student)
-            
-        #write Bounds
-        print "Bounds"
-        for indicator in indicators:
-            print "  ", indicator, "<=", 1
-        
-        #write Integers
-        print "Integers"
-        print "  ", " ".join(indicators)
-        
-        #write End
-        print "End"
-        sys.stdout = SavedStdOut
-    
-    def formulateProblem(self):
+    def formulate_problem(self):
         fio.remove(self.lpfile + lpext)
         
         lines = []
@@ -499,9 +398,9 @@ class ConceptWeightILP_MC:
         lines.append("Subject To")
         lines += ILP.WriteConstraint1(self.PhraseBeta, self.L)
         
-        lines += ILP.WriteConstraint2(self.partialBigramPhrase)
+        lines += ILP_MC.WriteConstraint2(self.partialBigramPhrase)
         
-        lines += ILP.WriteConstraint3(self.partialPhraseBigram)
+        lines += ILP_MC.WriteConstraint3(self.partialPhraseBigram)
         
         if self.student_coverage:
             lines += ILP.WriteConstraint4(self.StudentPhrase)
@@ -521,6 +420,12 @@ class ConceptWeightILP_MC:
         for indicator in indicators:
             lines.append("  " + indicator + " <= " + str(1))
         
+        indicators = []
+        #for bigram in self.BigramPhrase.keys():
+        #    indicators.append(bigram)
+        for phrase in self.PhraseBeta.keys():
+            indicators.append(phrase)
+            
         #write Integers
         lines.append("Integers")
         lines.append("  " + " ".join(indicators))
@@ -528,7 +433,34 @@ class ConceptWeightILP_MC:
         #write End
         lines.append("End")
         fio.SaveList(lines, self.lpfile + lpext)
+     
+    def train(self, train_lectures):
+        self.stage = stage_train
         
+        round, nextround = self.get_round(train_lectures)
+        
+        self.load_weight(train_lectures, round)
+        
+        for round in range(nextround, nextround+1):
+            weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_'  + "_" + '.json'
+            bigramfile = ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_bigram_'  + "_" + '.json'
+        
+            for sheet in train_lectures:
+                week = int(sheet) + 1
+                dir = self.ilpdir + str(week) + '/'
+                
+                for type in self.types:
+                    self.prefix = dir + type + "." + np
+                    self.featurefile = featuredir + str(week) + '/' + type + featureext
+                    
+                    self.svdfile = self.matrix_dir + str(week) + '/' + type + prefixA
+                    self.svdpharefile = self.matrix_dir + str(week) + '/' + type + '.' + self.np + ".key"
+                
+                    print "update weight, round ", round
+                    self.preceptron_update()
+                    
+            self.save_weight(train_lectures, round)
+               
     def test(self, train_lectures, test_lectures):
         self.stage = stage_test
         
@@ -587,7 +519,7 @@ if __name__ == '__main__':
     
     matrix_dir = config.get_matrix_dir()
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
     
     featuredir = ilpdir
     

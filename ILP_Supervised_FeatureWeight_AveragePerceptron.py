@@ -84,6 +84,8 @@ class ConceptWeightILP:
         for train_lectures, test_lectures in LeaveOneLectureOutPermutation():
             if not self.no_training:
                 self.train(train_lectures)
+        
+        for train_lectures, test_lectures in LeaveOneLectureOutPermutation():
             self.test(train_lectures, test_lectures)
     
     def initialize_weight(self):
@@ -131,7 +133,7 @@ class ConceptWeightILP:
         self.FeatureVecU = LoadFeatureSet(featurefile)
         
         self.lpfile = prefix
-        self.formulateProblem()
+        self.formulate_problem()
         
         m = ILP.SloveILP(self.lpfile)
         
@@ -367,11 +369,11 @@ class ConceptWeightILP:
                 w = BigramWeights[bigram]
                 if (max_w - mean_w - std_w) != 0:
                     BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
-        elif self.weight_normalization == 3:#normalize to 0 ~ 1
+        elif self.weight_normalization == 3:#sigmoid 
             for bigram in BigramWeights:
                 w = BigramWeights[bigram]
-                if (max_w - mean_w - std_w) != 0:
-                    BigramWeights[bigram] = (w - mean_w - std_w)/(max_w - mean_w - std_w)
+                if w <= -100: w = -100
+                BigramWeights[bigram] = 1 / (1 + math.exp(-w))
         else:
             pass
                     
@@ -457,7 +459,7 @@ class ConceptWeightILP:
         print "End"
         sys.stdout = SavedStdOut
     
-    def formulateProblem(self):
+    def formulate_problem(self):
         fio.remove(self.lpfile + lpext)
         
         lines = []

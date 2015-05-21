@@ -133,7 +133,32 @@ def run_SupervisedMC_weighting():
                 
     newname = "../../data/featureweighting_MC_perceptron_threshold.txt"
     fio.WriteMatrix(newname, body, Header)
+
+def run_CWLearning():
+    from config import ConfigFile
+    
+    config = ConfigFile()
+    old_weight = config.get_weight_normalization()
+    old_maxiter = config.get_perceptron_maxIter()
+    
+    config.set_weight_normalization(3)
+    config.set_perceptron_maxIter(10)
+    config.save()
+    
+    rougename = '../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/rouge.sentence.L' +str(config.get_length_limit())+ '.' + str(config.get_weight_normalization()) + ".txt"
+    
+    if not fio.IsExist(rougename):
+        os.system('python ILP_Supervised_FeatureWeight_AveragePerceptron.py')
+        os.system('python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"')
         
+        rougefile = "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/" + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
+        os.system('mv ' + rougefile + ' ' + rougename)
+    
+    config.set_weight_normalization(old_weight)
+    config.set_perceptron_maxIter(old_maxiter)
+    config.save()
+     
 if __name__ == '__main__':
     #run_UnsupervisedMC()
-    run_SupervisedMC_weighting()
+    #run_SupervisedMC_weighting()
+    run_CWLearning()

@@ -17,7 +17,7 @@ lpext = ".lp"
 lpsolext = ".sol"
 sumexe = ".ref.summary"
     
-def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
+def formulate_problem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
     fio.remove(lpfileprefix + lpext)
     lines = []
     
@@ -150,7 +150,7 @@ def ILP_Supervised(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlil
     StudentGamma = ILP.getStudentWeight_One(StudentPhrase)
     
     lpfile = prefix
-    formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    formulate_problem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
     
     m = ILP.SloveILP(lpfile)
     
@@ -232,6 +232,7 @@ def TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
 def ILP_CrossValidation(ilpdir, np, L, Lambda, ngram, MalformedFlilter):
     for train, test in LeaveOneLectureOutPermutation():
         TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter)
+    for train, test in LeaveOneLectureOutPermutation():
         TestILP(train, test, ilpdir, np, L, Lambda, ngram, MalformedFlilter)
 
 def LeaveOneLectureOutPermutation():

@@ -120,7 +120,7 @@ def ILP1(prefix, L, svddir, corpusname, K):
     BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
     
     lpfile = prefix
-    ILP.formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    ILP.formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
     
     m = ILP.SloveILP(lpfile)
     

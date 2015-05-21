@@ -217,6 +217,7 @@ class ConfigFile:
             'weight_normalization', 
             'perceptron_maxIter', 
             'matrix_dir', 
+            'types',
             'sparse_threshold', 
             'rank_max', 
             'exp_id',

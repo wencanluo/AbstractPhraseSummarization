@@ -82,7 +82,7 @@ def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[1, 2], MalformedFlilter=F
         
     return IndexPhrase, IndexBigram, PhraseBigram
 
-def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix):
+def formulate_problem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
     
@@ -147,8 +147,8 @@ def ILP_Supervised(BigramIndex, Weights, prefix, svdfile, svdpharefile, L, Lambd
     BigramPhrase = ILP_baseline.getBigramPhrase(PhraseBigram)
 
     lpfile = prefix
-    #formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
-    formulateProblem(BigramTheta, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile)
+    #formulate_problem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    formulate_problem(BigramTheta, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile)
     
     m = ILP_baseline.SloveILP(lpfile)
     

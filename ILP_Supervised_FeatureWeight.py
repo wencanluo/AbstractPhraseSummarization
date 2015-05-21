@@ -68,7 +68,7 @@ def get_weight_product(Weights, BigramPhrase, IndexBigram, FeatureVecU, minthres
                 
     return BigramWeights
 
-def formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization):
+def formulate_problem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, FeatureVecU, student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
 
@@ -174,7 +174,7 @@ def ILP_Supervised(Weights, prefix, featurefile, L, ngram, MalformedFlilter, stu
     FeatureVecU = LoadFeatureSet(featurefile)
     
     lpfile = prefix
-    formulateProblem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, 
+    formulate_problem(IndexBigram, Weights, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, FeatureVecU, 
                      student_coverage, StudentGamma, StudentPhrase, student_lambda, minthreshold, weight_normalization)
     
     m = ILP.SloveILP(lpfile)
@@ -506,6 +506,7 @@ def ILP_CrossValidation(ilpdir, np, L, ngram, MalformedFlilter, featuredir, stud
     for train, test in LeaveOneLectureOutPermutation():
         if not no_training:
             TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter, featuredir)
+    for train, test in LeaveOneLectureOutPermutation():
         TestILP(train, test, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, minthreshold, weight_normalization)
 
 def LeaveOneLectureOutPermutation():

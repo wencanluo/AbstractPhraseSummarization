@@ -12,3 +12,4 @@ sparse_threshold	0.0
 rank_max	1000
 exp_id	4
 no_training	1
+types	POI, MP, LP

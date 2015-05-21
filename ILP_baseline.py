@@ -73,7 +73,7 @@ def WriteConstraint4(StudentPhrase):
         lines.append("  " + " + ".join(phrases) + " - " + student + " >= " + '0')
     return lines
         
-def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, student_coverage, StudentGamma, StudentPhrase,  student_lambda):
+def formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix, student_coverage, StudentGamma, StudentPhrase,  student_lambda):
     lines = []
     
     #write objective
@@ -128,9 +128,11 @@ def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpf
     fio.SaveList(lines, lpfileprefix + lpext)
 
 def SloveILP(lpfileprefix):
-    output = lpfileprefix + lpext
+    input = lpfileprefix + lpext
+    output = lpfileprefix + lpsolext
     fio.remove(output)
-    cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + output
+    
+    cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + input
     os.system(cmd)    
 
 def ExtractSummaryfromILP(lpfileprefix, phrases, output):
@@ -448,7 +450,7 @@ def ILP1(prefix, L, Ngram = [1,2], student_coverage = False, student_lambda = No
     StudentGamma = getStudentWeight_One(StudentPhrase)
     
     lpfile = prefix
-    formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, student_coverage, StudentGamma, StudentPhrase, student_lambda)
+    formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile, student_coverage, StudentGamma, StudentPhrase, student_lambda)
     
     m = SloveILP(lpfile)
     

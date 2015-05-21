@@ -79,7 +79,7 @@ def WriteConstraint3(partialPhraseBigram):
             lines.append("  " + bigram[1].strip() + phrase + " - " + bigram[0] + " <= " + '0')
     return lines
                     
-def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix):
+def formulate_problem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix):
     fio.remove(lpfileprefix + lpext)
     
     lines = []
@@ -226,7 +226,7 @@ def ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold):
     BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
     
     lpfile = prefix
-    formulateProblem(BigramTheta, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile)
+    formulate_problem(BigramTheta, PhraseBeta, PartialBigramPhrase, partialPhraseBigram, L, lpfile)
     
     m = ILP.SloveILP(lpfile)
     

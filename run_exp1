@@ -9,7 +9,7 @@
 	#python ILP_Prepare.py
 
 #Extractive Orcale
-	python OracleExperiment.py
+	#python OracleExperiment.py
 
 #ILP oracle
 	#python ILP_Supervised.py
@@ -39,5 +39,7 @@
 #supervised ILP + feature weighting + matrix completion
 	#python ILP_Supervised_FeatureWeight_MC.py
 	#python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
-
+	python ILP_Supervised_FeatureWeight_MC_AveragePerceptron.py
+	python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
+	
 #gather the ROUGE scores

@@ -709,8 +709,10 @@ if __name__ == '__main__':
     sennadatadir = "../../data/senna/"
     
     for ilpdir in [#"../../data/ILP_Sentence_Supervised_FeatureWeighting/",
-                   "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
-                   #"../../data/ILP_Sentence_Supervised_FeatureWeightingMC/"
+                   #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
+                   "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/",
+                   #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
+                   
                    ]:
         get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = 'sentence', ngram=config.get_ngrams())
         get_ngram_tfidf.extact_tfidf(ilpdir, np = 'sentence', ngram=config.get_ngrams())

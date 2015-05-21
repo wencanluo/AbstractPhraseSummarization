@@ -41,7 +41,7 @@ def WriteConstraint4(StudentPhrase):
     for student, phrases in StudentPhrase.items():
         print "  ", " + ".join(phrases), "-", student, ">=", 0
         
-def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
+def formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
     SavedStdOut = sys.stdout
     sys.stdout = open(lpfileprefix + lpext, 'w')
     
@@ -99,7 +99,7 @@ def ILP1(prefix, L):
     BigramPhrase = ILP.getBigramPhrase(PhraseBigram)
     
     lpfile = prefix
-    formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
+    formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfile)
     
     m = ILP.SloveILP(lpfile)
     
