@@ -18,14 +18,14 @@ lpsolext = ".sol"
 sumexe = ".ref.summary"
     
 def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpfileprefix):
-    SavedStdOut = sys.stdout
-    sys.stdout = open(lpfileprefix + lpext, 'w')
+    fio.remove(lpfileprefix + lpext)
+    lines = []
     
     if Lambda== None:
         Lambda = 1.0
         
     #write objective
-    print "Maximize"
+    lines.append("Maximize")
     objective = []
     for bigram, theta in BigramTheta.items():
         if theta == 0: continue
@@ -33,15 +33,15 @@ def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBet
         objective.append(" ".join([str(theta*Lambda), bigram]))
     #for student, grama in StudentGamma.items():
     #    objective.append(" ".join([str(grama*(1-Lambda)), student]))
-    print "  ", " + ".join(objective)
+    lines.append("  " + " + ".join(objective))
     
     #write constraints
-    print "Subject To"
-    ILP.WriteConstraint1(PhraseBeta, L)
+    lines.append("Subject To")
+    lines += ILP.WriteConstraint1(PhraseBeta, L)
     
-    ILP.WriteConstraint2(BigramPhrase)
+    lines += ILP.WriteConstraint2(BigramPhrase)
     
-    ILP.WriteConstraint3(PhraseBigram)
+    lines += ILP.WriteConstraint3(PhraseBigram)
     
     #ILP.WriteConstraint4(StudentPhrase)
     
@@ -54,17 +54,17 @@ def formulateProblem(Lambda, StudentGamma, StudentPhrase, BigramTheta, PhraseBet
     #    indicators.append(student)
         
     #write Bounds
-    print "Bounds"
+    lines.append("Bounds")
     for indicator in indicators:
-        print "  ", indicator, "<=", 1
+        lines.append("  " + indicator + " <= " + str(1))
     
     #write Integers
-    print "Integers"
-    print "  ", " ".join(indicators)
+    lines.append("Integers")
+    lines.append("  " + " ".join(indicators))
     
     #write End
-    print "End"
-    sys.stdout = SavedStdOut
+    lines.append("End")
+    fio.SaveList(lines, lpfileprefix + lpext)
 
 def UpdatePhraseBigram(BigramIndex, phrasefile, Ngram=[2], MalformedFlilter=False):
     #get phrases
@@ -154,10 +154,8 @@ def ILP_Supervised(BigramIndex, Weights, prefix, L, Lambda, ngram, MalformedFlil
     
     m = ILP.SloveILP(lpfile)
     
-    if Lambda == None:
-        output = lpfile + '.L' + str(L) + ".summary"
-    else:
-        output = lpfile + '.L' + str(L) + "." + str(Lambda) + ".summary"
+    output = lpfile + '.L' + str(L) + ".summary"
+    
     ILP.ExtractSummaryfromILP(lpfile, phrases, output)
 
 def getLastIndex(BigramIndex):
@@ -192,19 +190,6 @@ def preceptron_update(BigramIndex, Weights, sumprefix, prefix, L, Lambda, ngram,
             
             Weights[bindex] = Weights[bindex] + 1
     
-#     for phrase, bigrams in PhraseBigram.items():
-#         for bigram in bigrams:
-#             bigramname = IndexBigramResponse[bigram]
-#             if bigramname not in BigramIndex: continue
-#                 
-#             bindex = BigramIndex[bigramname]
-#                   
-#             #update the weights
-#             if bindex not in Weights:
-#                 Weights[bindex] = 0
-#              
-#             Weights[bindex] = Weights[bindex] + 1
-
 def TrainILP(train, ilpdir, np, L, Lambda, ngram, MalformedFlilter):
     Weights = {} #{Index:Weight}
     BigramIndex = {} #{bigram:index}
@@ -253,20 +238,22 @@ def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        train = [str(k) for k in range(N) if k != i]
-        #train = [str(i)]
+        #train = [str(k) for k in range(N) if k != i]
+        train = [str(i)]
         test = [str(i)]
         yield train, test
             
 if __name__ == '__main__':
-    #ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
-    ilpdir = "../../data/ILP_Sentence_Supervised/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
+    #ilpdir = "../../data/ILP_Sentence_Supervised/"
+    from config import ConfigFile
+    config = ConfigFile()
     
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-    for Lambda in [None]:
+    for Lambda in [config.get_student_lambda()]:
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-         for L in [30]:
+         for L in [config.get_length_limit()]:
              for np in ['sentence', ]: #'chunk
-                 ILP_CrossValidation(ilpdir, np, L, Lambda, ngram=[1,2], MalformedFlilter=False)
+                 ILP_CrossValidation(ilpdir, np, L, Lambda, ngram=config.get_ngrams(), MalformedFlilter=False)
 
     print "done"

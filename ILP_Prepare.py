@@ -76,9 +76,9 @@ if __name__ == '__main__':
 #         ExtractNgram(outdir, np)
     
     for outdir in [
-                   "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
-                   #"../../data/oracle/",
-                   #"../../data/ILP_Sentence_Supervised_Oracle/",
+                   #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
+                   "../../data/oracle/",
+                   "../../data/ILP_Sentence_Supervised_Oracle/",
                    
                     #"../../data/ILP1_Sentence/", 
                     #"../../data/ILP1_Sentence_MC/", 

@@ -129,6 +129,7 @@ def formulateProblem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lpf
 
 def SloveILP(lpfileprefix):
     output = lpfileprefix + lpext
+    fio.remove(output)
     cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + output
     os.system(cmd)    
 

@@ -9,7 +9,6 @@ import NumpyWrapper
 import math
 
 import ILP_baseline as ILP
-import ILP_SVD
 
 from feat_vec import FeatureVector
 
@@ -459,7 +458,7 @@ class ConceptWeightILP:
         sys.stdout = SavedStdOut
     
     def formulateProblem(self):
-        os.remove(self.lpfile + lpext)
+        fio.remove(self.lpfile + lpext)
         
         lines = []
         

@@ -8,6 +8,14 @@
 	#generate the files
 	#python ILP_Prepare.py
 
+#Extractive Orcale
+	python OracleExperiment.py
+
+#ILP oracle
+	#python ILP_Supervised.py
+	#python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_Oracle/"
+
+
 #unsupervised ILP baseline
 	#python ILP_baseline.py
 	#python ILP_GetRouge.py "../../data/ILP1_Sentence/"
@@ -25,8 +33,8 @@
 	#python ILP_FeatureExtraction.py
 	#python ILP_Supervised_FeatureWeight.py
 	#python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
-	python ILP_Supervised_FeatureWeight_AveragePerceptron.py
-	python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/"
+	#python ILP_Supervised_FeatureWeight_AveragePerceptron.py
+	#python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/"
 	
 #supervised ILP + feature weighting + matrix completion
 	#python ILP_Supervised_FeatureWeight_MC.py

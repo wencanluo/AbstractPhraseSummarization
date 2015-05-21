@@ -60,50 +60,46 @@ def getSparseRatio(svddir, prefixA=".org.softA", eps=1e-3):
     
     print total_nonZero, '\t', total_N, '\t', total_nonZero/total_N
            
-
-def WriteConstraint1(PhraseBeta, L):
-    #$\sum_{j=1}^P y_j \beta _j \le L$
-    constraint = []
-    for phrase, beta in PhraseBeta.items():
-        constraint.append(" ".join([str(beta), phrase]))
-    print "  ", " + ".join(constraint), "<=", L
-
 def WriteConstraint2(partialBigramPhrase):
     #$\sum_{j=1} {y_j Occ_{ij}} \ge x_i$
+    lines = []
+    
     for bigram, phrases in partialBigramPhrase.items():
         weightedPhrase = [phrase[1] + ' ' + phrase[0] for phrase in phrases if str(phrase[1]) != '0.0']
-        print "  ", " + ".join(weightedPhrase), "-", bigram, ">=", 0
+        lines.append("  " + " + ".join(weightedPhrase) + " - " + bigram + " >= " + '0')
+    return lines
 
 def WriteConstraint3(partialPhraseBigram):
     #$y_j Occ_{ij} \le x_i$
+    
+    lines = []
     for phrase, bigrams in partialPhraseBigram.items():
         for bigram in bigrams:
             if str(bigram[1].strip()) == '0.0': continue
-            print "  ", bigram[1].strip(), phrase,  "-", bigram[0], "<=", 0
-            
-def WriteConstraint4(StudentPhrase):
-    #$\sum_{j=1}^P {y_j Occ_{jk}} \ge z_k$
-    for student, phrases in StudentPhrase.items():
-        print "  ", " + ".join(phrases), "-", student, ">=", 0
-        
+            lines.append("  " + bigram[1].strip() + phrase + " - " + bigram[0] + " <= " + '0')
+    return lines
+                    
 def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix):
-    SavedStdOut = sys.stdout
-    sys.stdout = open(lpfileprefix + lpext, 'w')
+    fio.remove(lpfileprefix + lpext)
+    
+    lines = []
     
     #write objective
-    print "Maximize"
+    lines.append("Maximize")
+    objective = []
+        
     objective = []
     for bigram, theta in BigramTheta.items():
         objective.append(" ".join([str(theta), bigram]))
-    print "  ", " + ".join(objective)
+    lines.append("  " + " + ".join(objective))
     
     #write constraints
-    print "Subject To"
-    WriteConstraint1(PhraseBeta, L)
+    lines.append("Subject To")
+    lines += ILP.WriteConstraint1(PhraseBeta, L)
     
-    WriteConstraint2(partialBigramPhrase)
+    lines += WriteConstraint2(partialBigramPhrase)
     
-    WriteConstraint3(partialPhraseBigram)
+    lines += WriteConstraint3(partialPhraseBigram)
     
     indicators = []
     for bigram in BigramTheta.keys():
@@ -112,9 +108,9 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
         indicators.append(phrase)
         
     #write Bounds
-    print "Bounds"
+    lines.append("Bounds")
     for indicator in indicators:
-        print "  ", indicator, "<=", 1
+        lines.append("  " + indicator + " <= " + str(1))
     
     #write Integers
     indicators = []
@@ -123,12 +119,12 @@ def formulateProblem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhrase
     for phrase in PhraseBeta.keys():
         indicators.append(phrase)
         
-    print "Integers"
-    print "  ", " ".join(indicators)
+    lines.append("Integers")
+    lines.append("  " + " ".join(indicators))
     
     #write End
-    print "End"
-    sys.stdout = SavedStdOut
+    lines.append("End")
+    fio.SaveList(lines, lpfileprefix + lpext)
     
 def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpharefile, threshold):
     lines = fio.ReadFile(phrasefile)
