@@ -190,11 +190,22 @@ class ConfigFile:
     
     def get_no_training(self):
         v = self.dict['no_training']
-        if v == '1':
-            assert(self.get_perceptron_maxIter() == 1)
         assert(v == '1' or v == '0')
         return v == '1'
-                    
+    
+    def get_prefixA(self):
+        rank = self.get_rank_max()
+        Lambda = self.get_softImpute_lambda()
+        if rank == 0:
+            prefixA = '.org.softA'
+        else:
+            prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+        return prefixA
+    
+    def get_lcs_ratio(self):
+        v = float(self.dict['lcs_ratio'])
+        return v
+                                    
     def toString(self):
         s= ""
         for k, v in self.dict.items():
@@ -221,7 +232,8 @@ class ConfigFile:
             'sparse_threshold', 
             'rank_max', 
             'exp_id',
-            'no_training'
+            'no_training',
+            'lcs_ratio',
             ]
         
         for key in keys:

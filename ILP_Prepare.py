@@ -77,7 +77,8 @@ if __name__ == '__main__':
     
     for outdir in [
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
-                   "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/",
+                   #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/",
+                   "../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/",
                    #"../../data/oracle/",
                    #"../../data/ILP_Sentence_Supervised_Oracle/",
                    

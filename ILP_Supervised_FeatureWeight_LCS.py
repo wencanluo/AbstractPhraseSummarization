@@ -7,10 +7,10 @@ import os
 import numpy
 import NumpyWrapper
 import math
+import algorithm
+from scipy.misc import logsumexp
 
 import ILP_baseline as ILP
-import ILP_MC
-import scipy
 
 from feat_vec import FeatureVector
 
@@ -32,40 +32,59 @@ stage_test =1
 
 def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
+    #sheets = range(0,1)
     for i in sheets:
         train = [str(k) for k in range(len(sheets)) if k != i]
         #train = [str(i)]
         test = [str(i)]
         yield train, test
-         
-class ConceptWeightILP_MC:
-    def __init__(self, ilpdir, matrix_dir, np, L, ngram, MalformedFlilter, featuredir, prefixA,
-                 student_coverage, student_lambda, 
-                 minthreshold, weight_normalization, sparse_threshold, no_training, types):
-        self.ilpdir = ilpdir
-        self.matrix_dir = matrix_dir
+
+def generate_randomsummary(prefix, L, sumfile):
+    print "no summary is found, generating random ones"
+    lines = fio.ReadFile(prefix + phraseext)
+    lines = [line.strip() for line in lines]
+    
+    index = numpy.random.permutation(len(lines))
+    
+    summaries = []
+    
+    length = 0
+    for i in index:
+        line = lines[i]
+        length += len(line.split())
         
+        if length <= L:
+            summaries.append(line)
+        else:
+            length -= len(line.split())
+    
+    fio.SaveList(summaries, sumfile)
+            
+class ConceptWeightILP_LCS:
+    def __init__(self, ilpdir, np, L, ngram, MalformedFlilter, featuredir, student_coverage, student_lambda, 
+                 minthreshold, weight_normalization, no_training, types, lcs_ratio):
+        self.ilpdir = ilpdir
         self.np = np
         self.L = L
         self.ngram = ngram
         self.MalformedFlilter = MalformedFlilter
         self.featuredir = featuredir
-        self.prefixA = prefixA
-        
         self.student_coverage = student_coverage
         self.student_lambda = student_lambda
         self.minthreshold = minthreshold
         self.weight_normalization = weight_normalization
-        self.sparse_threshold = sparse_threshold
-        
         self.no_training = no_training
         self.types = types
+        self.lcs_ratio = lcs_ratio
         
         self.Weights = FeatureVector()
         self.WeightsNeg = FeatureVector()
         self.SumWeights = FeatureVector()
         self.SumWeightsNeg = FeatureVector()
         self.t = 0
+        
+        self.lcs_cachefile = self.ilpdir + 'lcs_cache.json'
+        self.load_lcs_cache()
     
     def gather_rouges(self):
         Header = ['method', 'iter'] + ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']*3
@@ -74,19 +93,19 @@ class ConceptWeightILP_MC:
         round, _ = self.get_round(self.train_lectures)
         
         for i in range(0, round+1):
-            row = ['MC+CW']
+            row = ['baseline+CW']
             row.append(i)
             
-            rougename = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) + self.prefixA + '.s'+ str(self.sparse_threshold) +'.r'+ str(i) + ".txt"
-        
+            rougename = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) +'.lcs.' + str(self.lcs_ratio) +'.r'+ str(i) + ".txt"
+            
             scores = ILP.getRouges(rougename)
             
             row = row + scores
             body.append(row)
         
-        newname = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) + self.prefixA + '.s'+ str(self.sparse_threshold) + ".txt"
+        newname = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) +'.lcs.' + str(self.lcs_ratio) + ".txt"
         fio.WriteMatrix(newname, body, Header)
-            
+        
     def run_crossvalidation(self):
         for train_lectures, test_lectures in LeaveOneLectureOutPermutation():
             if not self.no_training:
@@ -97,7 +116,7 @@ class ConceptWeightILP_MC:
         
         round, _ = self.get_round(self.train_lectures)
         
-        rougename = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) + self.prefixA + '.s'+ str(self.sparse_threshold) +'.r'+ str(round) + ".txt"
+        rougename = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) +'.lcs.' + str(self.lcs_ratio) +'.r'+ str(round) + ".txt"
         os.system('python ILP_GetRouge.py '+self.ilpdir)
                 
         rougefile = self.ilpdir + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
@@ -119,13 +138,12 @@ class ConceptWeightILP_MC:
         student_lambda = self.student_lambda
         minthreshold = self.minthreshold
         weight_normalization = self.weight_normalization
-        svdfile = self.svdfile
         
         # get each stemmed bigram, sequence the bigram and the phrase
         # bigrams: {index:bigram}, a dictionary of bigram index, X
         # phrases: {index:phrase}, is a dictionary of phrase index, Y
         #PhraseBigram: {phrase, [bigram]}
-        self.IndexPhrase, self.IndexBigram, self.PhraseBigram = ILP.getPhraseBigram(prefix+phraseext, Ngram=ngram, svdfile=svdfile)
+        self.IndexPhrase, self.IndexBigram, self.PhraseBigram = ILP.getPhraseBigram(prefix+phraseext, Ngram=ngram)
         fio.SaveDict(self.IndexPhrase, prefix + ".phrase_index.dict")
         fio.SaveDict(self.IndexBigram, prefix + ".bigram_index.dict")
         
@@ -137,11 +155,6 @@ class ConceptWeightILP_MC:
         
         #get {bigram:[phrase]} dictionary
         self.BigramPhrase = ILP.getBigramPhrase(self.PhraseBigram)
-        
-        self.partialPhraseBigram, self.partialBigramPhrase = ILP_MC.getPartialPhraseBigram(self.IndexPhrase, self.IndexBigram, self.prefix + phraseext, svdfile, self.svdpharefile, threshold=self.sparse_threshold)
-        fio.SaveDict2Json(self.partialPhraseBigram, prefix + ".partialPhraseBigram.dict")
-        fio.SaveDict2Json(self.partialBigramPhrase, prefix + ".PartialBigramPhrase.dict")
-    
     
         #get {student:phrase}
         #sequence students, students = {index:student}
@@ -176,8 +189,6 @@ class ConceptWeightILP_MC:
             round = round -1
         else:
             nextround = 0
-        
-        self.round = round
         
         return round, nextround
             
@@ -228,8 +239,65 @@ class ConceptWeightILP_MC:
         with open(tfile, 'w') as fout:
             json.dump(self.t, fout, encoding="utf-8",indent=2)
             
+    def train(self, train_lectures):
+        self.stage = stage_train
+        
+        round, nextround = self.get_round(train_lectures)
+        
+        self.load_weight(train_lectures, round)
+        
+        for round in range(nextround, nextround+1):
+            weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_'  + "_" + '.json'
+            bigramfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_bigram_'  + "_" + '.json'
+        
+            for sheet in train_lectures:
+                week = int(sheet) + 1
+                dir = self.ilpdir + str(week) + '/'
+                
+                for type in self.types:
+                    self.prefix = dir + type + "." + self.np
+                    self.featurefile = self.featuredir + str(week) + '/' + type + featureext
+                    
+                    print "update weight, round ", round
+                    self.preceptron_update()
+                    
+            self.save_weight(train_lectures, round)
     
+    def load_lcs_cache(self):
+        if fio.IsExist(self.lcs_cachefile):
+            with open(self.lcs_cachefile, 'r') as fin:
+                self.lcs_cache = json.load(fin)
+        else:
+            self.lcs_cache = {}
+        
+    def get_lcs_cache(self, bigram1, bigram2):
+        key = bigram1 + '@' + bigram2
+        if key in self.lcs_cache:
+            return self.lcs_cache[key]
+        else:
+            lcs = algorithm.lcs(bigram1, bigram2)
+            v = len(lcs)*1.0 / len(bigram2)
+            self.lcs_cache[key] = v
+            return v
     
+    def save_lcs_cache(self):
+        with open(self.lcs_cachefile, 'w') as outfile:
+            json.dump(self.lcs_cache, outfile, indent=2)
+        
+    def check_bigram_LCS(self, bigram, Model_BigramDict):
+        for bigram2 in Model_BigramDict:
+            v = self.get_lcs_cache(bigram, bigram2)
+            if v >= self.lcs_ratio: return True
+            
+        return False
+    
+    def normalize_weights(self):
+        self.Weights.normalize()
+        self.WeightsNeg.normalize()
+        
+        self.SumWeights.normalize()
+        self.SumWeightsNeg.normalize()
+        
     def preceptron_update(self):
         #generate a system summary
         self.decode() #Line 6
@@ -270,30 +338,17 @@ class ConceptWeightILP_MC:
                 
                 vec = FeatureVector(FeatureVecU[bigramname])
                 
-                my_flag = False
-                if bigramname in Model_BigramDict and bigramname not in System_BigramDict:
+                if self.lcs_ratio == 1.0:
+                    if(self.check_bigram_LCS(bigramname, Model_BigramDict) != (bigramname in Model_BigramDict)):
+                        print bigramname, Model_BigramDict
+                
+                if self.check_bigram_LCS(bigramname, Model_BigramDict) and bigramname not in System_BigramDict:
                     print bigramname
                     
                     pos_bigram.append(bigramname)
-                    
-                    #self.Weights += vec
-                    #self.WeightsNeg -= vec
-                    
-                    my_flag = True
                 
-                if bigramname not in Model_BigramDict and bigramname in System_BigramDict:
+                if not self.check_bigram_LCS(bigramname, Model_BigramDict) and bigramname in System_BigramDict:
                     neg_bigram.append(bigramname)
-                    #neg += 1
-                    
-                    #self.Weights -= vec
-                    #self.WeightsNeg += vec
-                    
-                    my_flag = True
-                
-#                 if my_flag:
-#                     self.SumWeights += self.Weights
-#                     self.SumWeightsNeg += self.WeightsNeg
-#                     self.t += 1
         
         #shuffer the negative
         negative_updates_index = numpy.random.permutation(len(neg_bigram))
@@ -323,12 +378,11 @@ class ConceptWeightILP_MC:
             self.SumWeightsNeg += self.WeightsNeg
             self.t += 1
         
+        #self.normalize_weights()
+        
         print "pos:", len(pos_bigram)
         print "neg:", min(len(pos_bigram), len(neg_bigram))
     
-    def get_poxfix(self):
-        return '.' + str(self.L)+ '.w' + str(self.weight_normalization) + self.prefixA + '.s'+ str(self.sparse_threshold)
-        
     def get_weight_product(self):
         BigramWeights = {}
         
@@ -346,7 +400,7 @@ class ConceptWeightILP_MC:
                     
                     if self.weight_normalization == 4:
                         w_neg = self.WeightsNeg.dot(fvec)
-                        w = numpy.exp(w - scipy.misc.logsumexp([w, w_neg]))
+                        w = numpy.exp(w - logsumexp([w, w_neg]))
                 elif self.stage == stage_test:#use averaged weight, TODO
                     #w = (self.SumWeights/self.t).dot(fvec)
                     #AveW = self.SumWeights* (1.0/self.t)
@@ -357,13 +411,11 @@ class ConceptWeightILP_MC:
                         AveWNeg = FeatureVector(self.SumWeightsNeg)
                         w_neg = AveWNeg.scaling(1.0/self.t).dot(fvec)
                     
-                        w = numpy.exp(w - scipy.misc.logsumexp([w, w_neg]))
+                        w = numpy.exp(w - logsumexp([w, w_neg]))
                 else:
                     print "stage is wrong"
                     exit(-1)
                 BigramWeights[bigram] = w
-        
-        fio.SaveDict(BigramWeights, self.lpfile + '.bigram_weight_raw' + str(self.round) + self.get_poxfix() + '.txt', SortbyValueflag=True)
         
         median_w = numpy.median(BigramWeights.values())
         mean_w = numpy.mean(BigramWeights.values())
@@ -388,7 +440,10 @@ class ConceptWeightILP_MC:
         elif self.weight_normalization == 3:#sigmoid 
             for bigram in BigramWeights:
                 w = BigramWeights[bigram]
+                if w <= -100: w = -100
                 BigramWeights[bigram] = 1 / (1 + math.exp(-w))
+        elif self.weight_normalization == 4:#softmax
+            pass
         else:
             pass
                     
@@ -444,9 +499,9 @@ class ConceptWeightILP_MC:
         lines.append("Subject To")
         lines += ILP.WriteConstraint1(self.PhraseBeta, self.L)
         
-        lines += ILP_MC.WriteConstraint2(self.partialBigramPhrase)
+        lines += ILP.WriteConstraint2(self.BigramPhrase)
         
-        lines += ILP_MC.WriteConstraint3(self.partialPhraseBigram)
+        lines += ILP.WriteConstraint3(self.PhraseBigram)
         
         if self.student_coverage:
             lines += ILP.WriteConstraint4(self.StudentPhrase)
@@ -466,12 +521,6 @@ class ConceptWeightILP_MC:
         for indicator in indicators:
             lines.append("  " + indicator + " <= " + str(1))
         
-        indicators = []
-        #for bigram in self.BigramPhrase.keys():
-        #    indicators.append(bigram)
-        for phrase in self.PhraseBeta.keys():
-            indicators.append(phrase)
-            
         #write Integers
         lines.append("Integers")
         lines.append("  " + " ".join(indicators))
@@ -479,38 +528,9 @@ class ConceptWeightILP_MC:
         #write End
         lines.append("End")
         fio.SaveList(lines, self.lpfile + lpext)
-     
-    def train(self, train_lectures):
-        self.stage = stage_train
         
-        round, nextround = self.get_round(train_lectures)
-        self.round = round
-        
-        self.load_weight(train_lectures, round)
-        
-        for round in range(nextround, nextround+1):
-            weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_'  + "_" + '.json'
-            bigramfile = ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_bigram_'  + "_" + '.json'
-        
-            for sheet in train_lectures:
-                week = int(sheet) + 1
-                dir = self.ilpdir + str(week) + '/'
-                
-                for type in self.types:
-                    self.prefix = dir + type + "." + np
-                    self.featurefile = featuredir + str(week) + '/' + type + featureext
-                    
-                    self.svdfile = self.matrix_dir + str(week) + '/' + type + prefixA
-                    self.svdpharefile = self.matrix_dir + str(week) + '/' + type + '.' + self.np + ".key"
-                
-                    print "update weight, round ", round
-                    self.preceptron_update()
-                    
-            self.save_weight(train_lectures, round)
-               
     def test(self, train_lectures, test_lectures):
         self.stage = stage_test
-        
         self.train_lectures = train_lectures
         
         round, nextround = self.get_round(train_lectures)
@@ -524,12 +544,9 @@ class ConceptWeightILP_MC:
                 self.prefix = dir + type + "." + np
                 print "Test: ", self.prefix
                 
-                self.featurefile = self.featuredir + str(week) + '/' + type + featureext
-                self.svdfile = self.matrix_dir + str(week) + '/' + type + prefixA
-                self.svdpharefile = self.matrix_dir + str(week) + '/' + type + '.' + self.np + ".key"
-                
+                self.featurefile = featuredir + str(week) + '/' + type + featureext
                 self.decode()
-                       
+                          
 
 def LoadFeatureSet(featurename):
     with open(featurename, 'r') as fin:
@@ -566,33 +583,28 @@ if __name__ == '__main__':
     from config import ConfigFile
     config = ConfigFile()
     
-    matrix_dir = config.get_matrix_dir()
-    
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting_LCS/"
     
     featuredir = ilpdir
     
     MalformedFlilter = False
     ngrams = config.get_ngrams()
     
+    #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
     for Lambda in [config.get_student_lambda()]:
+         #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [config.get_length_limit()]:
-             for np in ['sentence']:
-                 rank = config.get_rank_max()
-                 Lambda = config.get_softImpute_lambda()
-                 if rank == 0:
-                     prefixA = '.org.softA'
-                 else:
-                     prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
-                    
-                 ilp = ConceptWeightILP_MC(ilpdir, matrix_dir, np, L, ngrams, MalformedFlilter, featuredir, prefixA = prefixA,
+             for np in ['sentence']: #'chunk
+                 ilp = ConceptWeightILP_LCS(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, 
                                          student_coverage = config.get_student_coverage(), 
                                          student_lambda = config.get_student_lambda(), 
                                          minthreshold=config.get_perceptron_threshold(), 
-                                         weight_normalization=config.get_weight_normalization(), sparse_threshold=config.get_sparse_threshold(), 
-                                         no_training=config.get_no_training(), types = config.get_types())
+                                         weight_normalization=config.get_weight_normalization(), no_training=config.get_no_training(), types = config.get_types(),
+                                         lcs_ratio = config.get_lcs_ratio())
+                 ilp.save_lcs_cache()
+                 
                  for iter in range(config.get_perceptron_maxIter()):
                      ilp.run_crossvalidation()
-                
                  ilp.gather_rouges()
+    
     print "done"

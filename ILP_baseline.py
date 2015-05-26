@@ -25,6 +25,10 @@ countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
 
+def getRouges(input):
+    head, body = fio.ReadMatrix(input, hasHead=True)        
+    return body[-1][1:]
+
 def removeStopWords(tokens):
     newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]
     return newTokens
@@ -90,7 +94,7 @@ def formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lp
     else:
         for bigram, theta in BigramTheta.items():
             objective.append(" ".join([str(theta), bigram]))
-    lines.append("  ", " + ".join(objective))
+    lines.append("  " + " + ".join(objective))
     
     #write constraints
     lines.append("Subject To")
@@ -116,11 +120,11 @@ def formulate_problem(BigramTheta, PhraseBeta, BigramPhrase, PhraseBigram, L, lp
     #write Bounds
     lines.append("Bounds")
     for indicator in indicators:
-        lines.append("  ", indicator, "<=", 1)
+        lines.append("  " + indicator + " <= " + '1')
     
     #write Integers
     lines.append("Integers")
-    lines.append("  ", " ".join(indicators))
+    lines.append("  " + " ".join(indicators))
     
     #write End
     lines.append("End")

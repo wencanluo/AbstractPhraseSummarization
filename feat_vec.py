@@ -12,6 +12,7 @@
 # TODO: think about this one: feature_index (int) -> feature value (float)
 # TODO: might have to maintain a feature indexing: string -> int
 
+import numpy
 
 class FeatureVector(dict):
     """
@@ -110,11 +111,17 @@ class FeatureVector(dict):
         overload operator '*' (right-hand-side equivalent to __mul__)
         multiply feature vector with a scaling factor (float)
         """
-        if not type(scaling) == float: return
+        #if not type(scaling) == float: return
+        assert(type(scaling) == float)
         
         for k, v in self.iteritems():
             self[k] = self.get(k, 0.0)*scaling
         
+        return self
+    
+    def normalize(self):
+        L = self.getNorm()
+        self.scaling(float(1.0/L))
         return self
         
     def toString(self):
@@ -164,8 +171,10 @@ class FeatureVector(dict):
         calculate squared norm of feature values
         """
         return sum(v*v for v in self.itervalues())
-
-
+    
+    def getNorm(self):
+        return numpy.sqrt(self.getSquaredNorm())
+    
 class CompositeFeatureVector(object):
     """
     Couples a FeatureVector with a constant scaling factor
@@ -212,6 +221,6 @@ if __name__ == '__main__':
     
     #print feat_vec1.load('log.txt')
     
-    
+    print feat_vec1.normalize()
     
     

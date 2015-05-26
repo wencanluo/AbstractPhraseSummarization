@@ -35,18 +35,18 @@ def getNoneZero(A, eps=1e-3):
         N += len(row)
         
         for x in row:
-            if abs(x) >= eps:
+            if x >= eps:
                 nonZero = nonZero + 1
     return nonZero, N
     
 def getSparseRatio(svddir, prefixA=".org.softA", eps=1e-3):
     sheets = range(0,12)
-    
+     
     total_nonZero = 0.0
     total_N = 0.0
     for sheet in sheets:
         week = sheet + 1
-        dir = ilpdir + str(week) + '/'
+        dir = svddir + str(week) + '/'
         
         for type in ['POI', 'MP', 'LP']:
             svdfile = svddir + str(week) + '/' + type + prefixA
@@ -58,7 +58,9 @@ def getSparseRatio(svddir, prefixA=".org.softA", eps=1e-3):
             total_nonZero += nonZero
             total_N += N
     
-    print total_nonZero, '\t', total_N, '\t', total_nonZero/total_N
+    #print total_nonZero, '\t', total_N, '\t', total_nonZero/total_N
+    print eps, '\t', total_nonZero/total_N
+    return total_nonZero/total_N
            
 def WriteConstraint2(partialBigramPhrase):
     #$\sum_{j=1} {y_j Occ_{ij}} \ge x_i$
@@ -76,7 +78,7 @@ def WriteConstraint3(partialPhraseBigram):
     for phrase, bigrams in partialPhraseBigram.items():
         for bigram in bigrams:
             if str(bigram[1].strip()) == '0.0': continue
-            lines.append("  " + bigram[1].strip() + phrase + " - " + bigram[0] + " <= " + '0')
+            lines.append("  " + bigram[1].strip() + ' ' + phrase + " - " + bigram[0] + " <= " + '0')
     return lines
                     
 def formulate_problem(BigramTheta, PhraseBeta, partialBigramPhrase, partialPhraseBigram, L, lpfileprefix):
@@ -257,14 +259,12 @@ if __name__ == '__main__':
     config = ConfigFile()
     
     matrix_dir = config.get_matrix_dir()
+    print matrix_dir
     
 #     A = {'a':[1,0], 'b':[0,0,1]}
 #     A = LoadMC("../../data/SVD_Sentence/3/MP.org.softA")
 #     print getNoneZero(A)
-#     for eps in [1e-4, 1e-3, 1e-2, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
-#         print eps, '\t',
-#         getSparseRatio(svddir, prefixA=".200_2.softA", eps=eps)
-#     exit()
+    
     
     for L in [config.get_length_limit()]:
         for np in ['sentence']:

@@ -12,6 +12,8 @@ import ILP_baseline as ILP
 import ILP_MC
 import scipy
 
+import algorithm
+
 from feat_vec import FeatureVector
 
 maxIter = 1000
@@ -41,7 +43,7 @@ def LeaveOneLectureOutPermutation():
 class ConceptWeightILP_MC:
     def __init__(self, ilpdir, matrix_dir, np, L, ngram, MalformedFlilter, featuredir, prefixA,
                  student_coverage, student_lambda, 
-                 minthreshold, weight_normalization, sparse_threshold, no_training, types):
+                 minthreshold, weight_normalization, sparse_threshold, no_training, types, lcs_ratio):
         self.ilpdir = ilpdir
         self.matrix_dir = matrix_dir
         
@@ -61,12 +63,17 @@ class ConceptWeightILP_MC:
         self.no_training = no_training
         self.types = types
         
+        self.lcs_ratio = lcs_ratio
+        
         self.Weights = FeatureVector()
         self.WeightsNeg = FeatureVector()
         self.SumWeights = FeatureVector()
         self.SumWeightsNeg = FeatureVector()
         self.t = 0
-    
+        
+        self.lcs_cachefile = self.ilpdir + 'lcs_cache.json'
+        self.load_lcs_cache()
+        
     def gather_rouges(self):
         Header = ['method', 'iter'] + ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']*3
         body = []
@@ -228,7 +235,33 @@ class ConceptWeightILP_MC:
         with open(tfile, 'w') as fout:
             json.dump(self.t, fout, encoding="utf-8",indent=2)
             
+    def load_lcs_cache(self):
+        if fio.IsExist(self.lcs_cachefile):
+            with open(self.lcs_cachefile, 'r') as fin:
+                self.lcs_cache = json.load(fin)
+        else:
+            self.lcs_cache = {}
+        
+    def get_lcs_cache(self, bigram1, bigram2):
+        key = bigram1 + '@' + bigram2
+        if key in self.lcs_cache:
+            return self.lcs_cache[key]
+        else:
+            lcs = algorithm.lcs(bigram1, bigram2)
+            v = len(lcs)*1.0 / len(bigram2)
+            self.lcs_cache[key] = v
+            return v
     
+    def save_lcs_cache(self):
+        with open(self.lcs_cachefile, 'w') as outfile:
+            json.dump(self.lcs_cache, outfile, indent=2)
+        
+    def check_bigram_LCS(self, bigram, Model_BigramDict):
+        for bigram2 in Model_BigramDict:
+            v = self.get_lcs_cache(bigram, bigram2)
+            if v >= self.lcs_ratio: return True
+            
+        return False
     
     def preceptron_update(self):
         #generate a system summary
@@ -268,32 +301,17 @@ class ConceptWeightILP_MC:
                     print bigramname
                     continue
                 
-                vec = FeatureVector(FeatureVecU[bigramname])
+                if self.lcs_ratio == 1.0:
+                    if(self.check_bigram_LCS(bigramname, Model_BigramDict) != (bigramname in Model_BigramDict)):
+                        print bigramname, Model_BigramDict
                 
-                my_flag = False
-                if bigramname in Model_BigramDict and bigramname not in System_BigramDict:
+                if self.check_bigram_LCS(bigramname, Model_BigramDict) and bigramname not in System_BigramDict:
                     print bigramname
                     
                     pos_bigram.append(bigramname)
-                    
-                    #self.Weights += vec
-                    #self.WeightsNeg -= vec
-                    
-                    my_flag = True
                 
-                if bigramname not in Model_BigramDict and bigramname in System_BigramDict:
+                if not self.check_bigram_LCS(bigramname, Model_BigramDict) and bigramname in System_BigramDict:
                     neg_bigram.append(bigramname)
-                    #neg += 1
-                    
-                    #self.Weights -= vec
-                    #self.WeightsNeg += vec
-                    
-                    my_flag = True
-                
-#                 if my_flag:
-#                     self.SumWeights += self.Weights
-#                     self.SumWeightsNeg += self.WeightsNeg
-#                     self.t += 1
         
         #shuffer the negative
         negative_updates_index = numpy.random.permutation(len(neg_bigram))
@@ -568,7 +586,7 @@ if __name__ == '__main__':
     
     matrix_dir = config.get_matrix_dir()
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/"
     
     featuredir = ilpdir
     
@@ -590,7 +608,8 @@ if __name__ == '__main__':
                                          student_lambda = config.get_student_lambda(), 
                                          minthreshold=config.get_perceptron_threshold(), 
                                          weight_normalization=config.get_weight_normalization(), sparse_threshold=config.get_sparse_threshold(), 
-                                         no_training=config.get_no_training(), types = config.get_types())
+                                         no_training=config.get_no_training(), types = config.get_types(),
+                                         lcs_ratio = config.get_lcs_ratio())
                  for iter in range(config.get_perceptron_maxIter()):
                      ilp.run_crossvalidation()
                 
