@@ -133,7 +133,7 @@ class ConfigFile:
     def get_rank_max(self):
         softimpute_lambda = self.get_softImpute_lambda()
         
-        assert(softimpute_lambda in numpy.arange(0.1, 4.1, 0.1))
+        #assert(softimpute_lambda in numpy.arange(0.1, 14.0, 0.1))
         
         if softimpute_lambda >= 1.5:
             return 500

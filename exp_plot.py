@@ -13,6 +13,8 @@ myrouges = ['R1-F','R2-F','RSU4-F']
 names = ['BASELINE-ILP', 'MC', 'CW', 'BOTH']
 #colors = ['#238443', "#225ea8", "#cc4c02", "#e31a1c"]
 colors = ['#addd8e', "#7fcdbb", "#fec44f", "#feb24c"]
+#colors = ['#f7fcb9', "#edf8b1", "#fff7bc", "#feb24c"]
+
 
 markers = ['o', 's', '^', 'D']
 hatchs = ['', '//', '\\\\', '--',]
@@ -186,30 +188,35 @@ def plot_Split():
     X, Y1 = Get_Baseline_Split(L='30')
     X2, Y2 = get_UnsupervisedMC_Split("2.0",L='30')
     X3, Y3 = get_CW_Split(L='30')
-    X4, Y4 = get_MC_CW_Split(L='30')
+    #X4, Y4 = get_MC_CW_Split(L='30')
     
-    assert(X==X2)
-    assert(X==X3)
-    assert(X==X4)
+    #Y3 = [[0.386516, 0.38429, 0.213093333], [0.147600833, 0.167636833, 0.0346655]]
+    #assert(X==X4)
+    
+    Y1 = np.array(Y1)*100
+    Y2 = np.array(Y2)*100
+    Y3 = np.array(Y3)*100
     
     X = np.array([1, 2, 3])
     
-    fig = plt.figure()
-    fig = plt.figure(figsize=(12, 5))
-    fig.subplots_adjust(left=0.09, bottom=0.1, right=0.98)
-
+    fontsize = 12
+    labelsize = 8
+    legendsize = 5.2
+    
+    fig = plt.figure(figsize=(6*0.9, 2.5*0.9))
+    
     ax = fig.add_subplot(121)
     ax.grid(True)
     
     #ax.set_xlabel('PROMPT', fontsize=12)
-    ax.set_ylabel('R-1 F-score', fontsize=20)
+    ax.set_ylabel('R-1 F-score (%)', fontsize=fontsize)
     
     alpha = 0.6
     
     markersize=6
         
     w = 0.7
-    ax.set_ylim([0, 0.40])
+    ax.set_ylim([0, 40])
     
     ax.bar(X-w/2, Y1[0], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax.bar(X-w/2+w/3, Y2[0], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
@@ -217,14 +224,17 @@ def plot_Split():
     #ax.bar(X-w/2+w/4+w/4+w/4, Y4[0], width=w/4, label=names[3], hatch=hatchs[3], color=colors[3], alpha=alpha, )
     
     plt.xticks(np.array(X), ['POI', 'MP', 'LP'])
-    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.tick_params(axis='both', which='major', labelsize=labelsize)
+    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
+    
+    plt.tight_layout()
     
     #ax.xaxis.set_ticks(np.array(X), ['POI', 'MP', 'LP'])
-    ax.legend(loc=0,fancybox=True, prop={'size':12})
+    ax.legend(loc=0,fancybox=True, prop={'size':legendsize})
     
     ax1 = fig.add_subplot(122)
     #ax1.set_xlabel('L', fontsize=12)
-    ax1.set_ylabel('R-2 F-score', fontsize=20)
+    ax1.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
     ax1.grid(True)
     
     ax1.bar(X-w/2, Y1[1], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
@@ -234,13 +244,17 @@ def plot_Split():
     
     ax1.xaxis.set_ticks(np.array(X))
     
-    ax1.legend(loc=0, fancybox=True, prop={'size':12})
+    ax1.legend(loc=0, fancybox=True, prop={'size':legendsize})
+    plt.tight_layout()
     
     #plt.figlegend((l0, l1), ('BASELINE', 'BASELINE+MC'), 'upper right')
     #legend = plt.legend(loc='right', shadow=True, fontsize='x-large')
     plt.xticks(np.array(X), ['POI', 'MP', 'LP'])
-    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.tick_params(axis='both', which='major', labelsize=labelsize)
+    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
     
+    fig.subplots_adjust(left=0.085, bottom=0.09, right=0.999, top=0.95)
+
     #plt.show()
     
     pp = PdfPages(outputdir + 'split.pdf')
@@ -285,23 +299,29 @@ def plot_Length_ROUGE():
     
     X3, Y3 = get_CW()
     
-    X4, Y4 = get_MC_CW()
+    #X4, Y4 = get_MC_CW()
     
     assert(X==X2)
     assert(X==X3)
-    assert(X==X4)
+    #assert(X==X4)
+    
+    Y1 = np.array(Y1)*100
+    Y2 = np.array(Y2)*100
+    Y3 = np.array(Y3)*100
     
     X = np.array([1, 2, 3])
     
-    fig = plt.figure()
-    fig = plt.figure(figsize=(12, 5))
-    fig.subplots_adjust(left=0.09, bottom=0.1, right=0.97)
-
+    fontsize = 12
+    labelsize = 8
+    legendsize = 7.5
+    
+    fig = plt.figure(figsize=(6*0.9, 2.5*0.9))
+    
     ax = fig.add_subplot(121)
     ax.grid(True)
     
     #ax.set_xlabel('L', fontsize=12)
-    ax.set_ylabel('R-1 F-score', fontsize=20)
+    ax.set_ylabel('R-1 F-score (%)', fontsize=fontsize)
     
     #alpha = 1.0
     
@@ -314,27 +334,30 @@ def plot_Length_ROUGE():
     markersize=6
         
     w = 0.7
-    ax.set_ylim([0, 0.42])
+    ax.set_ylim([0, 44])
     
     ax.bar(X-w/2, Y1[0], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax.bar(X-w/2+w/3, Y2[0], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
     ax.bar(X-w/2+w/3+w/3, Y3[0], width=w/3, label=names[2], hatch=hatchs[2], color=colors[2], alpha=alpha, )
     
     plt.xticks(np.array(X), ['L=20', 'L=30', 'L=40'])
-    plt.tick_params(axis='both', which='major', labelsize=15)
-    
+    plt.tick_params(axis='both', which='major', labelsize=labelsize)
+    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
+
+    plt.tight_layout()
+        
     #l0_1 = ax.plot(X, Y1[0], label=names[0], marker=markers[0], markersize=markersize, linewidth=linewidth, color=colors[0], alpha=alpha, )
     #l0_2 = ax.plot(X, Y2[0], label=names[1], marker=markers[1], markersize=markersize, linewidth=linewidth, color=colors[1], alpha=alpha, )
     #l0_3 = ax.plot(X, Y3[0], label=names[2], marker=markers[2], markersize=markersize+2, linewidth=linewidth, color=colors[2], alpha=alpha, )
     #l0_4 = ax.plot(X, Y4[0], label=names[3], marker=markers[3], markersize=markersize, linewidth=linewidth, color=colors[3], alpha=alpha, )
     ax.xaxis.set_ticks(np.array(X))
-    ax.legend(loc=0,fancybox=True, prop={'size':12})
+    ax.legend(loc=0,fancybox=True, prop={'size':legendsize})
     
     ax1 = fig.add_subplot(122)
     #ax1.set_xlabel('L', fontsize=12)
-    ax1.set_ylabel('R-2 F-score', fontsize=20)
+    ax1.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
     ax1.grid(True)
-    ax1.set_ylim([0, 0.15])
+    ax1.set_ylim([0, 15.9])
     
     ax1.bar(X-w/2, Y1[1], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax1.bar(X-w/2+w/3, Y2[1], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
@@ -346,13 +369,18 @@ def plot_Length_ROUGE():
 #     #l1_4 = ax1.plot(X, Y4[1], label=names[3], marker=markers[3], markersize=markersize, linewidth=linewidth, color=colors[3], alpha=alpha, )
     ax1.xaxis.set_ticks(np.array(X))
     plt.xticks(np.array(X), ['L=20', 'L=30', 'L=40'])
-    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.tick_params(axis='both', which='major', labelsize=labelsize)
+    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
     
-    ax1.legend(loc=0,fancybox=True, prop={'size':12})
+    plt.tight_layout()
+    
+    ax1.legend(loc=0,fancybox=True, prop={'size':legendsize})
     
     #plt.figlegend((l0, l1), ('BASELINE', 'BASELINE+MC'), 'upper right')
     #legend = plt.legend(loc='right', shadow=True, fontsize='x-large')
-     
+    
+    fig.subplots_adjust(left=0.08, bottom=0.09, right=0.999, top=0.95)
+ 
     #plt.show()
      
     pp = PdfPages(outputdir + 'R1_R2_Length.pdf')
@@ -786,7 +814,7 @@ if __name__ == '__main__':
     datadir = "../../data/"
     
     plot_Split()
-    plot_Length_ROUGE()
+    #plot_Length_ROUGE()
     
     #get_Sparse()
     #plot_Sparse()

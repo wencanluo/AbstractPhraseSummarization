@@ -51,8 +51,8 @@ if __name__ == '__main__':
         #extract_orgA(path, ngrams=ngram)
         rank = 0
         
-        #for softimpute_lambda in numpy.arange(0.1, 4.1, 0.1):
-        for softimpute_lambda in [1.0]:
+        for softimpute_lambda in numpy.arange(0.5, 8.5, 0.5):
+        #for softimpute_lambda in [1.0]:
             if softimpute_lambda >= 1.5:
                 rank = 500
             else:

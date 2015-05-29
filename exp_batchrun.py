@@ -58,10 +58,10 @@ def run_UnsupervisedMC():
     #for L in [20, 25, 30, 35, 40]:
     for L in [30]:
         config.set_length_limit(L)
-        #for softimpute_lambda in numpy.arange(0.1, 4.1, 0.1):
-        for softimpute_lambda in [2.0]:
-            for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
-            #for sparse in [0]:
+        for softimpute_lambda in numpy.arange(0.5, 8.0, 0.5):
+        #for softimpute_lambda in [2.0]:
+            #for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
+            for sparse in [0]:
                 config.set_sparse_threshold(sparse)
                 config.set_softImpute_lambda(softimpute_lambda)
                 config.save()
@@ -303,55 +303,106 @@ def run_CWLearning(iter = 1):
     body = []
     
     old_length = config.get_length_limit()
+    old_softimpute_lambda = config.get_softImpute_lambda()
     
     ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/"
     
-    if fio.IsExist(ilpdir+"rouge.sentence.L30.txt"):
-        path = ilpdir + "R" + str(iter) + '/'
-        if not fio.IsExistPath(path):
-            fio.NewPath(path)
-        
-        cmd = 'mv ' + ilpdir + '*.txt ' + path
-        os.system(cmd)
+    if iter != None:
+        if fio.IsExist(ilpdir+"rouge.sentence.L30.txt"):
+            path = ilpdir + "R" + str(iter) + '/'
+            if not fio.IsExistPath(path):
+                fio.NewPath(path)
+            
+            cmd = 'mv ' + ilpdir + '*.txt ' + path
+            os.system(cmd)
     
     for L in [20, 25, 30, 35, 40]:
         config.set_length_limit(L)
         config.save()
         
-        assert(config.get_softImpute_lambda() == 2.0)
+        #assert(config.get_softImpute_lambda() == 2.0)
         
-        row = ['baelinse + CW']
-        row.append(L)
-
-        rougename = ilpdir + 'rouge.sentence.L' +str(config.get_length_limit()) + ".txt"
-        
-        if not fio.IsExist(rougename):
-            os.system('rm ' + ilpdir + '*.json')
+        for softimpute_lambda in numpy.arange(0.5, 4.1, 0.5): 
+            row = ['baelinse + CW']
+            row.append(L)
+            row.append(softimpute_lambda)
+    
+            rougename = ilpdir + 'rouge.sentence.L' +str(config.get_length_limit()) + '.l' + str(softimpute_lambda) + ".txt"
             
-            os.system('python ILP_Supervised_FeatureWeight_AveragePerceptron.py')
-            os.system('python ILP_GetRouge.py ' + ilpdir)
+            if not fio.IsExist(rougename):
+                os.system('rm ' + ilpdir + '*.json')
+                
+                os.system('python ILP_Supervised_FeatureWeight_AveragePerceptron.py')
+                os.system('python ILP_GetRouge.py ' + ilpdir)
+                
+                rougefile = ilpdir + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
+                os.system('mv ' + rougefile + ' ' + rougename)
             
-            rougefile = ilpdir + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
-            os.system('mv ' + rougefile + ' ' + rougename)
-        
-        scores = getRouges(rougename)
-        
-        row = row + scores
-        body.append(row)
+            scores = getRouges(rougename)
+            
+            row = row + scores
+            body.append(row)
     
     newname = ilpdir + "rouge.sentence.txt"
     fio.WriteMatrix(newname, body, Header)
     
+    config.set_softImpute_lambda(old_softimpute_lambda)
     config.set_length_limit(old_length)
     config.save()
-     
+
+def getA(rougefile):
+    head, body = fio.ReadMatrix(rougefile, hasHead=True)
+    
+    RougeHead = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']
+    
+    A = []
+    for i, row in enumerate(body):
+        if i == len(body) - 1: continue
+        
+        N = len(row)
+        score_q3 = [float(x) for x in row[N - len(RougeHead):]]
+        score_q2 = [float(x) for x in row[N - len(RougeHead)*2:N - len(RougeHead)]]
+        score_q1 = [float(x) for x in row[N - len(RougeHead)*3:N - len(RougeHead)*2]]
+        
+        for i, score in enumerate([score_q1, score_q2, score_q3]):
+            A.append(score)
+    return A
+    
+def get_average_CWLearning():
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
+    import numpy as np
+    
+    rougefile = '../../data/ILP1_Sentence_MC/rouge.sentence.L30.l2.0.s0.txt'
+    A = getA(rougefile)        
+    fio.WriteMatrix(rougefile + '.matrix', A, header=None)
+        
+    SumA = []
+    for r in ['R1', 'R2', 'R3', 'R4', 'R5']:
+        rougefile = ilpdir + r + "/rouge.sentence.L30.l2.0.s0.txt"
+
+        A = getA(rougefile)
+            
+        fio.WriteMatrix(rougefile + '.matrix', A, header=None)
+        
+        A = np.array(A)
+        
+        if SumA == []:
+            SumA = A
+        else:
+            SumA += A
+    
+    fio.WriteMatrix(ilpdir + "/rouge.sentence.L30.average.txt", A, header=None)
+    
+    
 if __name__ == '__main__':
+    #get_average_CWLearning()
+    
     #run_Baseline()
-    #run_UnsupervisedMC()
-#     for iter in [2, 3, 4, 5]:
+    run_UnsupervisedMC()
+#     for iter in [5]:
 #         run_CWLearning(iter)
     #get_Sparse()
-    for iter in [2, 3, 4, 5]:
-        run_SupervisedMC3(iter)
+#     for iter in [2, 3, 4, 5]:
+#         run_SupervisedMC3(iter)
     #run_SupervisedMC2()
     
