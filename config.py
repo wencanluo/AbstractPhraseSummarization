@@ -1,24 +1,26 @@
 import fio
+import numpy
 
-dict_lambda = { 
-              1:
-                {20: 4, 50: 4, 100:4, 200:2, 500:1.5, 1000:0.5, 2690:1
-                 },
-               2:
-                {20: 3, 50: 4, 100:3, 200:2.5, 500:1.5, 1000:0.5, 2690:0
-                 },
-               3:
-                {20: 4, 50: 4, 100:4, 200:2, 500:1.5, 1000:0.5, 2690:1
-                 },
-               4:
-                {20: 3, 50: 4, 100:3, 200:2.5, 500:1.5, 1000:1, 2690:0
-                 },
-    }
+# dict_lambda = { 
+#               1:
+#                 {20: 4, 50: 4, 100:4, 200:2, 500:1.5, 1000:0.5, 2690:1
+#                  },
+#                2:
+#                 {20: 3, 50: 4, 100:3, 200:2.5, 500:1.5, 1000:0.5, 2690:0
+#                  },
+#                3:
+#                 {20: 4, 50: 4, 100:4, 200:2, 500:1.5, 1000:0.5, 2690:1
+#                  },
+#                4:
+#                 {20: 3, 50: 4, 100:3, 200:2.5, 500:1.5, 1000:1, 2690:0
+#                  },
+#     }
 
 dict_ngrams = {1:[1,2],
           2:[2],
           3:[1,2],
-          4:[2]
+          4:[2],
+          5:[2]
           }
 
 class ConfigFile:
@@ -129,11 +131,17 @@ class ConfigFile:
         self.dict['weight_normalization'] = v
         
     def get_rank_max(self):
-        v = int(self.dict['rank_max'])
-        return v
+        softimpute_lambda = self.get_softImpute_lambda()
+        
+        assert(softimpute_lambda in numpy.arange(0.1, 4.1, 0.1))
+        
+        if softimpute_lambda >= 1.5:
+            return 500
+        else:
+            return 2000
     
-    def set_rank_max(self, v):
-        self.dict['rank_max'] = v
+#     def set_rank_max(self, v):
+#         self.dict['rank_max'] = v
             
     def get_binary_matrix(self):
         v = self.dict['binary_matrix']
@@ -155,7 +163,7 @@ class ConfigFile:
         elif v==3:
             assert(self.get_ngrams() == [1,2])
             #assert(self.get_binary_matrix() == True)
-        elif v==4:
+        elif v==4 or v==5:
             assert(self.get_ngrams() == [2])
             #assert(self.get_binary_matrix() == True)
             
@@ -172,14 +180,11 @@ class ConfigFile:
         self.dict['matrix_dir'] = v
         
     def get_softImpute_lambda(self):
-        rank = self.get_rank_max()
-        if rank == 0: return 0
-           
-        exp = self.get_exp_id()
-        assert(exp) in dict_lambda
-        assert(rank) in dict_lambda[exp]
-        Lambda = dict_lambda[exp][rank]
-        return Lambda
+        v = float(self.dict['softInpute_lambda'])
+        return v
+    
+    def set_softImpute_lambda(self, v):
+        self.dict['softInpute_lambda'] = v
         
     def get_sparse_threshold(self):
         v = float(self.dict['sparse_threshold'])
@@ -230,7 +235,7 @@ class ConfigFile:
             'matrix_dir', 
             'types',
             'sparse_threshold', 
-            'rank_max', 
+            'softInpute_lambda', 
             'exp_id',
             'no_training',
             'lcs_ratio',
@@ -241,7 +246,6 @@ class ConfigFile:
         
         sys.stdout = SavedStdOut
         
-
 if __name__ == '__main__':
     config = ConfigFile()
     print config.get_response_split()

@@ -6,6 +6,7 @@ import NLTKWrapper
 import os
 import json
 import ILP_MC
+import numpy
 
 from Survey import punctuations
 ngramTag = "___"
@@ -28,6 +29,20 @@ lpsolext = ".sol"
 def getRouges(input):
     head, body = fio.ReadMatrix(input, hasHead=True)        
     return body[-1][1:]
+
+def getRougesWithAverage(input):
+    head, body = fio.ReadMatrix(input, hasHead=True)
+    
+    N = len(head)
+    
+    single_N = N / 3
+    
+    head += head[(N-single_N):-1]
+    
+    new_body = []
+    for row in body:
+        pass
+    return head, new_body
 
 def removeStopWords(tokens):
     newTokens = [token for token in tokens if token.lower() not in stopwordswithpunctuations]

@@ -11,6 +11,9 @@
 #Extractive Orcale
 	#python OracleExperiment.py
 
+#get MC
+	#python extract_completed_matrix.py
+	
 #ILP oracle
 	#python ILP_Supervised.py
 	#python ILP_GetRouge.py "../../data/ILP_Sentence_Supervised_Oracle/"

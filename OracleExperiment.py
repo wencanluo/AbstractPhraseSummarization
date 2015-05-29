@@ -3,6 +3,7 @@ import copy
 import subprocess
 import json
 import numpy
+import cmd
 
 tmpdir = "../../data/tmp/"
 RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
@@ -225,6 +226,12 @@ def getOracleRougeSplit(oracledir, np, L, metric, outputdir):
             sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
             
             if fio.IsExist(sumfile):
+                import os
+                ssfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + ".summary"
+                cmd = 'cp ' + sumfile + ' ' + ssfile
+                print cmd
+                
+                os.system(cmd)
                 lines = fio.ReadFile(sumfile)
                 TmpSum = [line.strip() for line in lines]
                 
@@ -359,10 +366,10 @@ if __name__ == '__main__':
 #             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
 #                 getOracleRouge(oracledir, np, L, metric, datadir)
     
-    for L in [30]:
-        for np in ['sentence']:
-            for metric in ['R2-F']:
-                Greedy(oracledir, np, L, metric)
+#     for L in [30]:
+#         for np in ['sentence']:
+#             for metric in ['R2-F']:
+#                 Greedy(oracledir, np, L, metric)
        
     for L in [30]:
         for np in ['sentence']:

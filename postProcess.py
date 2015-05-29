@@ -709,6 +709,38 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange
             output = outdir + str(week)+ '/' + type + '.'+method+'.key'
             fio.SaveList(keys, output)
 
+import Survey
+
+def ExtractQualityScore(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12), Split=True):
+    sheets = weekrange
+    
+    header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
+    summarykey = "Top Answers"
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+        
+        orig = prData(excelfile, sheet)
+        
+        for type in ['MP']:
+            
+            sennafile = sennadatadir + "senna." + str(week) + "." + type + '.output'
+            
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type, withSource=True, Split=Split)
+            ids = [summary[1] for summary in student_summaryList]
+            NPs, sources = phraseClusteringKmedoid.getNPs(sennafile, MalformedFlilter=False, source=ids, np=method)
+            
+            qality_dict = Survey.getStudentQualityDict(orig, header, summarykey)
+            
+            dict = {}
+            for np, source in zip(NPs, sources):
+                if source in qality_dict:
+                    dict[np] = qality_dict[source]
+
+            fio.NewPath(outdir + str(week)+ '/')
+            output = outdir + str(week)+ '/' + type + '.'+method+'.quality'        
+            fio.SaveDict(dict, output)
+            
 def ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method="syntax", weekrange=range(0,12), Split=True):
     sheets = weekrange
     

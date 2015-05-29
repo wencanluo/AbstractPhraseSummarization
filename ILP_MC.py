@@ -265,6 +265,10 @@ if __name__ == '__main__':
 #     A = LoadMC("../../data/SVD_Sentence/3/MP.org.softA")
 #     print getNoneZero(A)
     
+    matrix_dir = "../../data/matrix/exp5/"
+    
+    print getSparseRatio(matrix_dir, prefixA=".org.softA", eps=0.2)
+    exit(1)
     
     for L in [config.get_length_limit()]:
         for np in ['sentence']:

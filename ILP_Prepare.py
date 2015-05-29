@@ -78,9 +78,9 @@ if __name__ == '__main__':
     for outdir in [
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/",
-                   "../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/",
-                   #"../../data/oracle/",
-                   #"../../data/ILP_Sentence_Supervised_Oracle/",
+                   #"../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/",
+                   "../../data/oracle/",
+                   "../../data/ILP_Sentence_Supervised_Oracle/",
                    
                    
                     #"../../data/ILP1_Sentence/", 
@@ -93,10 +93,11 @@ if __name__ == '__main__':
         fio.NewPath(outdir)
           
         for np in ['sentence']:
-             postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-             postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-             postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-         
+             #postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
+             #postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
+             #postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
+             postProcess.ExtractQualityScore(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
+             
         #Step4: write TA's reference 
-        Survey.WriteTASummary(excelfile, outdir)
+        #Survey.WriteTASummary(excelfile, outdir)
     print "done"

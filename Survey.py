@@ -228,7 +228,32 @@ def getStudentResponse(orig, header, summarykey=None, type='POI'):
             return summaries
     return summaries
 
-def getMPQualityPoint(orig):
+def getStudentQualityDict(orig, header, summarykey=None):
+    '''
+    return a dictionary of the students' summary, with the student id as a key
+    The value is a list with each sentence an entry
+    '''
+    summaries = {}
+    
+    key = "Muddiest Point Coding (0-3; a = \"I understood everything\")"
+        
+    for k, inst in enumerate(orig._data):
+        try:
+            value = inst['ID'].lower().strip()
+            if value == 'top answers': continue
+            
+            if len(value) > 0:
+                score = inst[key]
+                summaries[value] = score
+                
+            else:
+                break
+        except Exception as e:
+            print e
+            return summaries
+    return summaries
+
+def getMPQualityPoint(orig, split=False):
     '''
     return a list of the students' muddiest point with scores
     '''
@@ -248,6 +273,11 @@ def getMPQualityPoint(orig):
             
             if len(value) > 0:
                 content = inst[key].strip()
+                
+                if content.lower() in filters: continue
+                
+                if split:
+                    content = NLTKWrapper.splitSentence(content)
                 score = inst[pointkey]
                 
                 summaries.append((content, score))
@@ -279,7 +309,7 @@ def getStudentResponseList(orig, header, summarykey, type='POI', withSource=Fals
         return student_summaryList
     else:
         return [summary[0] for summary in student_summaryList]
-                      
+                          
 def getStudentSummaryNum(orig, header, summarykey, type='POI'):
     if type=='POI':
         key = header[2]
@@ -405,7 +435,30 @@ def getStudentResponses4Senna(excelfile, datadir, Split=True):
             #fio.SaveList(student_summaryList, filename + ".2")
             #student_summaryList = [summary[0] for summary in student_summaryList]
             fio.SaveList(student_summaryList, filename)
+
+def getOneSentenceRatio(excelfile):
+    header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
+    summarykey = "Top Answers"
+    
+    sheets = range(0,12)
+    
+    N = 0
+    totalN = 0
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+        orig = prData(excelfile, sheet)
+        
+        for type in ['POI', 'MP', 'LP']:
+            student_summaries = getStudentResponse(orig, header, summarykey, type)
             
+            for id, summaryList in student_summaries.items():
+                totalN += 1
+                if len(summaryList) == 1:
+                    N += 1
+    
+    return N, totalN
+                        
 def getStudentResponses4Maui(excelfile, datadir):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
@@ -521,7 +574,7 @@ def getNumberofCandiatePhrase(excel, phrasedir):
                 newrow.append("%.3f" % np.mean(values))
             nbody.append(newrow)
             
-    fio.writeMatrix("../data/numberofcandiatephrase.txt", nbody, ["method", "type"] + localheader)
+    fio.WriteMatrix("../data/numberofcandiatephrase.txt", nbody, ["method", "type"] + localheader)
 
 if __name__ == '__main__':
     
@@ -529,8 +582,10 @@ if __name__ == '__main__':
     #datadir = "../../Maui1.2/data/2011Spring/"
     #sennadir = "../data/senna/"
     
-    GetTable1forENMLP(excelfile)
-    getAverageWordLength(excelfile)
+    print getOneSentenceRatio(excelfile)
+    
+    #GetTable1forENMLP(excelfile)
+    #getAverageWordLength(excelfile)
     
     
     #fio.NewPath(datadir)

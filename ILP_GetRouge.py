@@ -133,11 +133,9 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
         fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + ".txt", body, header)
     else:
         fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(Lambda) + ".txt", body, header)
-            
-                        
+          
+
 if __name__ == '__main__':
-    #ilpdir = "../../data/ILP1_Sentence/"
-    
     import sys
     ilpdir = sys.argv[1]
     
@@ -149,5 +147,3 @@ if __name__ == '__main__':
             getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
                           
     print "done"
-    
-    

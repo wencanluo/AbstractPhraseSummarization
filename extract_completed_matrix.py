@@ -2,7 +2,7 @@ import softImputeWrapper
 import SVD_getMatrixCompletion
 import fio
 import re
-from config import dict_ngrams, dict_lambda
+from config import dict_ngrams
         
 def extract_mc(path, ngrams, rank_max, softImpute_lambda): 
     newA = softImputeWrapper.LoadR(rank_max, softImpute_lambda, path=path)
@@ -40,19 +40,24 @@ if __name__ == '__main__':
     
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
-    outdir = "../../data/SVD_Sentence/"
     
     #get_lambda('log4.txt', 20)
-    
-    for exp in [1, 2, 3, 4]:
+    import numpy
+    for exp in [5]:
         path = 'E:/project/AbstractPhraseSummarization/data/matrix/exp' + str(exp) + '/'
-        #Write_Sentence(excelfile, sennadatadir, path)
-        ngram = dict_ngrams[exp]
-        extract_orgA(path, ngrams=ngram)
+        Write_Sentence(excelfile, sennadatadir, path)
         
-        for rank in [20, 50, 100, 200, 500, 1000, 2690]:
-            Lambda = dict_lambda[exp][rank]
+        ngram = dict_ngrams[exp]
+        #extract_orgA(path, ngrams=ngram)
+        rank = 0
+        
+        #for softimpute_lambda in numpy.arange(0.1, 4.1, 0.1):
+        for softimpute_lambda in [1.0]:
+            if softimpute_lambda >= 1.5:
+                rank = 500
+            else:
+                rank = 2000
             #for Lambda in [10000, 100, 10, 8, 4, 3, 2.5, 2, 1.5, 1, 0.5, 0.1, 0.01]:
-            extract_mc(path, ngrams=ngram, rank_max=rank, softImpute_lambda=Lambda)
+            extract_mc(path, ngrams=ngram, rank_max=rank, softImpute_lambda=softimpute_lambda)
         
     print "done"
