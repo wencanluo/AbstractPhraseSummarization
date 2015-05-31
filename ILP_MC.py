@@ -38,6 +38,25 @@ def getNoneZero(A, eps=1e-3):
             if x >= eps:
                 nonZero = nonZero + 1
     return nonZero, N
+
+def getSparseRatioExample(svddir, prefixA=".org.softA", eps=1e-3):
+    sheets = range(0,12)
+    
+    for sheet in sheets:
+        week = sheet + 1
+        dir = svddir + str(week) + '/'
+        
+        for type in ['POI', 'MP', 'LP']:
+            svdfile = svddir + str(week) + '/' + type + prefixA
+            keyfile = svddir + str(week) + '/' + type + ".sentence.key"
+            
+            A = LoadMC(svdfile)
+            sentences = fio.ReadFile(keyfile)
+            
+            for bigram, row in A.items():            
+                for i, x in enumerate(row):
+                    if x >= eps and x != 1.0:
+                        print x, '\t', bigram, '@', sentences[i].strip()
     
 def getSparseRatio(svddir, prefixA=".org.softA", eps=1e-3):
     sheets = range(0,12)
@@ -267,8 +286,9 @@ if __name__ == '__main__':
     
 #     matrix_dir = "../../data/matrix/exp5/"
     
-#     print getSparseRatio(matrix_dir, prefixA=".org.softA", eps=0.2)
-#     exit(1)
+    #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    exit(1)
     
     for L in [config.get_length_limit()]:
         for np in ['sentence']:

@@ -12,12 +12,13 @@ myrouges = ['R1-F','R2-F','RSU4-F']
 #names = ['BASELINE', '+ MATRIX COMPLETION', '+ CONCEPT WEIGHTING', '+ MC + CW']
 names = ['BASELINE-ILP', 'MC', 'CW', 'BOTH']
 #colors = ['#238443', "#225ea8", "#cc4c02", "#e31a1c"]
-colors = ['#addd8e', "#7fcdbb", "#fec44f", "#feb24c"]
+#colors = ['#addd8e', "#7fcdbb", "#fec44f", "#feb24c"]
 #colors = ['#f7fcb9', "#edf8b1", "#fff7bc", "#feb24c"]
+colors = ['#f7fcb9', "#efedf5", "#f7fcb9", "#feb24c"]
 
 
 markers = ['o', 's', '^', 'D']
-hatchs = ['', '//', '\\\\', '--',]
+hatchs = ['', '///', '\\\\\\', '--',]
     
 #Lengths = [20, 25, 30, 35, 40]
 Lengths = [20, 30, 40]
@@ -201,22 +202,22 @@ def plot_Split():
     
     fontsize = 12
     labelsize = 8
-    legendsize = 5.2
+    legendsize = 7.5
     
     fig = plt.figure(figsize=(6*0.9, 2.5*0.9))
     
     ax = fig.add_subplot(121)
-    ax.grid(True)
+    #ax.grid(True)
     
     #ax.set_xlabel('PROMPT', fontsize=12)
     ax.set_ylabel('R-1 F-score (%)', fontsize=fontsize)
     
-    alpha = 0.6
+    alpha = 0.8
     
     markersize=6
         
     w = 0.7
-    ax.set_ylim([0, 40])
+    ax.set_ylim([10, 56])
     
     ax.bar(X-w/2, Y1[0], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax.bar(X-w/2+w/3, Y2[0], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
@@ -235,12 +236,14 @@ def plot_Split():
     ax1 = fig.add_subplot(122)
     #ax1.set_xlabel('L', fontsize=12)
     ax1.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
-    ax1.grid(True)
+    #ax1.grid(True)
     
     ax1.bar(X-w/2, Y1[1], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax1.bar(X-w/2+w/3, Y2[1], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
     ax1.bar(X-w/2+w/3+w/3, Y3[1], width=w/3, label=names[2], hatch=hatchs[2], color=colors[2], alpha=alpha, )
     #ax1.bar(X-w/2+w/4+w/4+w/4, Y4[1], width=w/4, label=names[3], hatch=hatchs[3], color=colors[3], alpha=alpha, )
+    
+    ax1.set_ylim([0, 25])
     
     ax1.xaxis.set_ticks(np.array(X))
     
@@ -318,7 +321,7 @@ def plot_Length_ROUGE():
     fig = plt.figure(figsize=(6*0.9, 2.5*0.9))
     
     ax = fig.add_subplot(121)
-    ax.grid(True)
+    #ax.grid(True)
     
     #ax.set_xlabel('L', fontsize=12)
     ax.set_ylabel('R-1 F-score (%)', fontsize=fontsize)
@@ -334,7 +337,7 @@ def plot_Length_ROUGE():
     markersize=6
         
     w = 0.7
-    ax.set_ylim([0, 44])
+    ax.set_ylim([10, 45])
     
     ax.bar(X-w/2, Y1[0], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax.bar(X-w/2+w/3, Y2[0], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
@@ -356,8 +359,8 @@ def plot_Length_ROUGE():
     ax1 = fig.add_subplot(122)
     #ax1.set_xlabel('L', fontsize=12)
     ax1.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
-    ax1.grid(True)
-    ax1.set_ylim([0, 15.9])
+    #ax1.grid(True)
+    ax1.set_ylim([0, 16])
     
     ax1.bar(X-w/2, Y1[1], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
     ax1.bar(X-w/2+w/3, Y2[1], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
@@ -814,7 +817,7 @@ if __name__ == '__main__':
     datadir = "../../data/"
     
     plot_Split()
-    #plot_Length_ROUGE()
+    plot_Length_ROUGE()
     
     #get_Sparse()
     #plot_Sparse()
