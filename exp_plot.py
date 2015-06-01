@@ -14,14 +14,18 @@ names = ['BASELINE-ILP', 'MC', 'CW', 'BOTH']
 #colors = ['#238443', "#225ea8", "#cc4c02", "#e31a1c"]
 #colors = ['#addd8e', "#7fcdbb", "#fec44f", "#feb24c"]
 #colors = ['#f7fcb9', "#edf8b1", "#fff7bc", "#feb24c"]
-colors = ['#f7fcb9', "#efedf5", "#f7fcb9", "#feb24c"]
+#colors = ['#f7fcb9', "#efedf5", "#f7fcb9", "#feb24c"]
+colors = ['#f1eef6', "#74a9cf", "#045a8d", "#feb24c"]
 
 
 markers = ['o', 's', '^', 'D']
 hatchs = ['', '///', '\\\\\\', '--',]
+#hatchs = ['', '', '', '',]
     
 #Lengths = [20, 25, 30, 35, 40]
 Lengths = [20, 30, 40]
+
+myalpha = 0.6
 
 lambda_range =  np.arange(0.1, 4.1, 0.1)
 sparse_range = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
@@ -212,7 +216,7 @@ def plot_Split():
     #ax.set_xlabel('PROMPT', fontsize=12)
     ax.set_ylabel('R-1 F-score (%)', fontsize=fontsize)
     
-    alpha = 0.8
+    alpha = myalpha
     
     markersize=6
         
@@ -332,7 +336,7 @@ def plot_Length_ROUGE():
     
     linewidth=2.5
     
-    alpha = 0.6
+    alpha = myalpha
     
     markersize=6
         
