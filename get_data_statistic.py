@@ -83,6 +83,11 @@ def GetTable1forENMLP(excelfile):
         row.append(numpy.mean(total_sentence[type]))
     body.append(row)
     
+    sentences_total = []
+    for type in ['POI', 'MP', 'LP']:
+        sentences_total += total_sentence[type]
+    print 'average number of sentence:', numpy.mean(sentences_total)
+    
     row = []
     for type in ['POI', 'MP', 'LP']:
         row.append(numpy.mean(sentence_length[type]))
@@ -92,6 +97,11 @@ def GetTable1forENMLP(excelfile):
     for type in ['POI', 'MP', 'LP']:
         row.append(numpy.mean(total_words[type]))
     body.append(row)
+    
+    words_total = []
+    for type in ['POI', 'MP', 'LP']:
+        words_total += total_words[type]
+    print 'average number of words:', numpy.mean(words_total)
     
     row = []
     for type in ['POI', 'MP', 'LP']:
@@ -116,5 +126,5 @@ if __name__ == '__main__':
     excelfile = "../../data/2011Spring_norm.xls"
     
     GetTable1forENMLP(excelfile)
-    getAverageWordLength(excelfile)
+    #getAverageWordLength(excelfile)
                                            

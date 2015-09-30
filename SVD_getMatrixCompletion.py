@@ -9,6 +9,7 @@ import porter
 import pickle
 import softImputeWrapper
 import ILP_baseline as ILP
+import os
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -32,7 +33,23 @@ def ProcessLine(line,ngrams=[1]):
         new_tokens = new_tokens + ngram
     
     return " ".join(new_tokens)
-        
+
+def iter_folder(folder, extension, ngrams=[1]):
+    for subdir, dirs, files in os.walk(folder):
+        for file in sorted(files):
+            if not file.endswith(extension): continue
+            
+            print file
+            
+            document = open(file).readlines()
+            
+            for line in document:
+                line = ProcessLine(line, ngrams)
+                #print line
+                
+                # break document into utf8 tokens
+                yield gensim.utils.tokenize(line, lower=True, errors='ignore')    
+    
 def iter_documents(outdir, types, sheets = range(0,25), np='syntax', ngrams=[1]):
     """
     Generator: iterate over all relevant documents, yielding one
@@ -92,6 +109,19 @@ class TxtSubdirsCorpus(object):
         Again, __iter__ is a generator => TxtSubdirsCorpus is a streamed iterable.
         """
         for tokens in iter_documents(self.top_dir, self.types, self.sheets, self.np, self.ngrams):
+            # transform tokens (strings) into a sparse vector, one at a time
+            yield self.dictionary.doc2bow(tokens)
+
+class TacCorpus(object):
+    def __init__(self, top_dir, ngrams=[1]):
+        self.top_dir = top_dir
+        self.dictionary = gensim.corpora.Dictionary(iter_documents(top_dir, ngrams))
+ 
+    def __iter__(self):
+        """
+        Again, __iter__ is a generator => TxtSubdirsCorpus is a streamed iterable.
+        """
+        for tokens in iter_folder(self.top_dir, self.ngrams):
             # transform tokens (strings) into a sparse vector, one at a time
             yield self.dictionary.doc2bow(tokens)
 
@@ -242,16 +272,20 @@ def CheckBinary(A):
 def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix): 
     types = ['POI', 'MP', 'LP']
     
+    path = prefix
+    
     sheets = range(0,25)
-            
+    dictname = path + "_".join(types) + '_' + corpusname + corpusdictexe
+    
     # that's it! the streamed corpus of sparse vectors is ready
     if corpusname=='book':
         corpus = BookCorpus(np, ngrams)
+    elif corpusname == 'tac':
+        corpus = TacCorpus(prefix, ngrams)
+        dictname = path + '_' + corpusname + corpusdictexe
     else:
         corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams)
     
-    path = prefix
-    dictname = path + "_".join(types) + '_' + corpusname + corpusdictexe
     fio.SaveDict(corpus.dictionary.token2id, dictname)
 
     # or run truncated Singular Value Decomposition (SVD) on the streamed corpus
@@ -271,16 +305,16 @@ def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_m
         A = scipy_csc_matrix.toarray()
         SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
     
-    rank = rank_max
-    print rank
-     
-    newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda)
-    
-    if newA != None:
-        print newA.shape
-        
-        prefix = str(rank) + '_' +  str(softImpute_lambda)
-        SaveNewA(newA, corpus.dictionary.token2id, path, ngrams, prefix)
+#     rank = rank_max
+#     print rank
+#      
+#     newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda)
+#     
+#     if newA != None:
+#         print newA.shape
+#         
+#         prefix = str(rank) + '_' +  str(softImpute_lambda)
+#         SaveNewA(newA, corpus.dictionary.token2id, path, ngrams, prefix)
 
 def TestProcessLine():
     line = "how to determine the answers to part iii , in the activity ."
@@ -295,18 +329,25 @@ def TestProcessLine():
     print ngrams
                 
 if __name__ == '__main__':
-    
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
-    outdir = "../../data/SVD_Sentence/"
+    outdirs = ['../data/TAC_ILP/s08/',
+               #'../data/TAC_ILP/s09/',
+               #'../data/TAC_ILP/s10/',
+               #'../data/TAC_ILP/s11/',
+               ]
     #bookname = "../../tools/TextBook_Materials.txt"
     
     #TestProcessLine()
     from config import ConfigFile
     
-    config = ConfigFile()
+    config = ConfigFile(config_file_name='tac_config.txt')
     
-    for np in ['sentence']:
-        getSVD(outdir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())
+    np = 'sentence'
+    for outdir in outdirs:
+        getSVD(outdir, np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())
     
+#     for np in ['sentence']:
+#         getSVD(outdir, np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())
+#     
     print "done"
