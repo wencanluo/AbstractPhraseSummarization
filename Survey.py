@@ -1,3 +1,4 @@
+import os
 from OrigReader import prData
 import sys
 import re
@@ -73,7 +74,11 @@ def NormalizedResponse(s):
     
 #     if len(s) > 0 and s[-1] not in ['.', '?']:
 #         s = s + "."
-                
+    #remove the ending peroid
+    punctuation2 = ".?!:;-/,"
+    if len(s)>0 and s[-1] in punctuation2:
+        s = s[:-1]
+    
     #process the spell error
     unigram = NLTKWrapper.getNgram(s, 1)
     
@@ -84,7 +89,10 @@ def NormalizedResponse(s):
         
         newS.append(word)
     
-    return " ".join(newS)
+    s = " ".join(newS)
+    s = fixperoid(s)
+    
+    return s
 
 def NormalizedTASummary(summary):
     summary = summary.strip()
@@ -144,6 +152,26 @@ def getTASummary(orig, header, summarykey, type='POI', weight = False):
         return summary, weights
     return summary
 
+def fixperoid(s):
+    s = s.replace("' s ", "'s ")
+    s = s.replace("' t ", "'t ")
+    s = s.replace("' m ", "'m ")
+    return s
+
+def NormalizeHumanSummary(s):
+    punctuations = ".?!:;-/,"
+
+    if len(s) > 0 and s[-1] in punctuations:
+        s = s[:-1]
+    
+    unigram = NLTKWrapper.getNgram(s, 1)
+    unigram = [w.lower() for w in unigram]
+    s = ' '.join(unigram)
+    
+    s = fixperoid(s)
+    
+    return s
+    
 def WriteTASummary(excelfile, datadir):
     reload(sys)
     sys.setdefaultencoding('utf8')
@@ -161,14 +189,18 @@ def WriteTASummary(excelfile, datadir):
         orig = prData(excelfile, sheet)
         for type in types:
             summary, weight = getTASummary(orig, header, summarykey, type, weight=True)
-    
+            
             #summary = ["ssssss " + str(w) + " " + s for s, w in zip(summary, weight)]
-                             
+                         
             filename = path + type + '.ref.summary'
             print filename
             
+            new_summary = []
+            for s in summary:
+                new_summary.append(NormalizeHumanSummary(s))
+                
             #only save the first 3 points
-            fio.SaveList(summary, filename)
+            fio.SaveList(new_summary, filename)
 
 def getStudentQuality(orig, header):
     '''
@@ -474,6 +506,32 @@ def getStudentResponses4Maui(excelfile, datadir):
             student_summaryList = getStudentResponseList(orig, header, summarykey, type)
             filename = datadir + "" + str(week) + "." + type + ".txt"
             fio.SaveList(student_summaryList, filename, ".\n")
+
+def getStudentResponses4Fei(excelfile, datadir):
+    header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
+    summarykey = "Top Answers"
+    
+    #sheets = range(0,25)
+    sheets = range(0,25)
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+        orig = prData(excelfile, sheet)
+        
+        for type in ['POI', 'MP', 'LP']:
+            student_summaryList = getStudentResponseList(orig, header, summarykey, type)
+            
+            newResponse = []
+            
+            for response in student_summaryList:
+                response = response.lower()
+                newResponse.append(response)
+            
+            path = os.path.join(datadir, str(week))
+            fio.NewPath(path)
+            
+            filename = os.path.join(path, type + ".txt")
+            fio.SaveList(newResponse, filename, "\n")
 
 def getCandidatePhrases(dir):
     sheets = range(0,12)

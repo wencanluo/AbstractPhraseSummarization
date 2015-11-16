@@ -34,7 +34,10 @@ titledir = "E:/Dropbox/reflection project_LRDC/250 Sp11 CLIC All Lecs .2G/titles
 
 prompts = {'POI':'Describe what you found most interesting in today\'s class.',
            'MP':'Describe what was confusing or needed more detail.',
-           'LP':'Describe what you learned about how you learn.'}
+           'LP':'Describe what you learned about how you learn.',
+           'q1':'Describe what you found most interesting in today\'s class.',
+           'q2':'Describe what was confusing or needed more detail.',
+           }
 
 def getNgram(prefix, ngram):
     phrases, bigrams, PhraseBigram = ILP.getPhraseBigram(prefix + phraseext, Ngram=ngram)
@@ -684,14 +687,12 @@ def extract_single(prefix, ngram, output, titlefile=None, features = None, posit
     with open(output, 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
-def extact(ilpdir, np, ngram, features, position_bin):
-    sheets = range(0,12)
-    
+def extact(ilpdir, np, ngram, features, position_bin, sheets = range(0,12), types=['POI', 'MP', 'LP']):
     for i, sheet in enumerate(sheets):
         week = i + 1
         dir = ilpdir + str(week) + '/'
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in types:
             prefix = dir + type
             feature_file = prefix + featureext
             
@@ -700,24 +701,25 @@ def extact(ilpdir, np, ngram, features, position_bin):
             
             titlefile = titledir + str(week) + '.TXT'
             
+            if not fio.IsExist(prefix + phraseext): continue
             extract_single(prefix, ngram, feature_file, titlefile, features, position_bin)
                     
 if __name__ == '__main__':   
     from config import ConfigFile
     config = ConfigFile()
     
-    sennadatadir = "../../data/senna/"
+    sennadatadir = "../../data/IE256/senna/"
     
-    for ilpdir in [#"../../data/ILP_Sentence_Supervised_FeatureWeighting/",
+    np = 'sentence'
+    
+    for ilpdir in ["../../data/IE256/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
-                   "../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/",
-                   
-                   
+                   #"../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/",
                    ]:
-        get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = 'sentence', ngram=config.get_ngrams())
-        get_ngram_tfidf.extact_tfidf(ilpdir, np = 'sentence', ngram=config.get_ngrams())
-        get_ngram_pos.extact_pos(ilpdir, sennadatadir, np = 'sentence', ngram=config.get_ngrams())
+        get_ngram_NP.extact_inNP(ilpdir, sennadatadir, np = np, ngram=config.get_ngrams(), sheets=range(0,26), types=['q1', 'q2'])
+        get_ngram_tfidf.extact_tfidf(ilpdir, np = np, ngram=config.get_ngrams(), sheets=range(0,26), types=['q1', 'q2'])
+        get_ngram_pos.extact_pos(ilpdir, sennadatadir, np = np, ngram=config.get_ngrams(), sheets=range(0,26), types=['q1', 'q2'])
         
-        extact(ilpdir, np = 'sentence', ngram=config.get_ngrams(), features=config.get_features(), position_bin = config.get_position_bin())
+        extact(ilpdir, np = np, ngram=config.get_ngrams(), features=config.get_features(), position_bin = config.get_position_bin(), sheets=range(0,26), types=['q1', 'q2'])

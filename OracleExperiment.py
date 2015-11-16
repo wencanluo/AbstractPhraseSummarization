@@ -9,6 +9,39 @@ tmpdir = "../../data/tmp/"
 RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
 
+def getRouge_Tac(refs, model):
+    #return the Rouge scores given the reference summary and the models
+    
+    #write the files
+    fio.SaveList(model, tmpdir+'model.txt', '\n')
+    
+    for i, ref in enumerate(refs):
+        fio.SaveList(ref, tmpdir+'ref%d.txt'%(i+1), '\n')
+    
+    retcode = subprocess.call(['./get_rouge_tac'], shell=True)
+    if retcode != 0:
+        print("Failed!")
+        exit(-1)
+    else:
+        print "Passed!"
+    
+    row = []
+    for scorename in RougeNames:
+        filename = tmpdir + "OUT_"+scorename+".csv"
+        lines = fio.ReadFile(filename)
+        try:
+            scorevalues = lines[1].split(',')
+            score = scorevalues[1].strip()
+            row.append(score)
+            score = scorevalues[2].strip()
+            row.append(score)
+            score = scorevalues[3].strip()
+            row.append(score)
+        except Exception:
+            print filename, scorename, lines
+            
+    return row
+
 def getRouge(ref, model):
     #return the Rouge scores given the reference summary and the models
     

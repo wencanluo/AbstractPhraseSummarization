@@ -33,18 +33,18 @@ def getNgrams(prefix, ngram):
         words += ngrams * fequency
     return words
 
-def extact_tfidf(datadir, np, ngram):
-    sheets = range(0,12)
-    
+def extact_tfidf(datadir, np, ngram, sheets = range(0,12), types=['POI', 'MP', 'LP']):
     my_tfidf = tfidf.TfIdf(stopword_filename=stopwordfilename)
     
     for i, sheet in enumerate(sheets):
         week = i + 1
         dir = datadir + str(week) + '/'
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in types:
             prefix = dir + type
             prefix = prefix + '.' + np            
+            
+            if not fio.IsExist(prefix + phraseext): continue
             
             words = getNgrams(prefix, ngram)
             my_tfidf.add_input_document_withterms(words)
@@ -53,10 +53,13 @@ def extact_tfidf(datadir, np, ngram):
         week = i + 1
         dir = datadir + str(week) + '/'
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in types:
             
             prefix = dir + type
             prefix = prefix + '.' + np  
+            
+            if not fio.IsExist(prefix + phraseext): continue
+            
             words = getNgrams(prefix, ngram)
                                             
             dict = my_tfidf.get_doc_keywords_withterms(words)

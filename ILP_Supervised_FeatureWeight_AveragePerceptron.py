@@ -22,7 +22,7 @@ studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
-sumexe = ".ref.summary"
+sumexe = ".ref.1"
 featureext = ".f"
 
 ngramTag = "___"
@@ -31,10 +31,10 @@ stage_train = 0
 stage_test =1
 
 def LeaveOneLectureOutPermutation():
-    sheets = range(0,12)
+    sheets = range(2,26)
     #sheets = range(0,1)
     for i in sheets:
-        train = [str(k) for k in range(len(sheets)) if k != i]
+        train = [str(k) for k in sheets if k != i]
         #train = [str(i)]
         test = [str(i)]
         yield train, test
@@ -92,18 +92,21 @@ class ConceptWeightILP:
             row = ['baseline+CW']
             row.append(i)
             
-            rougename = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) +'.r'+ str(i) + ".txt"
+            rougename = self.ilpdir+'rouge.sentence.L' +str(self.L)+ '.w' + str(self.weight_normalization) +'.r'+ str(i) + ".txt"
             
             scores = ILP.getRouges(rougename)
             
             row = row + scores
             body.append(row)
         
-        newname = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) + ".txt"
+        newname = self.ilpdir+'rouge.sentence.L' +str(self.L)+ '.w' + str(self.weight_normalization) + ".txt"
         fio.WriteMatrix(newname, body, Header)
         
     def run_crossvalidation(self):
         for train_lectures, test_lectures in LeaveOneLectureOutPermutation():
+            print train_lectures
+            print test_lectures
+            
             if not self.no_training:
                 self.train(train_lectures)
         
@@ -112,10 +115,10 @@ class ConceptWeightILP:
         
         round, _ = self.get_round(self.train_lectures)
         
-        rougename = self.ilpdir+'rouge.sentence.L' +str(config.get_length_limit())+ '.w' + str(self.weight_normalization) +'.r'+ str(round) + ".txt"
+        rougename = self.ilpdir+'rouge.sentence.L' +str(self.L)+ '.w' + str(self.weight_normalization) +'.r'+ str(round) + ".txt"
         os.system('python ILP_GetRouge.py '+self.ilpdir)
                 
-        rougefile = self.ilpdir + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
+        rougefile = self.ilpdir + "rouge.sentence.L"+str(self.L)+".txt"
         os.system('mv ' + rougefile + ' ' + rougename)
     
     def initialize_weight(self):
@@ -167,7 +170,7 @@ class ConceptWeightILP:
         
         m = ILP.SloveILP(self.lpfile)
         
-        output = self.lpfile + '.L' + str(L) + ".summary"
+        output = self.lpfile + '.L' + str(self.L) + ".summary"
         
         fio.remove(output)
         
@@ -244,15 +247,17 @@ class ConceptWeightILP:
         
         for round in range(nextround, nextround+1):
             weightfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_weight_'  + "_" + '.json'
-            bigramfile = ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_bigram_'  + "_" + '.json'
+            bigramfile = self.ilpdir + str(round) + '_' + '_'.join(train_lectures) + '_bigram_'  + "_" + '.json'
         
             for sheet in train_lectures:
                 week = int(sheet) + 1
                 dir = self.ilpdir + str(week) + '/'
                 
                 for type in self.types:
-                    self.prefix = dir + type + "." + np
-                    self.featurefile = featuredir + str(week) + '/' + type + featureext
+                    self.prefix = dir + type + "." + self.np
+                    self.featurefile = self.featuredir + str(week) + '/' + type + featureext
+                    
+                    if not fio.IsExist(self.prefix+phraseext): continue
                     
                     print "update weight, round ", round
                     self.preceptron_update()
@@ -275,7 +280,7 @@ class ConceptWeightILP:
         #scan all the bigrams in the responses
         _, Response_IndexBigram, Response_PhraseBigram = ILP.getPhraseBigram(self.prefix+phraseext, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
         
-        reffile = ExtractRefSummaryPrefix(self.prefix) + '.ref.summary'
+        reffile = ExtractRefSummaryPrefix(self.prefix) + sumexe
         _, Model_IndexBigram, Model_PhraseBigram = ILP.getPhraseBigram(reffile, Ngram=self.ngram, MalformedFlilter=self.MalformedFlilter)
         
         Model_BigramDict = getBigramDict(Model_IndexBigram, Model_PhraseBigram)
@@ -510,13 +515,15 @@ class ConceptWeightILP:
             
         for sheet in test_lectures:
             week = int(sheet) + 1
-            dir = ilpdir + str(week) + '/'
+            dir = self.ilpdir + str(week) + '/'
             
             for type in self.types:
-                self.prefix = dir + type + "." + np
+                self.prefix = dir + type + "." + self.np
                 print "Test: ", self.prefix
                 
-                self.featurefile = featuredir + str(week) + '/' + type + featureext
+                if not fio.IsExist(self.prefix+phraseext): continue
+                
+                self.featurefile = self.featuredir + str(week) + '/' + type + featureext
                 self.decode()
                           
 
@@ -549,13 +556,12 @@ def getBigramDict(IndexBigram, PhraseBigram):
                 dict[bigramname] = 0
             dict[bigramname] = dict[bigramname] + 1
     return dict
-    
-if __name__ == '__main__':   
-    
+
+def getILP_IE256():
     from config import ConfigFile
-    config = ConfigFile()
+    config = ConfigFile(config_file_name='config_IE256.txt')
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/"
+    ilpdir = "../../data/IE256/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/"
     
     featuredir = ilpdir
     
@@ -567,6 +573,36 @@ if __name__ == '__main__':
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [config.get_length_limit()]:
              for np in ['sentence']: #'chunk
+                 ilp = ConceptWeightILP(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, 
+                                         student_coverage = config.get_student_coverage(), 
+                                         student_lambda = config.get_student_lambda(), 
+                                         minthreshold=config.get_perceptron_threshold(), 
+                                         weight_normalization=config.get_weight_normalization(), no_training=config.get_no_training(), types = config.get_types())
+                 for iter in range(config.get_perceptron_maxIter()):
+                     ilp.run_crossvalidation()
+                 ilp.gather_rouges()
+    
+    print "done"
+        
+if __name__ == '__main__':   
+    getILP_IE256()
+    exit(-1)
+    
+    from config import ConfigFile
+    config = ConfigFile()
+    
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron_Normalization/"
+    
+    featuredir = ilpdir
+    
+    MalformedFlilter = False
+    ngrams = config.get_ngrams()
+    
+    #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for Lambda in [config.get_student_lambda()]:
+         #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+         for L in [config.get_length_limit()]:
+             for np in ['sentence_filter']: #'chunk
                  ilp = ConceptWeightILP(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, 
                                          student_coverage = config.get_student_coverage(), 
                                          student_lambda = config.get_student_lambda(), 

@@ -17,20 +17,20 @@ phraseext = ".key" #a list
 studentext = ".keys.source" #json
 countext = ".dict"  #a dictionary
 
-def extact_inNP(datadir, sennadatadir, np, ngram):
-    sheets = range(0,12)
-    
+def extact_inNP(datadir, sennadatadir, np, ngram, sheets = range(0,12), types=['POI', 'MP', 'LP']):
     for i, sheet in enumerate(sheets):
         week = i + 1
         dir = datadir + str(week) + '/'
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in types:
             prefix = dir + type
             prefix = prefix + '.' + np            
             
             dict = {}
             
             sennafile = sennadatadir + "senna." + str(week) + "." + type + '.output'
+            
+            if not fio.IsExist(sennafile): continue
             
             sentences = SennaParser.SennaParse(sennafile)
             for s in sentences:

@@ -14,17 +14,18 @@ def getRouge(datadir, np, L, outputdir, Lambda):
     
     body = []
     
-    for i, sheet in enumerate(sheets):
-        week = i + 1
+    for type in ['POI', 'MP', 'LP']:     
+        for i, sheet in enumerate(sheets):
+            
+            week = i + 1
         
-        Cache = {}
-        cachefile = datadir + str(week) + '/' + 'cache.json'
-        print cachefile
-        if fio.IsExist(cachefile):
-            with open(cachefile, 'r') as fin:
-                Cache = json.load(fin)
-                
-        for type in ['POI', 'MP', 'LP']:
+            Cache = {}
+            cachefile = datadir + str(week) + '/' + 'cache.json'
+            print cachefile
+            if fio.IsExist(cachefile):
+                with open(cachefile, 'r') as fin:
+                    Cache = json.load(fin)
+                    
             row = []
             row.append(week)
         
@@ -134,16 +135,18 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
     else:
         fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(Lambda) + ".txt", body, header)
           
-
 if __name__ == '__main__':
     import sys
     ilpdir = sys.argv[1]
+    #ilpdir = "../../data/ILP1_Sentence_MC_Length/"
+    #ilpdir = "../../data/ILP1_Sentence_MC_Bigram/"
     
     from config import ConfigFile
     config = ConfigFile()
                     
     for L in [config.get_length_limit()]:
-        for np in ['sentence']:
-            getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
+        for np in ['sentence_filter']:
+            getRouge(ilpdir, np, L, ilpdir, Lambda = None)
+            #getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
                           
     print "done"

@@ -56,6 +56,8 @@ def getNPs(sennafile, MalformedFlilter=False, source = None, np=None):
             NPs = s.getNPrases()
         elif np == 'sentence':
             NPs = s.getSentence()
+        elif np == 'sentence_filter':
+            NPs = s.getSentenceFilter()
         else:
             NPs = s.getSyntaxNP()
             
@@ -66,6 +68,8 @@ def getNPs(sennafile, MalformedFlilter=False, source = None, np=None):
                 if isMalformed(NP): 
                     #print NP
                     continue
+            
+            if len(NP) == 0: continue
             
             np_phrase.append(NP)
             

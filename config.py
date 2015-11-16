@@ -37,7 +37,7 @@ class ConfigFile:
     
     def get_length_limit(self):
         L = int(self.dict['L'])
-        assert(L >= 0 and L <= 100)
+        assert(L >= 0 and L <= 500)
         return L
     
     def set_length_limit(self, L):
@@ -239,6 +239,7 @@ class ConfigFile:
             'exp_id',
             'no_training',
             'lcs_ratio',
+            'binary_matrix',
             ]
         
         for key in keys:

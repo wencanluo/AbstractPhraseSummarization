@@ -185,7 +185,7 @@ def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpha
             svdvalue = row[i]
             
             if bigram not in BigramIndex: 
-                print "bigram not in BigramIndex:", bigram
+                print "bigram not in BigramIndex:"
                 continue
             bKey = BigramIndex[bigram]
             
@@ -254,30 +254,33 @@ def ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold):
     output = lpfile + '.L' + str(L) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
-def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold):
-    sheets = range(0,12)
+def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold, sheets = range(0,12), types=['POI', 'MP', 'LP']):
     
     for sheet in sheets:
         week = sheet + 1
         dir = ilpdir + str(week) + '/'
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in types:
             prefix = dir + type + "." + np
             svdfile = matrix_dir + str(week) + '/' + type + prefixA
-            svdpharefile = matrix_dir + str(week) + '/' + type + '.' + np + ".key"
+            #svdpharefile = matrix_dir + str(week) + '/' + type + '.' + np + ".key"
+            svdpharefile = prefix + ".key"
+            
+            if not fio.IsExist(prefix+phraseext):continue
+            
             print prefix
             print svdfile
                 
             ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold=threshold)
-            
-if __name__ == '__main__':
-    ilpdir = "../../data/ILP1_Sentence_MC/"
+
+def get_ILP_IE256():
+    ilpdir = "../../data/IE256/ILP_Sentence_MC/"
     
     from config import ConfigFile
     
-    config = ConfigFile()
+    config = ConfigFile(config_file_name='config_IE256.txt')
     
-    matrix_dir = config.get_matrix_dir()
+    matrix_dir = "../../data/IE256/MC/"
     print matrix_dir
     
 #     A = {'a':[1,0], 'b':[0,0,1]}
@@ -287,8 +290,8 @@ if __name__ == '__main__':
 #     matrix_dir = "../../data/matrix/exp5/"
     
     #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-    getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-    exit(1)
+    #getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    #exit(1)
     
     for L in [config.get_length_limit()]:
         for np in ['sentence']:
@@ -297,7 +300,45 @@ if __name__ == '__main__':
             if rank == 0:
                 prefixA = '.org.softA'
             else:
-                prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+                #prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+                prefixA = '.' + str(Lambda) + '.softA'
+            
+            ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold(), sheets = range(0,26), types=config.get_types()) 
+            
+    print "done"
+                
+if __name__ == '__main__':
+    get_ILP_IE256()
+    exit(-1)
+    
+    ilpdir = "../../data/ILP1_Sentence_MC_Normalization/"
+    
+    from config import ConfigFile
+    
+    config = ConfigFile()
+    
+    matrix_dir = "../../data/MC/"
+    print matrix_dir
+    
+#     A = {'a':[1,0], 'b':[0,0,1]}
+#     A = LoadMC("../../data/SVD_Sentence/3/MP.org.softA")
+#     print getNoneZero(A)
+    
+#     matrix_dir = "../../data/matrix/exp5/"
+    
+    #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    #getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    #exit(1)
+    
+    for L in [config.get_length_limit()]:
+        for np in ['sentence_filter']:
+            rank = config.get_rank_max()
+            Lambda = config.get_softImpute_lambda()
+            if rank == 0:
+                prefixA = '.org.softA'
+            else:
+                #prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+                prefixA = '.' + str(Lambda) + '.softA'
             
             ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold()) 
             

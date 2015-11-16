@@ -131,6 +131,24 @@ class SennaSentence:
 	def getSentence(self):
 		return [self.getWords()]
 	
+	def getSentenceFilter(self):
+		#remove all the words until there is a DT/JJ/NN/NNS/VB/VBG/WP/WP$/WRB/WDT.
+		words = ""
+		
+		filter_flag = False
+		if len(self.words) > 0 and self.words[0].token.lower() == "i":
+			filter_flag = True
+			
+		for word in self.words:
+			if filter_flag:
+				if word.pos in ['DT', 'JJ', 'NN', 'NNS', 'VB', 'VBG', 'WP', 'WP$', 'WRB', 'WDT']:
+					filter_flag = False
+				else:
+					continue
+			
+			words = words + word.token + " "
+		return [words.strip()]
+	
 	def getNPrases(self):
 		NP = []
 		

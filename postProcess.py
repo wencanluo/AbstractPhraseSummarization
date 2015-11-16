@@ -703,6 +703,10 @@ def ExtractNPFromRaw(excelfile, sennadatadir, outdir, method="syntax", weekrange
             ids = [summary[1] for summary in student_summaryList]
             NPs, sources = phraseClusteringKmedoid.getNPs(sennafile, MalformedFlilter=False, source=ids, np=method)
             
+#             newNPs = []
+#             for NP in NPs:
+#                 newNPs.append( NormalizedResponse(NP) )
+#             
             keys = set(NPs)
             
             fio.NewPath(outdir + str(week)+ '/')
@@ -862,17 +866,17 @@ def CombineKMethod(datadir, output, methods, ratios, nps, model_prefix):
     
     fio.WriteMatrix(output, newbody, Header)
 
-def CombineRouges(models, outputdir):
+def CombineRouges(models, outputdir, prefix='rouge'):
     Header = ['method', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
     newbody = []
     
     for model in models: 
-        filename = outputdir + "rouge." + model + ".txt"
+        filename = outputdir + prefix + "." + model + ".txt"
         head, body = fio.ReadMatrix(filename, hasHead=True)
         
         row = []
         row.append(model)
-        row = row + body[-1][1:]
+        row = row + body[-2][1:]
         
         newbody.append(row)
             
@@ -1348,7 +1352,7 @@ if __name__ == '__main__':
     #datadir = '../data/ShallowSummary_unigram_remove_stop.txt'
     #getCoverage(excelfile, npdir, output, method = 'unigram')
     
-    getStudentResponseWordCountDistribution2(excelfile, '../data/studentword_distribution.txt')
+#     getStudentResponseWordCountDistribution2(excelfile, '../data/studentword_distribution.txt')
     
     #ExtractNPSource(excelfile, sennadatadir, outdir, 'syntax')
     #ExtractNPSource(excelfile, sennadatadir, outdir, 'chunk')

@@ -513,8 +513,8 @@ def LeaveOneLectureOutPermutation():
     sheets = range(0,12)
     N = len(sheets)
     for i in range(N):
-        #train = [str(k) for k in range(N) if k != i]
-        train = [str(i)]
+        train = [str(k) for k in range(N) if k != i]
+        #train = [str(i)]
         test = [str(i)]
         yield train, test
             
@@ -523,7 +523,7 @@ if __name__ == '__main__':
     from config import ConfigFile
     config = ConfigFile()
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting/"
+    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting_Normalization/"
     
     featuredir = ilpdir
     
@@ -534,7 +534,7 @@ if __name__ == '__main__':
     for Lambda in [config.get_student_lambda()]:
          #for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
          for L in [config.get_length_limit()]:
-             for np in ['sentence']: #'chunk\
+             for np in ['sentence_filter']: #'chunk\
                  for iter in range(config.get_perceptron_maxIter()):
                      ILP_CrossValidation(ilpdir, np, L, ngrams, MalformedFlilter, featuredir, 
                                          student_coverage = config.get_student_coverage(), 

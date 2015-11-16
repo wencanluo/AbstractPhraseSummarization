@@ -7,6 +7,7 @@ import os
 import json
 import ILP_MC
 import numpy
+from collections import defaultdict
 
 from Survey import punctuations
 ngramTag = "___"
@@ -154,6 +155,55 @@ def SloveILP(lpfileprefix):
     cmd = "gurobi_cl ResultFile=" + lpfileprefix + lpsolext + " " + input
     os.system(cmd)    
 
+def ExtractSummaryBigramfromILP(lpfileprefix, IndexPhrase, IndexBigram, partialPhraseBigram, ngrams_map, output, L):
+    summaries = []
+    
+    sol = lpfileprefix + lpsolext
+    
+    summary_bigram = defaultdict(float)
+    
+    lines = fio.ReadFile(sol)
+    for line in lines:
+        line = line.strip()
+        if line.startswith('#'): continue
+        
+        tokens = line.split()
+        assert(len(tokens) == 2)
+        
+        key = tokens[0]
+        value = tokens[1]
+        
+        if key in IndexPhrase:
+            if value == '1':
+                for bigram in partialPhraseBigram[key]:
+                    stemmed_bigram_name = IndexBigram[bigram[0]]
+                    bigram_name = ngrams_map[stemmed_bigram_name]
+                    
+                    unigrams = bigram_name.split()
+                    for unigram in unigrams:
+                        summary_bigram[unigram] += float(bigram[1])
+    
+    fio.SaveDict(summary_bigram, output + '.unigram', True)
+    
+    sorted_bigram = sorted(summary_bigram, key=summary_bigram.get, reverse = True)
+    
+    #sort bigrams
+    length = 0
+    
+    for bigram in sorted_bigram:
+        #stemmed_bigram_name = IndexBigram[bigram]
+        
+        if bigram in stopwords: continue
+        
+        #bigram_name = ngrams_map[stemmed_bigram_name]
+        
+        length += len(bigram.split())
+        
+        if length <= L: 
+            summaries.append(bigram)
+    
+    fio.SaveList(summaries, output)
+    
 def ExtractSummaryfromILP(lpfileprefix, phrases, output):
     summaries = []
     
@@ -176,14 +226,17 @@ def ExtractSummaryfromILP(lpfileprefix, phrases, output):
     
     fio.SaveList(summaries, output)
 
-def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " "):
+def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " ", withmap=False):
     #n is the number of grams, such as 1 means unigram
     ngrams = []
+    
+    ngram_map = {}
     
     N = len(tokens)
     for i in range(N):
         if i+n > N: continue
         ngram = tokens[i:i+n]
+        processed_ngram = ""
         
         if Stemmed:
             stemmed_ngram = []
@@ -192,8 +245,10 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " 
             
         if not NoStopWords:
             if Stemmed:
+                processed_ngram = ngramTag.join(stemmed_ngram)
                 ngrams.append(ngramTag.join(stemmed_ngram))
             else:
+                processed_ngram = ngramTag.join(ngram)
                 ngrams.append(ngramTag.join(ngram))
         else:
             removed = True
@@ -203,16 +258,25 @@ def getNgramTokenized(tokens, n, NoStopWords=False, Stemmed=False, ngramTag = " 
             
             if not removed:
                 if Stemmed:
+                    processed_ngram = ngramTag.join(stemmed_ngram)
                     ngrams.append(ngramTag.join(stemmed_ngram))
                 else:
+                    processed_ngram = ngramTag.join(ngram)
                     ngrams.append(ngramTag.join(ngram))
-                   
-    return ngrams
+        
+        ngram_map[processed_ngram] = ' '.join(ngram)
     
-def getPhraseBigram(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=None, NoStopWords=True, Stemmed=True):
+    if withmap:
+        return ngrams, ngram_map
+    else:          
+        return ngrams
+    
+def getPhraseBigram(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=None, NoStopWords=True, Stemmed=True, withmap=False):
     if svdfile != None:
         bigramDict = ILP_MC.LoadMC(svdfile)
-        
+    
+    ngrams_map = {}
+      
     #get phrases
     lines = fio.ReadFile(phrasefile)
     phrases = [line.strip() for line in lines]
@@ -249,7 +313,14 @@ def getPhraseBigram(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=Non
 
         ngrams = []
         for n in Ngram:
-            grams = getNgramTokenized(tokens, n, NoStopWords=NoStopWords, Stemmed=Stemmed)
+            if not withmap:
+                grams = getNgramTokenized(tokens, n, NoStopWords=NoStopWords, Stemmed=Stemmed)
+            else:
+                grams, ngram_map = getNgramTokenized(tokens, n, NoStopWords=NoStopWords, Stemmed=Stemmed, withmap=True)
+                
+                for ngram, token in ngram_map.items():
+                    ngrams_map[ngram] = token
+                
             #grams = NLTKWrapper.getNgram(phrase, n)
             ngrams = ngrams + grams
 
@@ -273,8 +344,11 @@ def getPhraseBigram(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=Non
     IndexBigram = {}
     for k,v in bigramIndex.items():
         IndexBigram[v] = k
-        
-    return IndexPhrase, IndexBigram, PhraseBigram
+    
+    if withmap:
+        return IndexPhrase, IndexBigram, PhraseBigram, ngrams_map
+    else:
+        return IndexPhrase, IndexBigram, PhraseBigram
 
 def getPhraseBigram2(phrasefile, Ngram=[1,2], MalformedFlilter=False, svdfile=None, NoStopWords=True, Stemmed=True):
     if svdfile != None:
@@ -393,6 +467,20 @@ def getWordCounts(phrases):
         PhraseBeta[index] = N
     return PhraseBeta
 
+def getWordCountsbyBigram(partialPhraseBigram):
+    PhraseBeta = {}
+    for phrase, bigrams in partialPhraseBigram.items():
+        
+        sum = 0
+        for bigram in bigrams:
+            if str(bigram[1].strip()) == '0.0': continue
+            
+            sum += float(bigram[1].strip())
+        
+        PhraseBeta[phrase] = sum/2
+    
+    return PhraseBeta
+
 def getBigramPhrase(PhraseBigram):
     BigramPhrase = {}
     
@@ -476,27 +564,45 @@ def ILP1(prefix, L, Ngram = [1,2], student_coverage = False, student_lambda = No
     output = lpfile + '.L' + str(L) + ".summary"
     ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
-def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, student_lambda = None):
-    sheets = range(0,12)
+def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, student_lambda = None, types=['POI', 'MP', 'LP']):
+    sheets = range(0,26)
     
     for i, sheet in enumerate(sheets):
         week = i + 1
         dir = ilpdir + str(week) + '/'
         
-        for type in ['POI', 'MP', 'LP']:
+        for type in types:
             prefix = dir + type + "." + np
             
-            ILP1(prefix, L, Ngram=Ngram, student_coverage = student_coverage, student_lambda = student_lambda)
+            if not fio.IsExist(prefix+phraseext):continue
             
-if __name__ == '__main__':
-    ilpdir = "../../data/ILP1_Sentence/"
+            ILP1(prefix, L, Ngram=Ngram, student_coverage = student_coverage, student_lambda = student_lambda)
+
+def getILP_IE256():
+    ilpdir = "../../data/IE256/ILP_Baseline_Sentence/"
+    
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_IE256.txt')
+    
+    for L in [config.get_length_limit()]:
+        for np in ['sentence']:
+            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
+            
+    print "done"
+
+def getILP_Engineer():
+    ilpdir = "../../data/ILP1_Sentence_Normalization/"
     
     from config import ConfigFile
     
     config = ConfigFile()
     
     for L in [config.get_length_limit()]:
-        for np in ['sentence']:
+        for np in ['sentence_filter']:
             ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda())
             
     print "done"
+                
+if __name__ == '__main__':
+    getILP_IE256()

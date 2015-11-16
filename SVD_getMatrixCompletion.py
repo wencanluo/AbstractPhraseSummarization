@@ -65,6 +65,9 @@ def iter_documents(outdir, types, sheets = range(0,25), np='syntax', ngrams=[1])
         for question in types:
             prefix = dir + question + "." + np
             
+            filename = prefix + phraseext
+            if not fio.IsExist(filename): continue
+            
             document = open(prefix + phraseext).readlines()
             
             for line in document:
@@ -196,9 +199,7 @@ def SaveSparseMatrix(A, filename):
     with open(filename, 'w') as fin:
         json.dump(data, fin, indent = 2)
 
-def SaveNewA(A, dict, path, ngrams, prefixname="", sheets = range(0,25)):
-    types = ['POI', 'MP', 'LP']
-    
+def SaveNewA(A, dict, path, ngrams, prefixname="", sheets = range(0,25), np='sentence', types=['POI', 'MP', 'LP']):
     TotoalLine = 0
         
     for i in sheets:
@@ -206,8 +207,12 @@ def SaveNewA(A, dict, path, ngrams, prefixname="", sheets = range(0,25)):
         dir = path + str(week) + '/'
         
         for type in types:
-            prefix = dir + type + "." + 'sentence'
+            prefix = dir + type + "." + np
             print prefix
+            
+            if not fio.IsExist(prefix + phraseext):
+                print prefix + phraseext
+                continue
             
             document = open(prefix + phraseext).readlines()
             
@@ -269,52 +274,54 @@ def CheckBinary(A):
     
     return True   
                         
-def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix): 
-    types = ['POI', 'MP', 'LP']
+def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix, output, types = ['POI', 'MP', 'LP']): 
+    #types = ['POI', 'MP', 'LP']
     
     path = prefix
     
-    sheets = range(0,25)
-    dictname = path + "_".join(types) + '_' + corpusname + corpusdictexe
+    sheets = range(0,26)
+    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
     
-    # that's it! the streamed corpus of sparse vectors is ready
-    if corpusname=='book':
-        corpus = BookCorpus(np, ngrams)
-    elif corpusname == 'tac':
-        corpus = TacCorpus(prefix, ngrams)
-        dictname = path + '_' + corpusname + corpusdictexe
-    else:
-        corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams)
-    
-    fio.SaveDict(corpus.dictionary.token2id, dictname)
-
-    # or run truncated Singular Value Decomposition (SVD) on the streamed corpus
-    #from gensim.models.lsimodel import stochastic_svd as svd
-    #u, s = svd(corpus, rank=300, num_terms=len(corpus.dictionary), chunksize=5000)
-    
-    #https://pypi.python.org/pypi/sparsesvd/
-    scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
-    print scipy_csc_matrix.shape
-    
-    print "binary_matrix: ", binary_matrix
-    
-    if binary_matrix:
-        A = ToBinary(scipy_csc_matrix)
-        SaveNewA(A, corpus.dictionary.token2id, path, ngrams, 'org.binary')
-    else:
-        A = scipy_csc_matrix.toarray()
-        SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
-    
+#     # that's it! the streamed corpus of sparse vectors is ready
+#     if corpusname=='book':
+#         corpus = BookCorpus(np, ngrams)
+#     elif corpusname == 'tac':
+#         corpus = TacCorpus(prefix, ngrams)
+#         dictname = path + '_' + corpusname + corpusdictexe
+#     else:
+#         corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams)
+#       
+#     fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
+# 
+#     # or run truncated Singular Value Decomposition (SVD) on the streamed corpus
+#     #from gensim.models.lsimodel import stochastic_svd as svd
+#     #u, s = svd(corpus, rank=300, num_terms=len(corpus.dictionary), chunksize=5000)
+#      
+#     #https://pypi.python.org/pypi/sparsesvd/
+#     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
+#     print scipy_csc_matrix.shape
+#      
+#     print "binary_matrix: ", binary_matrix
+#      
+#     A = ToBinary(scipy_csc_matrix)
+#      
 #     rank = rank_max
 #     print rank
 #      
-#     newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda)
-#     
-#     if newA != None:
-#         print newA.shape
-#         
-#         prefix = str(rank) + '_' +  str(softImpute_lambda)
-#         SaveNewA(newA, corpus.dictionary.token2id, path, ngrams, prefix)
+#     name = 'X'
+#     newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda, name=name, folder=output)
+     
+    
+    prefix = str("500_2.0")
+    newA = softImputeWrapper.LoadMC(Lambda=prefix, name='newX', folder=output)
+     
+    if newA != None:
+        print newA.shape
+         
+        prefix = '2.0'
+        token2id = fio.LoadDictJson(dictname)
+        SaveNewA(newA, token2id, path, ngrams, prefix, np=np, types=types)
+        
 
 def TestProcessLine():
     line = "how to determine the answers to part iii , in the activity ."
@@ -327,27 +334,38 @@ def TestProcessLine():
         grams = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True)
         ngrams = ngrams + grams
     print ngrams
-                
+
+             
+def getMC_IE256():
+    ILP_dir = "../../data/IE256/MC/" 
+    outdir = "../../data/matrix/exp8/"
+    
+    #TestProcessLine()
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_IE256.txt')
+    
+    for np in ['sentence']:
+        getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+
+    print "done"
+                    
 if __name__ == '__main__':
+    getMC_IE256()
+    exit(-1)
+    
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
-    outdirs = ['../data/TAC_ILP/s08/',
-               #'../data/TAC_ILP/s09/',
-               #'../data/TAC_ILP/s10/',
-               #'../data/TAC_ILP/s11/',
-               ]
-    #bookname = "../../tools/TextBook_Materials.txt"
+    
+    ILP_dir = "../../data/IE256/MC/" 
+    outdir = ILP_dir
     
     #TestProcessLine()
     from config import ConfigFile
     
     config = ConfigFile(config_file_name='tac_config.txt')
     
-    np = 'sentence'
-    for outdir in outdirs:
-        getSVD(outdir, np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())
-    
-#     for np in ['sentence']:
-#         getSVD(outdir, np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())
-#     
+    for np in ['sentence']:
+        getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix(), output=outdir)
+
     print "done"

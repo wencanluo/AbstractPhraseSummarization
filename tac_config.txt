@@ -7,10 +7,11 @@ position_bin	5
 perceptron_threshold	0
 weight_normalization	5
 perceptron_maxIter	5
-matrix_dir	E:/project/AbstractPhraseSummarization/data/matrix/tac/
+matrix_dir	E:/project/AbstractPhraseSummarization/data/TAC_MC/
 types	POI, MP, LP
 sparse_threshold	0.0
-softInpute_lambda	2.0
+softInpute_lambda	2
 exp_id	5
 no_training	0
 lcs_ratio	1.0
+binary_matrix	1

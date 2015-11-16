@@ -16,17 +16,18 @@ if __name__ == '__main__':
 #     
 #     postProcess.CombineRouges(models, datadir)
 
-    datadir = "../../data/ILP2/" 
+    datadir = "../../data/TAC_ILP_Sentence_MC/" 
                  
     models = []
     
-    for np in ['syntax']:
-        for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-            for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
-                model = str(np) + '.L' + str(L) + "." + str(Lambda)
-                models.append(model)
+    for np in ['sentence']:
+        for threshold in [0.2, 0.4, 0.6, 0.8, 1.0, 0.0]:
+            for Lambda in ['2', '5']:
+                for L in [100]:
+                    model = 'L' + str(L) + "." + str(Lambda) + '.' + str(threshold)
+                    models.append(model)
      
-    postProcess.CombineRouges(models, datadir)
+    postProcess.CombineRouges(models, datadir, prefix='average_rouge')
             
     print "done"
     

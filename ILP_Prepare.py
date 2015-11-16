@@ -44,45 +44,33 @@ def ExtractNgram(outdir, np):
             prefix = dir + type + "." + np
             
             getNgram(prefix)
-            
-if __name__ == '__main__':
-    
+
+if __name__ == '__main__':    
     excelfile = "../../data/2011Spring_norm.xls"
     sennadatadir = "../../data/senna/"
     
+    #fio.NewPath(sennadatadir)
+    
     #Step1: get senna input
     #Survey.getStudentResponses4Senna(excelfile, sennadatadir)
+    #exit(-1)
     
     #Step2: get senna output
     
     #Step3: get phrases
-    #for np in ['syntax', 'chunk']:
-    
-#     for outdir in [
-#                     "../../data/SVD_Sentence/", 
-#                    ]:
-#         fio.NewPath(outdir)
-#           
-#         for np in ['sentence']:
-#              postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
-#              postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
-#              postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
-#          
-#         #Step4: write TA's reference 
-#         Survey.WriteTASummary(excelfile, outdir)
-#     
-#     for np in ['syntax']:
-#         ExtractNgram(outdir, np)
-    
     for outdir in [
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeighting_MC_LCS/",
-                   "../../data/oracle/",
-                   "../../data/ILP_Sentence_Supervised_Oracle/",
-                   
-                   
-                    #"../../data/ILP1_Sentence/", 
+                   #"../../data/oracle/",
+                   #"../../data/ILP_Sentence_Supervised_Oracle/",
+                   #"../../data/ILP1_Sentence_MC_Length/",
+                   #"../../data/output/conceptweighting/"
+
+                    #"../../data/ILP1_Sentence_Normalization/", 
+                    #"../../data/MC/", 
+                    #"../../data/ILP1_Sentence_MC_Normalization/", 
+                    "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron_Normalization/", 
                     #"../../data/ILP1_Sentence_MC/", 
                     #"../../data/ILP_Sentence_Supervised/",
                     #"../../data/ILP_Sentence_Supervised_FeatureWeighting/", 
@@ -91,12 +79,14 @@ if __name__ == '__main__':
                    ]:
         fio.NewPath(outdir)
           
-        for np in ['sentence']:
-             #postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-             #postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-             #postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-             postProcess.ExtractQualityScore(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
-             
+        for np in ['sentence_filter']:
+             postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+             postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+             postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
+             #postProcess.ExtractQualityScore(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,12))
+        
+        #Survey.getStudentResponses4Fei(excelfile, outdir)
+        
         #Step4: write TA's reference 
-        #Survey.WriteTASummary(excelfile, outdir)
+        Survey.WriteTASummary(excelfile, outdir)
     print "done"
