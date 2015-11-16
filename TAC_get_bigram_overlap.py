@@ -76,6 +76,8 @@ def get_overlap_IE256():
     types = ['q1', 'q2']
     sheets = range(0,26)
     
+    overlaps = []
+    
     for i, sheet in enumerate(sheets):
         week = i + 1
         dir = ilpdir + str(week) + '/'
@@ -95,6 +97,10 @@ def get_overlap_IE256():
         
             data[type + '_' + str(week)] = overlap
             
+            overlaps.append(overlap)
+    
+    print np.mean(overlaps)
+    
     fio.SaveDict2Json(data, '../../data/IE256/bigram_overlap.json')
     
 def rank_rouge_by_overlap():

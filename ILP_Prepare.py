@@ -70,8 +70,8 @@ if __name__ == '__main__':
                     #"../../data/ILP1_Sentence_Normalization/", 
                     #"../../data/MC/", 
                     #"../../data/ILP1_Sentence_MC_Normalization/", 
-                    "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron_Normalization/", 
-                    #"../../data/ILP1_Sentence_MC/", 
+                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron_Normalization/", 
+                    "../../data/ILP1_Sentence_MC/", 
                     #"../../data/ILP_Sentence_Supervised/",
                     #"../../data/ILP_Sentence_Supervised_FeatureWeighting/", 
                     #"../../data/ILP_Sentence_Supervised_FeatureWeightingMC/", 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                    ]:
         fio.NewPath(outdir)
           
-        for np in ['sentence_filter']:
+        for np in ['sentence']:
              postProcess.ExtractNPFromRaw(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
              postProcess.ExtractNPSource(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))
              postProcess.ExtractNPFromRawWithCount(excelfile, sennadatadir, outdir, method=np, weekrange=range(0,25))

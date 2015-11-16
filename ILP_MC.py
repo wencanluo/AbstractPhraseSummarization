@@ -308,16 +308,16 @@ def get_ILP_IE256():
     print "done"
                 
 if __name__ == '__main__':
-    get_ILP_IE256()
-    exit(-1)
+    #get_ILP_IE256()
+    #exit(-1)
     
-    ilpdir = "../../data/ILP1_Sentence_MC_Normalization/"
+    ilpdir = "../../data/ILP1_Sentence_MC/"
     
     from config import ConfigFile
     
     config = ConfigFile()
     
-    matrix_dir = "../../data/MC/"
+    matrix_dir = config.get_matrix_dir()
     print matrix_dir
     
 #     A = {'a':[1,0], 'b':[0,0,1]}
@@ -331,14 +331,16 @@ if __name__ == '__main__':
     #exit(1)
     
     for L in [config.get_length_limit()]:
-        for np in ['sentence_filter']:
+        for np in ['sentence']:
             rank = config.get_rank_max()
             Lambda = config.get_softImpute_lambda()
             if rank == 0:
                 prefixA = '.org.softA'
             else:
-                #prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
-                prefixA = '.' + str(Lambda) + '.softA'
+                prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+                #prefixA = '.' + str(Lambda) + '.softA'
+            
+            print prefixA
             
             ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold()) 
             
