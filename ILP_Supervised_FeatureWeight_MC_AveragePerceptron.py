@@ -568,7 +568,9 @@ if __name__ == '__main__':
     
     matrix_dir = config.get_matrix_dir()
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptronMC/"
+    ilpdir = "../../data/ILP_MC_CW/"
+    
+    numpy.random.seed(0)
     
     featuredir = ilpdir
     

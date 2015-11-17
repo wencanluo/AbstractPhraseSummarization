@@ -583,12 +583,14 @@ if __name__ == '__main__':
     from config import ConfigFile
     config = ConfigFile()
     
-    ilpdir = "../../data/ILP_Sentence_Supervised_FeatureWeighting_LCS/"
+    ilpdir = "../../data/ILP_CW_LCS/"
     
     featuredir = ilpdir
     
     MalformedFlilter = False
     ngrams = config.get_ngrams()
+    
+    numpy.random.seed(0)
     
     #for Lambda in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
     for Lambda in [config.get_student_lambda()]:
