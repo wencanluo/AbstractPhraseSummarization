@@ -144,6 +144,6 @@ if __name__ == '__main__':
                     
     for L in [config.get_length_limit()]:
         for np in ['sentence']:
-            getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
+            getRouge(ilpdir, np, L, ilpdir, Lambda = None)
                           
     print "done"

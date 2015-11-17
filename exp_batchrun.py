@@ -4,8 +4,9 @@ import fio
 
 import numpy
 
+import random
 import ILP_MC
-from ILP_baseline import getRouges
+from ILP_baseline import getRouges, getRougesbyWeek
 
 def run_Baseline():
     from config import ConfigFile
@@ -42,6 +43,40 @@ def run_Baseline():
                 
     newname = ilpdir + "rouge.sentence.txt"
     fio.WriteMatrix(newname, body, Header)
+
+def select_lambda_MC():
+    random.seed(0)
+    
+    weeks = range(1, 13)
+    random.shuffle(weeks)
+    selected = [week for week in weeks[0:3]]
+    print "dev:", sorted(selected)
+    
+    test_set = [week for week in weeks if week not in selected]
+    print "test:", sorted(test_set)
+    
+    dev_scores = {}
+    
+    for softimpute_lambda in numpy.arange(0.5, 6.0, 0.5):
+        for sparse in [0]:
+            ilpdir = "../../data/ILP_MC/"
+            
+            rougename = ilpdir + 'rouge.sentence.L' +str(30) + '.l' + str(softimpute_lambda) +'.s'+ str(sparse) + ".txt"
+            
+            scores = getRougesbyWeek(rougename)
+            
+            #R1
+            selected_scores = []
+            for week in selected:
+                selected_scores.append(float(scores[week-1][3]))
+    
+            ave_r1 = numpy.mean(selected_scores)
+            
+            dev_scores[softimpute_lambda] = ave_r1
+    
+    sorted_lambdas = sorted(dev_scores, key=dev_scores.get, reverse=True)
+    
+    print "lambda:", sorted_lambdas[0]
     
 def run_UnsupervisedMC():
     from config import ConfigFile
@@ -60,18 +95,18 @@ def run_UnsupervisedMC():
         config.set_length_limit(L)
         for softimpute_lambda in numpy.arange(0.5, 8.0, 0.5):
         #for softimpute_lambda in [2.0]:
-            #for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
-            for sparse in [0]:
+            for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
+            #for sparse in [0]:
                 config.set_sparse_threshold(sparse)
                 config.set_softImpute_lambda(softimpute_lambda)
                 config.save()
                 
-                row = ['baseline+MC']
+                row = ['MC']
                 row.append(L)
                 row.append(softimpute_lambda)
                 row.append(sparse)
                 
-                ilpdir = "../../data/ILP1_Sentence_MC/"
+                ilpdir = "../../data/ILP_MC/"
                 
                 rougename = ilpdir + 'rouge.sentence.L' +str(config.get_length_limit()) + '.l' + str(softimpute_lambda) +'.s'+ str(sparse) + ".txt"
                 
@@ -398,7 +433,10 @@ if __name__ == '__main__':
     #get_average_CWLearning()
     
     #run_Baseline()
-    run_UnsupervisedMC()
+    #run_UnsupervisedMC()
+    
+    select_lambda_MC()
+    
 #     for iter in [5]:
 #         run_CWLearning(iter)
     #get_Sparse()

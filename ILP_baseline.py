@@ -26,6 +26,10 @@ countext = ".dict"  #a dictionary
 lpext = ".lp"
 lpsolext = ".sol"
 
+def getRougesbyWeek(input):
+    head, body = fio.ReadMatrix(input, hasHead=True)        
+    return body
+    
 def getRouges(input):
     head, body = fio.ReadMatrix(input, hasHead=True)        
     return body[-1][1:]
@@ -489,7 +493,7 @@ def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, stude
             ILP1(prefix, L, Ngram=Ngram, student_coverage = student_coverage, student_lambda = student_lambda)
             
 if __name__ == '__main__':
-    ilpdir = "../../data/ILP1_Sentence/"
+    ilpdir = "../../data/ILP_Baseline/"
     
     from config import ConfigFile
     

@@ -271,7 +271,7 @@ def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold):
             ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold=threshold)
             
 if __name__ == '__main__':
-    ilpdir = "../../data/ILP1_Sentence_MC/"
+    ilpdir = "../../data/ILP_MC/"
     
     from config import ConfigFile
     
@@ -287,9 +287,10 @@ if __name__ == '__main__':
 #     matrix_dir = "../../data/matrix/exp5/"
     
     #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-    getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-    exit(1)
-    
+#     getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+#     exit(1)
+#     
+
     for L in [config.get_length_limit()]:
         for np in ['sentence']:
             rank = config.get_rank_max()
