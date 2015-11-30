@@ -7,6 +7,7 @@ import numpy
 import random
 import ILP_MC
 from ILP_baseline import getRouges, getRougesbyWeek
+from ILP_Supervised import LeaveOneLectureOutPermutation
 
 def run_Baseline():
     from config import ConfigFile
@@ -49,7 +50,7 @@ def select_lambda_MC():
     
     weeks = range(1, 13)
     random.shuffle(weeks)
-    selected = [week for week in weeks[0:3]]
+    selected = [week for week in weeks[-3:]]
     print "dev:", sorted(selected)
     
     test_set = [week for week in weeks if week not in selected]
@@ -59,6 +60,7 @@ def select_lambda_MC():
     
     for softimpute_lambda in numpy.arange(0.5, 6.0, 0.5):
         for sparse in [0]:
+        #for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
             ilpdir = "../../data/ILP_MC/"
             
             rougename = ilpdir + 'rouge.sentence.L' +str(30) + '.l' + str(softimpute_lambda) +'.s'+ str(sparse) + ".txt"
@@ -68,16 +70,73 @@ def select_lambda_MC():
             #R1
             selected_scores = []
             for week in selected:
-                selected_scores.append(float(scores[week-1][3]))
+                for row in scores:
+                    if row[0] != 'average' and int(row[0]) == week:
+                        selected_scores.append(float(row[3]))
     
             ave_r1 = numpy.mean(selected_scores)
             
-            dev_scores[softimpute_lambda] = ave_r1
+            dev_scores[str(softimpute_lambda)] = ave_r1
     
     sorted_lambdas = sorted(dev_scores, key=dev_scores.get, reverse=True)
     
     print "lambda:", sorted_lambdas[0]
     
+def select_lambda_MC_CW():
+    
+    test_scores = []
+    
+    for train, test in LeaveOneLectureOutPermutation():
+        #print train
+        #print test
+        train_scores = {}
+        
+        for softimpute_lambda in numpy.arange(0.5, 6.0, 0.5):
+            for sparse in [0.0]:
+                ilpdir = "../../data/ILP_MC_CW/"
+                
+                if softimpute_lambda >= 1.5:
+                    parameter = "500_"+str(softimpute_lambda)
+                else:
+                    parameter = "2000_"+str(softimpute_lambda)
+                
+                rougename = ilpdir + 'rouge.sentence.L' +str(30) + '.w5.' + str(parameter) +'.softA.s'+ str(sparse) + ".r4.txt"
+                
+                scores = getRougesbyWeek(rougename)
+                
+                #R1
+                selected_scores = []
+                for week in train:
+                    for row in scores:
+                        if row[0] != 'average' and int(row[0]) == int(week)+1:
+                            selected_scores.append(float(row[3]))
+                    
+                ave_r1 = numpy.mean(selected_scores)
+                
+                train_scores[softimpute_lambda] = ave_r1
+        
+        sorted_lambdas = sorted(train_scores, key=train_scores.get, reverse=True)
+        
+        softimpute_lambda = sorted_lambdas[0]
+        
+        if softimpute_lambda >= 1.5:
+            parameter = "500_"+str(softimpute_lambda)
+        else:
+            parameter = "2000_"+str(softimpute_lambda)
+        
+        rougename = ilpdir + 'rouge.sentence.L' +str(30) + '.w5.' + str(parameter) +'.softA.s'+ str(sparse) + ".r4.txt"
+        
+        scores = getRougesbyWeek(rougename)
+                
+        for week in test:
+            for row in scores:
+                if row[0] != 'average' and int(row[0]) == int(week)+1:
+                    test_scores.append(scores[int(week)])
+                    
+        print test, '\t', "lambda:", sorted_lambdas[0]
+    
+    print test_scores
+        
 def run_UnsupervisedMC():
     from config import ConfigFile
     
@@ -93,10 +152,10 @@ def run_UnsupervisedMC():
     #for L in [20, 25, 30, 35, 40]:
     for L in [30]:
         config.set_length_limit(L)
-        for softimpute_lambda in numpy.arange(0.5, 8.0, 0.5):
-        #for softimpute_lambda in [2.0]:
-            for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
-            #for sparse in [0]:
+        #for softimpute_lambda in numpy.arange(0.5, 8.0, 0.5):
+        for softimpute_lambda in [2.5]:
+            #for sparse in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]:
+            for sparse in [0]:
                 config.set_sparse_threshold(sparse)
                 config.set_softImpute_lambda(softimpute_lambda)
                 config.save()
@@ -110,7 +169,8 @@ def run_UnsupervisedMC():
                 
                 rougename = ilpdir + 'rouge.sentence.L' +str(config.get_length_limit()) + '.l' + str(softimpute_lambda) +'.s'+ str(sparse) + ".txt"
                 
-                if not fio.IsExist(rougename):
+                #if not fio.IsExist(rougename):
+                if True:
                     os.system('python ILP_MC.py')
                     os.system('python ILP_GetRouge.py ' + ilpdir)
                     
@@ -331,6 +391,64 @@ def run_SupervisedMC_weighting():
     newname = "../../data/featureweighting_MC_perceptron_threshold.txt"
     fio.WriteMatrix(newname, body, Header)
 
+def run_CWLearning_features(iter = 1):
+    from config import ConfigFile
+    
+    config = ConfigFile()
+    
+    Header = ['method', 'L'] + ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']*3
+    body = []
+    
+    old_length = config.get_length_limit()
+    old_featuers = config.get_features()
+    
+    print old_featuers
+    
+    ilpdir = "../../data/ILP_CW/"
+    
+    for f in range(len(old_featuers)):
+        features = old_featuers[:f] + old_featuers[f+1:]
+        
+        
+        #for L in [20, 25, 30, 35, 40]:
+        for L in [30]:
+            config.set_length_limit(L)
+            config.set_features(','.join(features))
+            config.save()
+            
+            #assert(config.get_softImpute_lambda() == 2.0)
+            for softimpute_lambda in [2.0]:
+            #for softimpute_lambda in numpy.arange(0.5, 4.1, 0.5): 
+                row = ['baelinse + CW']
+                row.append(L)
+                row.append(old_featuers[f])
+                #row.append(softimpute_lambda)
+        
+                rougename = ilpdir + 'rouge.sentence.L' +str(config.get_length_limit()) + '.' + old_featuers[f] + ".txt"
+                
+                #if not fio.IsExist(rougename):
+                if True:
+                    os.system('rm ' + ilpdir + '*.json')
+                    
+                    os.system('python ILP_FeatureExtraction.py')
+                    os.system('python ILP_Supervised_FeatureWeight_AveragePerceptron.py')
+                    os.system('python ILP_GetRouge.py ' + ilpdir)
+                    
+                    rougefile = ilpdir + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
+                    os.system('mv ' + rougefile + ' ' + rougename)
+                
+                scores = getRouges(rougename)
+                
+                row = row + scores
+                body.append(row)
+    
+    newname = ilpdir + "rouge.sentence.feature.txt"
+    fio.WriteMatrix(newname, body, Header)
+    
+    config.set_features(','.join(old_featuers))
+    config.set_length_limit(old_length)
+    config.save()
+
 def run_CWLearning(iter = 1):
     from config import ConfigFile
     
@@ -470,7 +588,6 @@ def get_average_CWLearning():
     
     fio.WriteMatrix(ilpdir + "/rouge.sentence.L30.average.txt", A, header=None)
     
-    
 if __name__ == '__main__':
     #get_average_CWLearning()
     
@@ -479,7 +596,10 @@ if __name__ == '__main__':
     
     #select_lambda_MC()
     
-    run_SupervisedMC()
+    #select_lambda_MC_CW()
+    
+    run_CWLearning_features()
+    #run_SupervisedMC()
     
     #get_Sparse()
 #     for iter in [2, 3, 4, 5]:
