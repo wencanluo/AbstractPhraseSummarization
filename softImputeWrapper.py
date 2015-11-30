@@ -43,8 +43,8 @@ def SoftImpute(X, rank, Lambda, name, folder, type='svd'):
     r("save(X, file='%s/%s.gzip', compress=TRUE)" % (folder, name)) #(os.path.join(folder, name)))
      
     #cmd = 'Rscript softImpute.R %d %f %s' % (rank, Lambda, type)
-    cmd = 'Rscript softImputeDemo.R %d %f %s' % (rank, Lambda, type)
-    print cmd
+    #cmd = 'Rscript softImputeDemo.R %d %f %s' % (rank, Lambda, type)
+    #print cmd
     #os.system(cmd)
     
     #return LoadR(rank, Lambda, type)

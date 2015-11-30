@@ -14,12 +14,12 @@ def ParseTACXML(input):
     
     paragraph = []
     for line in lines:
-        if line.startswith('<P>'):
+        if line.startswith('<TEXT>'):
             flag = True
             paragraph = []
             continue
         
-        if line.startswith('</P>'):
+        if line.startswith('</TEXT>'):
             paragraphs.append(' '.join(paragraph))
             flag = False
             continue
@@ -113,13 +113,19 @@ def ExtractReferenceSummary(datadir, outdir):
                 fio.SaveList(sentences, filename)
             
 if __name__ == '__main__':
-    datadir = "../../data/DUC04/DUC_2004/"
+    datadir = "../../data/DUC04/"
     
-    outdir  = "../../data/DUC_ILP/"
+    outdirs = [#"../../data/DUC_ILP_Sentence/",
+               '../../data/DUC_MC/',
+               
+               ]
     
-    ExtractSentence(datadir, outdir)
+    for outdir in outdirs:
+        ExtractSentence(datadir, outdir)
+        #ExtractReferenceSummary(datadir, outdir)
+        
     #ExtractDataStatitics(datadir, outdir)
-    #ExtractReferenceSummary(datadir, outdir)
+    
     
     #ss = ParseTACXML('../../data/TAC/s10\\test_doc_files\\D1035G\\D1035G-A\\new\\APW19980718.0011')
    
