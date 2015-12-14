@@ -251,7 +251,7 @@ def ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold):
     
     m = ILP.SloveILP(lpfile)
     
-    output = lpfile + '.L' + str(L) + ".summary"
+    output = prefix + '.L' + str(L) + '.'+str(Lambda)+ '.' + str(threshold) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
 def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold, sheets = range(0,12), types=['POI', 'MP', 'LP']):
@@ -270,7 +270,10 @@ def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold, sheets 
             
             print prefix
             print svdfile
-                
+            
+            summary_file = prefix + '.L' + str(L) + '.'+str(Lambda)+ '.' + str(threshold) + ".summary"
+            if fio.IsExist(summary_file): continue
+            
             ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold=threshold)
 
 def get_ILP_IE256():
@@ -303,13 +306,47 @@ def get_ILP_IE256():
                 #prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
                 prefixA = '.' + str(Lambda) + '.softA'
             
+            
             ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold(), sheets = range(0,26), types=config.get_types()) 
             
     print "done"
                 
 if __name__ == '__main__':
-    #get_ILP_IE256()
-    #exit(-1)
+    ilpdir = "../../data/IE256/ILP_Sentence_MC/"
+    
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_IE256.txt')
+    
+    matrix_dir = "../../data/IE256/MC/"
+    print matrix_dir
+    
+#     A = {'a':[1,0], 'b':[0,0,1]}
+#     A = LoadMC("../../data/SVD_Sentence/3/MP.org.softA")
+#     print getNoneZero(A)
+    
+#     matrix_dir = "../../data/matrix/exp5/"
+    
+    #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    #getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    #exit(1)
+    
+    for L in [config.get_length_limit()]:
+        for np in ['sentence']:
+            rank = config.get_rank_max()
+            Lambda = config.get_softImpute_lambda()
+            if rank == 0:
+                prefixA = '.org.softA'
+            else:
+                #prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
+                prefixA = '.' + str(Lambda) + '.softA'
+            
+            
+            ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold(), sheets = range(0,26), types=config.get_types()) 
+            
+    print "done"
+    
+    exit(-1)
     
     ilpdir = "../../data/ILP1_Sentence_MC/"
     

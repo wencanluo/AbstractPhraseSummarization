@@ -116,13 +116,13 @@ if __name__ == '__main__':
     datadir = "../../data/DUC04/"
     
     outdirs = [#"../../data/DUC_ILP_Sentence/",
-               '../../data/DUC_MC/',
-               
+               #'../../data/DUC_MC/',
+               '../../data/DUC_ILP_MC/',
                ]
     
     for outdir in outdirs:
         ExtractSentence(datadir, outdir)
-        #ExtractReferenceSummary(datadir, outdir)
+        ExtractReferenceSummary(datadir, outdir)
         
     #ExtractDataStatitics(datadir, outdir)
     

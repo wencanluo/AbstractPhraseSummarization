@@ -202,52 +202,54 @@ def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_m
     dictname = path + corpusdictexe
     
     # that's it! the streamed corpus of sparse vectors is ready
-#     corpus = TacCorpusDocument(prefix + '.key', ngrams)
-#      
-#     fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
-#     #fio.SaveDict(corpus.dictionary.token2id, dictname)
-#  
-#     # or run truncated Singular Value Decomposition (SVD) on the streamed corpus
-#     #from gensim.models.lsimodel import stochastic_svd as svd
-#     #u, s = svd(corpus, rank=300, num_terms=len(corpus.dictionary), chunksize=5000)
-#      
-#     #https://pypi.python.org/pypi/sparsesvd/
-#     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
-#     print scipy_csc_matrix.shape
-#      
-#     print "binary_matrix: ", binary_matrix
-#      
-#     if binary_matrix:
-#         A = ToBinary(scipy_csc_matrix)
-#         #SaveNewA(A, corpus.dictionary.token2id, path, ngrams, 'org.binary')
-#     else:
-#         A = scipy_csc_matrix.toarray()
-#         #SaveNewA(scipy_csc_matrix.toarray(), corpus.dictionary.token2id, path, ngrams, 'org')
-#      
+    corpus = TacCorpus(prefix, ngrams)
+     
+    fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
+    #fio.SaveDict(corpus.dictionary.token2id, dictname)
+ 
+    # or run truncated Singular Value Decomposition (SVD) on the streamed corpus
+    #from gensim.models.lsimodel import stochastic_svd as svd
+    #u, s = svd(corpus, rank=300, num_terms=len(corpus.dictionary), chunksize=5000)
+     
+    #https://pypi.python.org/pypi/sparsesvd/
+    scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
+    print scipy_csc_matrix.shape
+     
+    print "binary_matrix: ", binary_matrix
+    
+    import pickle
+    f = open(os.path.join(folder, 'X.pickle'), 'wb')
+    pickle.dump(scipy_csc_matrix, f, pickle.HIGHEST_PROTOCOL)
+    f.close()
+# 
+#     A = scipy_csc_matrix
+#     
+# #     if binary_matrix:
+# #         A = ToBinary(scipy_csc_matrix)
+# #     else:
+# #         A = scipy_csc_matrix.toarray()
+# #      
 #     rank = rank_max
 #     print rank
 #        
 #     newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda, name=name, folder=folder)
 #     
 #     
-    prefix = str(softImpute_lambda)
-     
-    print name
-    
-    #svdAname = path + '.'+ prefix + '.softA'
-    #if fio.IsExist(svdAname): return
-         
-    #newA = softImputeWrapper.LoadMC(Lambda=softImpute_lambda, name=name, folder=folder)
-    
-    #for org
-    newA = softImputeWrapper.LoadA(name=name, folder=folder)
-    prefix = 'org'
-     
-    if newA != None:
-        print newA.shape
-         
-        token2id = fio.LoadDictJson(dictname)
-        SaveNewA(newA, token2id, path, ngrams, prefix)
+#     prefix = str(softImpute_lambda)
+#     
+#     svdAname = path + '.'+ prefix + '.softA'
+#     #if fio.IsExist(svdAname): return
+#         
+#     #newA = softImputeWrapper.LoadMC(Lambda=softImpute_lambda, name=name, folder=folder)
+#     
+#     #newA = softImputeWrapper.LoadA(name=name, folder=folder)
+#     #prefix = 'org'
+#     
+#     if newA != None:
+#         print newA.shape
+#         
+#         token2id = fio.LoadDictJson(dictname)
+#         SaveNewA(newA, token2id, path, ngrams, prefix)
 
 def TestProcessLine():
     line = "how to determine the answers to part iii , in the activity ."
@@ -280,7 +282,7 @@ def generate_task(folder, year):
 if __name__ == '__main__':
     outdirs = [#'../../data/TAC_MC/s08/',
                #'../../data/TAC_MC/s09/',
-               '../../data/DUC_MC/DUC_2004/',
+               '../../data/DUC_MC/DUC_2004',
                #'../../data/TAC_MC/s11/',
                ]
     from config import ConfigFile
@@ -294,15 +296,9 @@ if __name__ == '__main__':
 #         generate_task('../../data/DUC_MC/', year)
 #     exit(-1)
      
-    #for m_lambda in ['6', '5.5', '5', '4.5', '4', '3.5', '3', '2.5', '2', '1.5', '1', '0.5']:
-    for m_lambda in ['1']:
+    for m_lambda in ['5']:
         for folder in outdirs:
-            for subdir, dirs, files in os.walk(folder):
-                for file in sorted(files):
-                    if not file.endswith('.key'): continue
-                    
-                    filename = os.path.join(subdir, file)
-                    getSVD(filename[:-4], np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = m_lambda, binary_matrix = config.get_binary_matrix())
+            getSVD(folder, np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = m_lambda, binary_matrix = config.get_binary_matrix())
             
 #     for np in ['sentence']:
 #         getSVD(outdir, np, corpusname='tac', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix())

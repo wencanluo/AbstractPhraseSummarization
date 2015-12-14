@@ -311,14 +311,16 @@ def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_m
 #     name = 'X'
 #     newA = softImputeWrapper.SoftImpute(A.T, rank=rank, Lambda=softImpute_lambda, name=name, folder=output)
      
+#     prefix = "org"
+#     newA = softImputeWrapper.LoadA(name='X', folder=output)
     
-    prefix = str("500_2.0")
-    newA = softImputeWrapper.LoadMC(Lambda=prefix, name='newX', folder=output)
+    prefix = str(softImpute_lambda)
+    Lambda = str(rank_max) + '_' + str(softImpute_lambda)
+    newA = softImputeWrapper.LoadMC(Lambda=Lambda, name='newX', folder=output)
      
     if newA != None:
         print newA.shape
-         
-        prefix = '2.0'
+        
         token2id = fio.LoadDictJson(dictname)
         SaveNewA(newA, token2id, path, ngrams, prefix, np=np, types=types)
         
@@ -346,7 +348,15 @@ def getMC_IE256():
     config = ConfigFile(config_file_name='config_IE256.txt')
     
     for np in ['sentence']:
-        getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+        for softImpute_lambda in numpy.arange(5.0, 5.1, 0.1):
+            if softImpute_lambda < 1.4:
+                rank_max = 2000
+            else:
+                rank_max = 500
+            
+            softImpute_lambda = "%.1f"%softImpute_lambda
+            
+            getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
 
     print "done"
                     
@@ -366,6 +376,14 @@ if __name__ == '__main__':
     config = ConfigFile(config_file_name='tac_config.txt')
     
     for np in ['sentence']:
-        getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = config.get_rank_max(), softImpute_lambda = config.get_softImpute_lambda(), binary_matrix = config.get_binary_matrix(), output=outdir)
+        for softImpute_lambda in numpy.arange(0.1, 4.1, 0.1):
+            if softImpute_lambda < 1.4:
+                rank_max = 2000
+            else:
+                rank_max = 500
+            
+            softImpute_lambda = "%.1f"%softImpute_lambda
+            
+            getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir)
 
     print "done"

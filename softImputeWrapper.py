@@ -52,6 +52,9 @@ def SoftImpute(X, rank, Lambda, name, folder, type='svd'):
 def LoadA(name, folder):
     filename = os.path.join(folder, name +'.gzip')
     filename = filename.replace('\\', '/')
+    
+    print filename
+    
     if not fio.IsExist(filename):
         return None
     

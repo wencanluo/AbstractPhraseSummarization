@@ -138,8 +138,6 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
 if __name__ == '__main__':
     import sys
     ilpdir = sys.argv[1]
-    #ilpdir = "../../data/ILP1_Sentence_MC_Length/"
-    #ilpdir = "../../data/ILP1_Sentence_MC_Bigram/"
     
     from config import ConfigFile
     config = ConfigFile()

@@ -25,6 +25,7 @@ dict_ngrams = {1:[1,2],
 
 class ConfigFile:
     def __init__(self, config_file_name = 'config.txt'):
+        self.config_file_name = config_file_name
         self.dict = fio.LoadDict(config_file_name, 'str')
     
     def get_response_split(self):
@@ -180,7 +181,7 @@ class ConfigFile:
         self.dict['matrix_dir'] = v
         
     def get_softImpute_lambda(self):
-        v = float(self.dict['softInpute_lambda'])
+        v = self.dict['softInpute_lambda']
         return v
     
     def set_softImpute_lambda(self, v):
@@ -220,7 +221,7 @@ class ConfigFile:
     def save(self):
         import sys
         SavedStdOut = sys.stdout
-        sys.stdout = open('config.txt', 'w')
+        sys.stdout = open(self.config_file_name, 'w')
         
         keys = [
             'L', 
