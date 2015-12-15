@@ -88,10 +88,10 @@ if __name__ == '__main__':
                    
                    #"../../data/ILP_Supervised_Baseline/", 
                    #"../../data/ILP_CW/",
-                   "../../data/ILP_MC_CW/", 
+                   #"../../data/ILP_MC_CW/", 
                    
                    #"../../data/ILP1_Sentence/", 
-                   #"../../data/ILP1_Sentence_MC/", 
+                   "../../data/ILP1_Sentence_MC/", 
                    #"../../data/ILP_Sentence_Supervised/",
                    #"../../data/ILP_Sentence_Supervised_FeatureWeighting/", 
                    #"../../data/ILP_Sentence_Supervised_FeatureWeightingMC/", 
