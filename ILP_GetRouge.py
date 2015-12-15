@@ -138,13 +138,17 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
 if __name__ == '__main__':
     import sys
     ilpdir = sys.argv[1]
+    Lambda = sys.argv[2]
     
     from config import ConfigFile
     config = ConfigFile()
                     
     for L in [config.get_length_limit()]:
         for np in ['sentence']:
-            getRouge(ilpdir, np, L, ilpdir, Lambda = None)
+            if Lambda == 'None':
+                getRouge(ilpdir, np, L, ilpdir, Lambda = None)
+            else:
+                getRouge(ilpdir, np, L, ilpdir, Lambda = Lambda)
             #getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
                           
     print "done"
