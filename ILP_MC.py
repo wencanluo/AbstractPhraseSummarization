@@ -271,7 +271,7 @@ def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold):
             ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold=threshold)
             
 if __name__ == '__main__':
-    ilpdir = "../../data/ILP_MC/"
+    ilpdir = "../../data/Engineer/ILP_MC/"
     
     from config import ConfigFile
     
@@ -295,6 +295,8 @@ if __name__ == '__main__':
         for np in ['sentence']:
             rank = config.get_rank_max()
             Lambda = config.get_softImpute_lambda()
+            rank = 0
+            
             if rank == 0:
                 prefixA = '.org.softA'
             else:
