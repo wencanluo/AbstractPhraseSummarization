@@ -24,7 +24,11 @@ def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda):
         for type in ['q1', 'q2']:
             prefix = dir + type + "." + 'sentence'
             
-            summary_file = prefix + '.L' + str(L) + '.'+str(Lambda) + ".summary"
+            if Lambda == None:
+                summary_file = prefix + '.L' + str(L) + ".summary"
+            else:
+                summary_file = prefix + '.L' + str(L) + '.'+str(Lambda) + ".summary"
+                
             print summary_file
             
             if not fio.IsExist(summary_file): 
@@ -107,10 +111,17 @@ if __name__ == '__main__':
     for L in [config.get_length_limit()]:
         #for threshold in [0.0]:
         #for m_lambda in ['2']:
-        Lambda =  str(m_lambda)+ '.' + str(threshold)
+        
+        if m_lambda == 'None':
+            Lambda = None
+        else:
+            Lambda =  str(m_lambda)+ '.' + str(threshold)
         
         getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda)
-    
-        fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.'+Lambda+'.json')
+        
+        if m_lambda == 'None':
+            fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
+        else:
+            fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.'+Lambda+'.json')
                      
     print "done"

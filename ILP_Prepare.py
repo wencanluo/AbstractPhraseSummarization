@@ -67,11 +67,11 @@ if __name__ == '__main__':
                    #"../../data/ILP1_Sentence_MC_Length/",
                    #"../../data/output/conceptweighting/"
 
-                    #"../../data/ILP1_Sentence_Normalization/", 
+                    "../../data/ILP1_Sentence/", 
                     #"../../data/MC/", 
                     #"../../data/ILP1_Sentence_MC_Normalization/", 
                     #"../../data/ILP_Sentence_Supervised_FeatureWeightingAveragePerceptron_Normalization/", 
-                    "../../data/ILP1_Sentence_MC/", 
+                    #"../../data/ILP1_Sentence_MC/", 
                     #"../../data/ILP_Sentence_Supervised/",
                     #"../../data/ILP_Sentence_Supervised_FeatureWeighting/", 
                     #"../../data/ILP_Sentence_Supervised_FeatureWeightingMC/", 

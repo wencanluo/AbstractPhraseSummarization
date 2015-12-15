@@ -592,17 +592,19 @@ def getILP_IE256():
     print "done"
 
 def getILP_Engineer():
-    ilpdir = "../../data/ILP1_Sentence_Normalization/"
+    ilpdir = "../../data/ILP1_Sentence/"
     
     from config import ConfigFile
     
     config = ConfigFile()
     
     for L in [config.get_length_limit()]:
-        for np in ['sentence_filter']:
+        for np in ['sentence']:
             ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda())
             
     print "done"
                 
 if __name__ == '__main__':
     getILP_IE256()
+    
+    getILP_Engineer()
