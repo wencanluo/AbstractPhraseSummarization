@@ -109,6 +109,7 @@ if __name__ == '__main__':
     rouge_dict = {}
     
     for L in [config.get_length_limit()]:
+    #for L in [39]:
         #for threshold in [0.0]:
         #for m_lambda in ['2']:
         

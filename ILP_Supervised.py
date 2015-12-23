@@ -245,7 +245,7 @@ def LeaveOneLectureOutPermutation():
         yield train, test
             
 if __name__ == '__main__':
-    ilpdir = "../../data/ILP_Sentence_Supervised_Oracle/"
+    ilpdir = "../../data/Engineer/ILP_Oracle/"
     #ilpdir = "../../data/ILP_Sentence_Supervised/"
     from config import ConfigFile
     config = ConfigFile()

@@ -14,17 +14,16 @@ def getRouge(datadir, np, L, outputdir, Lambda):
     
     body = []
     
-    for type in ['POI', 'MP', 'LP']:     
-        for i, sheet in enumerate(sheets):
-            
+    for i, sheet in enumerate(sheets):
+        for type in ['POI', 'MP', 'LP']:     
             week = i + 1
         
             Cache = {}
             cachefile = datadir + str(week) + '/' + 'cache.json'
             print cachefile
-            if fio.IsExist(cachefile):
-                with open(cachefile, 'r') as fin:
-                    Cache = json.load(fin)
+#             if fio.IsExist(cachefile):
+#                 with open(cachefile, 'r') as fin:
+#                     Cache = json.load(fin)
                     
             row = []
             row.append(week)
@@ -84,9 +83,8 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
         Cache = {}
         cachefile = datadir + str(week) + '/' + 'cache.json'
         print cachefile
-        if fio.IsExist(cachefile):
-            with open(cachefile, 'r') as fin:
-                Cache = json.load(fin)
+#         if fio.IsExist(cachefile):
+#             Cache = fio.LoadDictJson(cachefile)
                
         row = []
         row.append(week) 
@@ -118,9 +116,8 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
             row = row + scores
             
         body.append(row)
-            
-        with open(cachefile, 'w') as outfile:
-            json.dump(Cache, outfile, indent=2)
+        
+#         fio.SaveDict2Json(Cache, cachefile)
             
     header = ['week'] + RougeHeaderSplit    
     row = []
@@ -131,9 +128,9 @@ def getRougeSplit(datadir, np, L, outputdir, Lambda):
     body.append(row)
     
     if Lambda == None:
-        fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + ".txt", body, header)
+        fio.WriteMatrix(outputdir + "rouge.split." + str(np) + '.L' + str(L) + ".txt", body, header)
     else:
-        fio.WriteMatrix(outputdir + "rouge." + str(np) + '.L' + str(L) + "." + str(Lambda) + ".txt", body, header)
+        fio.WriteMatrix(outputdir + "rouge.split." + str(np) + '.L' + str(L) + "." + str(Lambda) + ".txt", body, header)
           
 if __name__ == '__main__':
     import sys
@@ -146,9 +143,10 @@ if __name__ == '__main__':
     for L in [config.get_length_limit()]:
         for np in ['sentence']:
             if Lambda == 'None':
-                getRouge(ilpdir, np, L, ilpdir, Lambda = None)
+                #getRouge(ilpdir, np, L, ilpdir, Lambda = None)
+                getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
             else:
-                getRouge(ilpdir, np, L, ilpdir, Lambda = Lambda)
-            #getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
+                #getRouge(ilpdir, np, L, ilpdir, Lambda = Lambda)
+                getRougeSplit(ilpdir, np, L, ilpdir, Lambda = None)
                           
     print "done"

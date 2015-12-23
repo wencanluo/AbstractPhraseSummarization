@@ -1416,16 +1416,20 @@ if __name__ == '__main__':
               #'C4_Clustering_lexrankmax_4_npsoft_chunk', 'C4_Clustering_lexrankmax_4_npsoft_syntax', 'C4_Clustering_lexrankmax_4_optimumComparerLSATasa_chunk', 'C4_Clustering_lexrankmax_4_optimumComparerLSATasa_syntax',         
               
               #'ShallowSummary_unigram_remove_stop_K6', 'ShallowSummary_bigram_K6', 'C6_keyphraseExtractionbasedShallowSummary', 'C6_PhraseMead_syntax', 'C6_PhraseMeadMMR_syntax', 'C6_PhraseMeadLexRank_syntax', 'C6_PhraseMeadLexRankMMR_syntax', 'C6_LexRank_syntax', 'C6_LexRankMMR_syntax','C6_ClusterARank511',
-            'C4_unigram_remove_stop', 'C4_bigram', 'C4_keyphrase', "C4_Mead", 
-            'C4_PhraseMead_syntax', 'C4_PhraseMeadMMR_syntax',
-            'C4_PhraseMeadLexRank_syntax',
-            'C4_PhraseMeadLexRankMMR_syntax', 
-            'C4_LexRank_syntax', 'C4_LexRankMMR_syntax',
-            "C4_ClusteringAlone", 
-            'C4_ClusterARank511',
-            'Opinosis',
-            'OpinosisPhrase',
-            'OpinosisPhraseCluster'
+#             'C4_unigram_remove_stop', 'C4_bigram', 'C4_keyphrase', "C4_Mead", 
+#             'C4_PhraseMead_syntax', 'C4_PhraseMeadMMR_syntax',
+#             'C4_PhraseMeadLexRank_syntax',
+#             'C4_PhraseMeadLexRankMMR_syntax', 
+#             'C4_LexRank_syntax', 'C4_LexRankMMR_syntax',
+#             "C4_ClusteringAlone", 
+#             'C4_ClusterARank511',
+#             'Opinosis',
+#             'OpinosisPhrase',
+#             'OpinosisPhraseCluster'
+            
+            'C30_Mead',
+            #'C30_SumBasic',
+            #"C30_LexRank",
             ]
     
     #models = AllModels()

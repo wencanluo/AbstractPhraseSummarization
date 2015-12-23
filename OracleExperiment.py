@@ -210,7 +210,7 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
             with open(cachefile, 'r') as fin:
                 Cache = json.load(fin)
         
-        for type in ['POI', 'MP']:#, 'LP'
+        for type in ['POI', 'MP', 'LP']:
             row = []
             row.append(week)
         
@@ -228,8 +228,14 @@ def getOracleRouge(oracledir, np, L, metric, outputdir):
             Round = Round - 1
             sumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) + "." + str(metric) + '.R' + str(Round) +'.summary'
             
-            lines = fio.ReadFile(sumfile)
+            if not fio.IsExist(sumfile):
+                lines = []
+            else:
+                lines = fio.ReadFile(sumfile)
             TmpSum = [line.strip() for line in lines]
+            
+            newsumfile = oracledir + str(week) + '/' + type + '.' + str(np) + '.L' + str(L) +'.summary'
+            fio.SaveList(TmpSum, newsumfile)
             
             cacheKey = getKey(ref, TmpSum)
             if cacheKey in Cache:
@@ -418,8 +424,9 @@ def TestRouge():
     fio.WriteMatrix('log.txt', body)
     
 if __name__ == '__main__':
-    oracledir = "../../data/oracle/" 
-    datadir = "../../data/oracle/"
+    oracledir = "../../data/Engineer/Oracle/" 
+    datadir = "../../data/Engineer/Oracle/"
+    
     #TestRouge()
     
 #     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
@@ -440,7 +447,7 @@ if __name__ == '__main__':
     for L in [30]:
         for np in ['sentence']:
             for metric in ['R2-F']:
-                getOracleRougeSplit(oracledir, np, L, metric, datadir)
+                getOracleRouge(oracledir, np, L, metric, datadir)
         
     print "done"
     

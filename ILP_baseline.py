@@ -585,7 +585,8 @@ def getILP_IE256():
     
     config = ConfigFile(config_file_name='config_IE256.txt')
     
-    for L in [config.get_length_limit()]:
+    #for L in [config.get_length_limit()]:
+    for L in [15, 16, 27, 39]:
         for np in ['sentence']:
             ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
             
@@ -607,4 +608,4 @@ def getILP_Engineer():
 if __name__ == '__main__':
     getILP_IE256()
     
-    getILP_Engineer()
+    #getILP_Engineer()

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import fio
-
+import os
 import ILP_MC
 
 RougeHead = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']
@@ -15,17 +15,18 @@ names = ['BASELINE-ILP', 'MC', 'CW', 'BOTH']
 #colors = ['#addd8e', "#7fcdbb", "#fec44f", "#feb24c"]
 #colors = ['#f7fcb9', "#edf8b1", "#fff7bc", "#feb24c"]
 #colors = ['#f7fcb9', "#efedf5", "#f7fcb9", "#feb24c"]
-colors = ['#f1eef6', "#74a9cf", "#045a8d", "#feb24c"]
+#colors = ['#f1eef6', "#74a9cf", "#045a8d", "#feb24c"]
+#colors = ['#ffffcc', "#a1dab4", "#41b6c4", "#2c7fb8", '#253494']
+#colors = ['#f6eff7', "#bdc9e1", "#67a9cf", "#1c9099", '#016c59']
+colors = ['#f7f7f7', "#cccccc", "#969696", "#636363", '#252525']
 
-
-markers = ['o', 's', '^', 'D']
-hatchs = ['', '///', '\\\\\\', '--',]
-#hatchs = ['', '', '', '',]
+markers = ['o', 's', '^', 'D', '']
+hatchs = ['', '///', '\\\\\\', '///\\\\\\', '']
     
 #Lengths = [20, 25, 30, 35, 40]
 Lengths = [20, 30, 40]
 
-myalpha = 0.6
+myalpha = 1.0
 
 lambda_range =  np.arange(0.1, 4.1, 0.1)
 sparse_range = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
@@ -148,21 +149,17 @@ def Get_Baseline():
     return X, Y
 
 def Get_Baseline_Split(L = None):
-    ilpdir = "../../data/ILP1_Sentence/"
+    ilpdir = '../../data/Engineer/ILP_Baseline/'
     
-    newname = ilpdir + "rouge.sentence.txt"
+    newname = ilpdir + "rouge.sentence.L30.txt"
     
     head, body = fio.ReadMatrix(newname)
-    
-    L_index = head.index('L')
     
     X = []
     
     new_body = [[], [], []]
     for row in body:
-        if L != None:
-            if row[L_index] != L: continue
-            
+        
         X.append(float(row[L_index]))
         
         N = len(row)
@@ -189,92 +186,6 @@ def Get_Baseline_Split(L = None):
     
     return X, [Y1, Y2, Y3]
 
-def plot_Split():
-    X, Y1 = Get_Baseline_Split(L='30')
-    X2, Y2 = get_UnsupervisedMC_Split("2.0",L='30')
-    X3, Y3 = get_CW_Split(L='30')
-    #X4, Y4 = get_MC_CW_Split(L='30')
-    
-    #Y3 = [[0.386516, 0.38429, 0.213093333], [0.147600833, 0.167636833, 0.0346655]]
-    #assert(X==X4)
-    
-    Y1 = np.array(Y1)*100
-    Y2 = np.array(Y2)*100
-    Y3 = np.array(Y3)*100
-    
-    X = np.array([1, 2, 3])
-    
-    fontsize = 12
-    labelsize = 8
-    legendsize = 7.5
-    
-    fig = plt.figure(figsize=(6*0.9, 2.5*0.9))
-    
-    ax = fig.add_subplot(121)
-    #ax.grid(True)
-    
-    #ax.set_xlabel('PROMPT', fontsize=12)
-    ax.set_ylabel('R-1 F-score (%)', fontsize=fontsize)
-    
-    alpha = myalpha
-    
-    markersize=6
-        
-    w = 0.7
-    ax.set_ylim([10, 56])
-    
-    ax.bar(X-w/2, Y1[0], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
-    ax.bar(X-w/2+w/3, Y2[0], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
-    ax.bar(X-w/2+w/3+w/3, Y3[0], width=w/3, label=names[2], hatch=hatchs[2], color=colors[2], alpha=alpha, )
-    #ax.bar(X-w/2+w/4+w/4+w/4, Y4[0], width=w/4, label=names[3], hatch=hatchs[3], color=colors[3], alpha=alpha, )
-    
-    plt.xticks(np.array(X), ['POI', 'MP', 'LP'])
-    plt.tick_params(axis='both', which='major', labelsize=labelsize)
-    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
-    
-    plt.tight_layout()
-    
-    #ax.xaxis.set_ticks(np.array(X), ['POI', 'MP', 'LP'])
-    ax.legend(loc=0,fancybox=True, prop={'size':legendsize})
-    
-    ax1 = fig.add_subplot(122)
-    #ax1.set_xlabel('L', fontsize=12)
-    ax1.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
-    #ax1.grid(True)
-    
-    ax1.bar(X-w/2, Y1[1], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
-    ax1.bar(X-w/2+w/3, Y2[1], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
-    ax1.bar(X-w/2+w/3+w/3, Y3[1], width=w/3, label=names[2], hatch=hatchs[2], color=colors[2], alpha=alpha, )
-    #ax1.bar(X-w/2+w/4+w/4+w/4, Y4[1], width=w/4, label=names[3], hatch=hatchs[3], color=colors[3], alpha=alpha, )
-    
-    ax1.set_ylim([0, 25])
-    
-    ax1.xaxis.set_ticks(np.array(X))
-    
-    ax1.legend(loc=0, fancybox=True, prop={'size':legendsize})
-    plt.tight_layout()
-    
-    #plt.figlegend((l0, l1), ('BASELINE', 'BASELINE+MC'), 'upper right')
-    #legend = plt.legend(loc='right', shadow=True, fontsize='x-large')
-    plt.xticks(np.array(X), ['POI', 'MP', 'LP'])
-    plt.tick_params(axis='both', which='major', labelsize=labelsize)
-    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
-    
-    fig.subplots_adjust(left=0.085, bottom=0.09, right=0.999, top=0.95)
-
-    #plt.show()
-    
-    pp = PdfPages(outputdir + 'split.pdf')
-    plt.savefig(pp, format='pdf')
-    pp.close()
-    
-#     from matplotlib.font_manager import FontProperties
-#     fontP = FontProperties()
-#     fontP.set_size('small')
-#    
-#     plt.title("prompts")
-#     legend = plt.legend(loc='top right', shadow=True, prop=fontP)
-            
 def plot_Baseline():
     X, Y = Get_Baseline()
     
@@ -816,12 +727,127 @@ def plot_MC_CW():
     pp = PdfPages(outputdir + 'baseline+CW+MC.pdf')
     plt.savefig(pp, format='pdf')
     pp.close()
+
+def get_rouge_split(input):
+    head, body = fio.ReadMatrix(input)
+    
+    Y = []
+    
+    for rouge in myrouges:
+        index = head.index(rouge)
+                
+        values = [[],[],[]]
+        for i, row in enumerate(body[0:-1]):
+            values[i%3].append(float(row[index]))
         
+        Y0 = []
+        for i in range(3):
+            Y0.append(np.average(values[i]))
+            
+        Y.append(Y0)
+    
+    return Y
+
+def plot_Split():
+    fontsize = 12
+    labelsize = 12
+    legendsize = 12
+    alpha = myalpha
+    markersize=6
+    w = 0.5
+    
+    folders = [('Mead','../../data/Engineer/Mead/'),
+               ('LexRank','../../data/Engineer/LexRank/'),
+           ('SumBasic','../../data/Engineer/SumBasic/'),
+           ('ILP','../../data/Engineer/ILP_Baseline/'),
+           ('MC','../../data/Engineer/ILP_MC/'),
+           ]
+    
+    Ys = []
+    for name, folder in folders:
+        Y = get_rouge_split(os.path.join(folder, 'rouge.sentence.L30.txt'))
+        Y = np.array(Y)*100
+        
+        Ys.append(Y)
+    
+    Y = Ys
+    
+    X = np.array([1, 2, 3])
+    
+    score_index = 1
+    
+    fig = plt.figure(figsize=(6*0.9, 2.5*0.9))
+    
+    ax = fig.add_subplot(111)
+    #ax.grid(True)
+    
+    #ax.set_xlabel('PROMPT', fontsize=12)
+    ax.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
+    
+    
+    #ax.set_ylim([10, 56])
+    ax.set_ylim([0, 25])
+    
+    ax.bar(X-w/2-w/3, Y[0][score_index], width=w/3, label=folders[0][0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
+    ax.bar(X-w/2, Y[1][score_index], width=w/3, label=folders[1][0], hatch=hatchs[1], color=colors[1], alpha=alpha, )
+    ax.bar(X-w/2+w/3, Y[2][score_index], width=w/3, label=folders[2][0], hatch=hatchs[2], color=colors[2], alpha=alpha, )
+    ax.bar(X-w/2+w/3+w/3, Y[3][score_index], width=w/3, label=folders[3][0], hatch=hatchs[3], color=colors[3], alpha=alpha, )
+    ax.bar(X-w/2+w/3+w/3+w/3, Y[4][score_index], width=w/3, label=folders[4][0], hatch=hatchs[4], color=colors[4], alpha=alpha, )
+    
+    plt.xticks(np.array(X), ['POI', 'MP', 'LP'])
+    plt.tick_params(axis='both', which='major', labelsize=labelsize)
+    plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
+    
+    plt.tight_layout()
+    
+    #ax.xaxis.set_ticks(np.array(X), ['POI', 'MP', 'LP'])
+    ax.legend(loc=0,fancybox=True, prop={'size':legendsize})
+    
+    
+#     ax1 = fig.add_subplot(122)
+#     #ax1.set_xlabel('L', fontsize=12)
+#     ax1.set_ylabel('R-2 F-score (%)', fontsize=fontsize)
+#     #ax1.grid(True)
+#     
+#     ax1.bar(X-w/2, Y[0][1], width=w/3, label=names[0], hatch=hatchs[0], color=colors[0], alpha=alpha, )
+#     ax1.bar(X-w/2+w/3, Y[1][1], width=w/3, label=names[1], hatch=hatchs[1], color=colors[1], alpha=alpha, )
+#     ax1.bar(X-w/2+w/3+w/3, Y[2][1], width=w/3, label=names[2], hatch=hatchs[2], color=colors[2], alpha=alpha, )
+#     #ax1.bar(X-w/2+w/4+w/4+w/4, Y4[1], width=w/4, label=names[3], hatch=hatchs[3], color=colors[3], alpha=alpha, )
+#     
+#     ax1.set_ylim([0, 25])
+#     
+#     ax1.xaxis.set_ticks(np.array(X))
+#     
+#     ax1.legend(loc=0, fancybox=True, prop={'size':legendsize})
+#     plt.tight_layout()
+#     
+#     #plt.figlegend((l0, l1), ('BASELINE', 'BASELINE+MC'), 'upper right')
+#     #legend = plt.legend(loc='right', shadow=True, fontsize='x-large')
+#     plt.xticks(np.array(X), ['POI', 'MP', 'LP'])
+#     plt.tick_params(axis='both', which='major', labelsize=labelsize)
+#     plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
+    
+    fig.subplots_adjust(left=0.085, bottom=0.09, right=0.999, top=0.95)
+
+    #plt.show()
+    
+    pp = PdfPages(outputdir + 'split.pdf')
+    plt.savefig(pp, format='pdf')
+    pp.close()
+    
+#     from matplotlib.font_manager import FontProperties
+#     fontP = FontProperties()
+#     fontP.set_size('small')
+#    
+#     plt.title("prompts")
+#     legend = plt.legend(loc='top right', shadow=True, prop=fontP)
+            
+    
 if __name__ == '__main__':
     datadir = "../../data/"
     
     plot_Split()
-    plot_Length_ROUGE()
+    #plot_Length_ROUGE()
     
     #get_Sparse()
     #plot_Sparse()

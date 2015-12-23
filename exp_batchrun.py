@@ -101,20 +101,25 @@ def run_UnsupervisedMC_IE256():
     config = ConfigFile(config_file_name='config_IE256.txt')
     
     Header = ['method', 'L', 'lambda', 'sparse'] + ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']*3
-    body = []
+    
     
     old_length = config.get_length_limit()
     old_sparse = config.get_sparse_threshold()
     old_softimpute_lambda = config.get_softImpute_lambda()
     
-    #for L in [20, 25, 30, 35, 40]:
-    for L in [33]:
+    for L in [40, 39]:
+    #for L in [27, 33]:
+    #for L in [15, 16]:
+    #for L in [39]:
+        body = []
+        
         config.set_length_limit(L)
-        for softimpute_lambda in ['org'] + list(numpy.arange(0, 5.1, 0.1)):
+        for softimpute_lambda in ['org'] + list(numpy.arange(0.0, 5.1, 0.1)):
             if softimpute_lambda == 'org':
                 sparses = [1.0]
             else:
-                sparses = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
+                #sparses = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
+                sparses = [0.0]
                 
             for sparse in sparses:
                 config.set_sparse_threshold(sparse)
@@ -128,28 +133,28 @@ def run_UnsupervisedMC_IE256():
                 
                 ilpdir = "../../data/IE256/ILP_Sentence_MC/"
                 
-                rougename = ilpdir + 'rouge.sentence.L' +str(config.get_length_limit()) + '.' + str(softimpute_lambda) +'.'+ str(sparse) + ".txt"
+                rougename = ilpdir + 'rouge.sentence.L' + str(L) + '.' + str(softimpute_lambda) +'.'+ str(sparse) + ".txt"
                 
                 if not fio.IsExist(rougename):
                     os.system('python ILP_MC.py')
                     os.system('python IE256_ILP_GetRouge.py %s %s %s'%(ilpdir, str(softimpute_lambda), str(sparse)))
                     
-                    rougefile = ilpdir + "rouge.sentence.L"+str(config.get_length_limit())+".txt"
+                    rougefile = ilpdir + "rouge.sentence.L"+ str(L) +".txt"
                     os.system('mv ' + rougefile + ' ' + rougename)
                     
                 scores = getRouges(rougename)
                 
                 row = row + scores
                 body.append(row)
+                
+        newname = ilpdir + 'rouge.sentence.L' +str(L) + '.txt'
+        fio.WriteMatrix(newname, body, Header)
     
     config.set_length_limit(old_length)
     config.set_sparse_threshold(old_sparse)
     config.set_softImpute_lambda(old_softimpute_lambda)
     config.save()
-                
-    newname = ilpdir + "rouge.sentence.txt"
-    fio.WriteMatrix(newname, body, Header)
-    
+
 def run_UnsupervisedMC_DUC():
     from config import ConfigFile
     

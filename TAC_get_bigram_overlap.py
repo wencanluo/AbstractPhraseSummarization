@@ -14,15 +14,17 @@ def get_bigram_overlap(document, summary_file):
     bigram_ta = 0.
     covered_bigram_ta = 0.
     for summary in summaryList:
-        bigrams = NLTKWrapper.getNgram(summary, 2)
+        bigrams = NLTKWrapper.getNgramTokened(summary.split(), 2)
         bigram_ta += len(bigrams)
         
         if bigram_ta == 0:
             print summary_file
             
         for token in bigrams:
-            if postProcess.CheckKeyword(token, summaryList):
+            if postProcess.CheckKeyword(token, sentences):
                 covered_bigram_ta += 1
+            else:
+                pass
     
     if bigram_ta == 0:
         return 0.0
@@ -34,6 +36,7 @@ def get_bigram_overlap_doc(prefix):
     
     rs = []
     summries = []
+    #for porfix in ['ref.0', 'ref.1']:#['.ref1.summary', '.ref2.summary', '.ref3.summary', '.ref4.summary']:
     for porfix in ['ref.0', 'ref.1']:#['.ref1.summary', '.ref2.summary', '.ref3.summary', '.ref4.summary']:
         summary_file = prefix[:-len('sentence')] + porfix
         
@@ -99,7 +102,7 @@ def get_overlap_IE256():
             
             overlaps.append(overlap)
     
-    print np.mean(overlaps)
+    print np.mean(overlaps), np.median(overlaps)
     
     fio.SaveDict2Json(data, '../../data/IE256/bigram_overlap.json')
     

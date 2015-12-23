@@ -48,6 +48,9 @@ def getNgramTokened(word, n, tag = None):
     
     #tokens = summary.split()
     N = len(word)
+    if N < 2: 
+        return ngram_words
+    
     for i in range(N):
         if i+n > N: continue
         
