@@ -5,9 +5,12 @@ import random
 import re
 import codecs
 import Cosin
+from collections import defaultdict
+import stats_util
 
 folders = {'Mead':'../../data/Engineer/Mead/',
            'Oracle_ILP':'../../data/Engineer/ILP_Oracle/',
+           'Oracle':'../../data/Engineer/Oracle/',
            'ILP':'../../data/Engineer/ILP_Baseline/',
            'MC':'../../data/Engineer/ILP_MC/',
            }
@@ -30,6 +33,7 @@ def load_summary(input):#re-order it by cosine
     for line in lines:
         line = line.strip().lower()
         
+        line = line.replace('"','\'')
         g = re.search('^\[\d+\](.*)$', line)
         if g != None:
             line = g.group(1).strip()
@@ -63,6 +67,8 @@ def list2paragraph(summaries):
     for i, line in enumerate(summaries):
         newLines.append('<p>[%d] %s</p>'%(i+1, line))
     
+    if len(newLines) == 0:
+        return '"<p></p>"'
     return '"%s"'% ('\n'.join(newLines))
 
 def generate_checking_point(prompt, week, summaryA, summaryB):
@@ -96,6 +102,66 @@ def generate_checking_point(prompt, week, summaryA, summaryB):
                     
     return logrow, row
     
+def result_analyze(logfile, results, output):
+    head, body = fio.ReadMatrix(logfile, hasHead=True)
+    head_res, body_res = fio.ReadMatrix(results, hasHead=True)
+    
+    preference_index = head_res.index('Preference')
+    
+    dict_preference = {}
+    for row in body_res:
+        id = row[head_res.index('id')]
+        preference = int(row[preference_index])
+        subject_id = row[head_res.index('Worker ID')]
+        
+        if id not in dict_preference:
+            dict_preference[id] = {}
+        
+        dict_preference[id][subject_id] = preference
+    
+    count = 0
+    dict = defaultdict(int)
+    
+    #print dict_preference
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        for subject, preference in dict_preference[id].items():
+            if preference > 0:
+                dict[system_B] += 1
+            elif preference < 0:
+                dict[system_A] += 1
+            else:
+                dict['no_preference'] += 1
+        
+            count += 1
+    
+    print dict
+    
+    PerferenceValue = {}
+
+    count = 0
+    #print dict_preference
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        for subject, preference in dict_preference[id].items():
+            if system_A not in PerferenceValue:
+                PerferenceValue[system_A] = []
+            if system_B not in PerferenceValue:
+                PerferenceValue[system_B] = []
+                
+            PerferenceValue[system_A].append(-preference)
+            PerferenceValue[system_B].append(preference)
+            count += 1
+    
+    keys = PerferenceValue.keys()
+    print keys
+    print stats_util.ttest(PerferenceValue[keys[0]], PerferenceValue[keys[1]], 1, 1)
+    
+    print count
     
 def task_generator(modelpairs, output):
     head = ['id', 'prompt', 'summary_human', 'summary_A', 'summary_B']
@@ -158,19 +224,38 @@ def task_generator(modelpairs, output):
     
         fio.WriteCSV(prefix + '.csv', body, head, ',')
         
-        fio.WriteMatrix(prefix + '.log', logbody, head)
+        fio.WriteMatrix(prefix + '.log', logbody, loghead)
     
         print count, nocount, checking_count
             
 if __name__ == '__main__':
     modelpairs = [('MC', 'ILP'), 
                   ('MC', 'Mead'), 
-                  ('MC', 'Oracle_ILP'),
+                  ('MC', 'Oracle'),
                   ('ILP', 'Mead'), 
-                  ('ILP', 'Oracle_ILP'),
-                  ('Mead', 'Oracle_ILP'),
+                  ('ILP', 'Oracle'),
+                  ('Mead', 'Oracle'),
                   ]
     
     output = '../../data/Engineer/input_'
-    task_generator(modelpairs, output)
+    #task_generator(modelpairs, output)
     
+    result_analyze('../../data/Engineer/done/input_0_MC_ILP.log', 
+                   '../../data/Engineer/done/input_0_MC_ILP.out', 
+                   '../../data/Engineer/done/input_0_MC_ILP.results.txt')
+    
+    result_analyze('../../data/Engineer/done/input_1_MC_Mead.log', 
+                   '../../data/Engineer/done/input_1_MC_Mead.out', 
+                   '../../data/Engineer/done/input_1_MC_Mead.results.txt')
+    
+    result_analyze('../../data/Engineer/done/input_2_MC_Oracle_ILP.log', 
+                   '../../data/Engineer/done/input_2_MC_Oracle_ILP.out', 
+                   '../../data/Engineer/done/input_2_MC_Oracle_ILP.results.txt')
+     
+    result_analyze('../../data/Engineer/done/input_2_MC_Oracle.log', 
+                   '../../data/Engineer/done/input_2_MC_Oracle.out', 
+                   '../../data/Engineer/done/input_2_MC_Oracle.results.txt')
+    
+    result_analyze('../../data/Engineer/done/input_3_ILP_Mead.log', 
+                   '../../data/Engineer/done/input_3_ILP_Mead.out', 
+                   '../../data/Engineer/done/input_3_ILP_Mead.results.txt')

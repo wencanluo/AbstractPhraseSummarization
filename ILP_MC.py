@@ -363,9 +363,9 @@ if __name__ == '__main__':
      
 #     matrix_dir = "../../data/matrix/exp5/"
      
-    #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-    #getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-    #exit(1)
+    #print getSparseRatio(matrix_dir, prefixA=".org.softA", eps=1.0)
+    getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    exit(1)
      
     for L in [config.get_length_limit()]:
         for np in ['sentence']:

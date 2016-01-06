@@ -36,9 +36,10 @@ def get_bigram_overlap_doc(prefix):
     
     rs = []
     summries = []
+    for porfix in ['.ref1.summary', '.ref2.summary', '.ref3.summary', '.ref4.summary']: #['ref.0', 'ref.1']:#
     #for porfix in ['ref.0', 'ref.1']:#['.ref1.summary', '.ref2.summary', '.ref3.summary', '.ref4.summary']:
-    for porfix in ['ref.0', 'ref.1']:#['.ref1.summary', '.ref2.summary', '.ref3.summary', '.ref4.summary']:
-        summary_file = prefix[:-len('sentence')] + porfix
+        #summary_file = prefix[:-len('sentence')] + porfix
+        summary_file = prefix + porfix
         
         r = get_bigram_overlap(document, summary_file)
         
@@ -96,7 +97,7 @@ def get_overlap_IE256():
             
             if not fio.IsExist(summary_file): continue
             
-            overlap = get_bigram_overlap_doc(prefix)
+            overlap = get_bigram_overlap(prefix+'.key', summary_file)
         
             data[type + '_' + str(week)] = overlap
             
@@ -105,6 +106,42 @@ def get_overlap_IE256():
     print np.mean(overlaps), np.median(overlaps)
     
     fio.SaveDict2Json(data, '../../data/IE256/bigram_overlap.json')
+
+def get_overlap_Engineer():
+    ilpdir = "../../data/Engineer/ILP_Baseline/"
+    
+    data = {}
+    
+    types = ['POI', 'MP', 'LP']
+    sheets = range(0, 12)
+    
+    overlaps = []
+    
+    for i, sheet in enumerate(sheets):
+        week = i + 1
+        dir = ilpdir + str(week) + '/'
+        
+        for type in types:
+            prefix = dir + type + "." + 'sentence'
+            print prefix
+            
+            document = prefix+'.key'
+            if not fio.IsExist(document):continue
+            summary_file = prefix[:-len('sentence')] + 'ref.summary'
+            
+            print summary_file
+            
+            if not fio.IsExist(summary_file): continue
+            
+            overlap = get_bigram_overlap(document, summary_file)
+        
+            data[type + '_' + str(week)] = overlap
+            
+            overlaps.append(overlap)
+    
+    print np.mean(overlaps), np.median(overlaps)
+    
+    fio.SaveDict2Json(data, '../../data/Engineer/bigram_overlap.json')
     
 def rank_rouge_by_overlap():
     bigram_overlap_json = '../../data/TAC/bigram_overlap.json'
@@ -131,8 +168,33 @@ def rank_rouge_by_overlap():
         body.append(row)
     
     fio.WriteMatrix('../../data/TAC/rouge_sort.txt', body, head)
+
+def get_overlap_DUC():
+    ilpdir = "../../data/DUC/DUC_ILP_Sentence/"
+    
+    data = {}
+    for year in [
+                 'DUC_2004', 
+                 ]:
+    
+        path = os.path.join(ilpdir, year)
+        print path
+        for subdir, file in TAC_ILP_baseline.iter_folder(path, '.key'):
+            doc_id = file[:-4]
+            prefix = os.path.join(path, doc_id)
+            print prefix
+            print doc_id
             
+            overlap = get_bigram_overlap_doc(prefix)
+            
+            data[doc_id] = overlap
+            
+    fio.SaveDict2Json(data, '../../data/DUC/DUC04/bigram_overlap.json')
+      
 if __name__ == '__main__':
     #rank_rouge_by_overlap()
     
-    get_overlap_IE256()
+    get_overlap_DUC()
+    #get_overlap_Engineer()
+    
+    #get_overlap_IE256()

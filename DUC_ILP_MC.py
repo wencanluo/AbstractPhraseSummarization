@@ -8,6 +8,7 @@ import json
 
 import ILP_baseline as ILP
 import TAC_ILP_baseline
+from _collections import defaultdict
 
 ngramTag = "___"
 
@@ -58,19 +59,60 @@ def getSparseRatioExample(svddir, prefixA=".org.softA", eps=1e-3):
                 for i, x in enumerate(row):
                     if x >= eps and x != 1.0:
                         print x, '\t', bigram, '@', sentences[i].strip()
+
+def getTwiceRatio(svddir, prefixA=".org.softA", eps=1e-3):
+    dict = defaultdict(int)
+    
+    for year in [
+                 #'s08', 
+                 #'s09', 
+                 'DUC_2004', 
+                 #'s11'
+                 ]:
+        path = os.path.join(ilpdir, year)
+        print path
+        for subdir, file in TAC_ILP_baseline.iter_folder(path, '.key'):
+            doc_id = file[:-4]
+            prefix = os.path.join(path, doc_id)
+            print prefix
+            print doc_id
+            
+            svdfile = os.path.join(matrix_dir, year,  doc_id + prefixA)
+            
+            A = LoadMC(svdfile)
+            
+            for bigram, row in A.items():
+                for x in row:
+                    dict[bigram] += x
+    
+    bicount = 0.     
+    for bigram, count in dict.items():
+        if count <= 2:
+            bicount += 1
+    print bicount, len(dict), bicount/len(dict)
     
 def getSparseRatio(svddir, prefixA=".org.softA", eps=1e-3):
     sheets = range(0,12)
      
     total_nonZero = 0.0
     total_N = 0.0
-    for sheet in sheets:
-        week = sheet + 1
-        dir = svddir + str(week) + '/'
-        
-        for type in ['POI', 'MP', 'LP']:
-            svdfile = svddir + str(week) + '/' + type + prefixA
-        
+    
+    for year in [
+                 #'s08', 
+                 #'s09', 
+                 'DUC_2004', 
+                 #'s11'
+                 ]:
+        path = os.path.join(ilpdir, year)
+        print path
+        for subdir, file in TAC_ILP_baseline.iter_folder(path, '.key'):
+            doc_id = file[:-4]
+            prefix = os.path.join(path, doc_id)
+            print prefix
+            print doc_id
+            
+            svdfile = os.path.join(matrix_dir, year,  doc_id + prefixA)
+            
             A = LoadMC(svdfile)
             
             nonZero, N = getNoneZero(A, eps)
@@ -287,13 +329,13 @@ def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold):
 
             
 if __name__ == '__main__':
-    ilpdir = "../../data/DUC_ILP_MC/"
+    ilpdir = "../../data/DUC/DUC_ILP_MC/"
     
     from config import ConfigFile
     
     config = ConfigFile(config_file_name='duc_config.txt')
     
-    matrix_dir = 'E:/project/AbstractPhraseSummarization/data/DUC_MC/'
+    matrix_dir = 'E:/project/AbstractPhraseSummarization/data/DUC/DUC_MC/'
     print matrix_dir
     
 #     A = {'a':[1,0], 'b':[0,0,1]}
@@ -302,9 +344,9 @@ if __name__ == '__main__':
     
 #     matrix_dir = "../../data/matrix/exp5/"
     
-    #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    print getTwiceRatio(matrix_dir, prefixA=".org.softA", eps=1.0)
     #getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0)
-    #exit(1)
+    exit(1)
     
     for threshold in [config.get_sparse_threshold()]:
         for L in [config.get_length_limit()]:

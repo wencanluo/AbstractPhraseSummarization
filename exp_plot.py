@@ -26,7 +26,7 @@ hatchs = ['', '///', '\\\\\\', '///\\\\\\', '']
 #Lengths = [20, 25, 30, 35, 40]
 Lengths = [20, 30, 40]
 
-myalpha = 1.0
+myalpha = 0.9
 
 lambda_range =  np.arange(0.1, 4.1, 0.1)
 sparse_range = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
@@ -751,16 +751,16 @@ def get_rouge_split(input):
 def plot_Split():
     fontsize = 12
     labelsize = 12
-    legendsize = 12
+    legendsize = 10
     alpha = myalpha
     markersize=6
     w = 0.5
     
-    folders = [('Mead','../../data/Engineer/Mead/'),
-               ('LexRank','../../data/Engineer/LexRank/'),
-           ('SumBasic','../../data/Engineer/SumBasic/'),
-           ('ILP','../../data/Engineer/ILP_Baseline/'),
-           ('MC','../../data/Engineer/ILP_MC/'),
+    folders = [('MEAD','../../data/Engineer/Mead/'),
+               ('LEXRANK','../../data/Engineer/LexRank/'),
+           ('SUMBASIC','../../data/Engineer/SumBasic/'),
+           ('ILP-BASELINE','../../data/Engineer/ILP_Baseline/'),
+           ('ILP-IMPUTATION','../../data/Engineer/ILP_MC/'),
            ]
     
     Ys = []
@@ -827,7 +827,7 @@ def plot_Split():
 #     plt.tick_params(axis='both', which='major', labelsize=labelsize)
 #     plt.tick_params(axis='x', which='major', labelsize=labelsize+3)
     
-    fig.subplots_adjust(left=0.085, bottom=0.09, right=0.999, top=0.95)
+    fig.subplots_adjust(left=0, bottom=0.09, right=0.999, top=0.95)
 
     #plt.show()
     

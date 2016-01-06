@@ -43,7 +43,7 @@ def get_bigram_overlap_doc(prefix):
     
     return np.average(rs)
 
-def get_overlap():
+def get_overlap_DUC():
     ilpdir = "../../data/DUC_ILP_Sentence/"
     
     data = {}

@@ -439,15 +439,15 @@ if __name__ == '__main__':
 #             for metric in ['R1-F', 'R2-F', 'RSU4-F']:
 #                 getOracleRouge(oracledir, np, L, metric, datadir)
     
-#     for L in [30]:
-#         for np in ['sentence']:
-#             for metric in ['R2-F']:
-#                 Greedy(oracledir, np, L, metric)
-       
     for L in [30]:
         for np in ['sentence']:
-            for metric in ['R2-F']:
-                getOracleRouge(oracledir, np, L, metric, datadir)
+            for metric in ['R2-P', 'R1-P']:
+                Greedy(oracledir, np, L, metric)
+       
+#     for L in [30]:
+#         for np in ['sentence']:
+#             for metric in ['R2-R']:
+#                 getOracleRouge(oracledir, np, L, metric, datadir)
         
     print "done"
     
