@@ -82,13 +82,12 @@ def ExtractDataStatitics(datadir, outdir):
             
             fio.SaveList(allsentences, filename)
             sentence_num += len(allsentences)
-        
-        
-        row = [document_num, sentence_num, sentence_num/document_num, word_num/document_num]
+            
+        row = [folder, document_num, sentence_num, sentence_num/document_num, word_num/document_num]
         body.append(row)
     
-    header = ['# of document',   '# of sentences',    'average # of sentences',    'average # of words']
-    fio.WriteMatrix("../../data/TAC/statistics.txt", body, header)
+    header = ['data', '# of document',   '# of sentences',    'average # of sentences',    'average # of words']
+    fio.WriteMatrix(os.path.join(outdir, "statistics.txt"), body, header)
     
 def ExtractReferenceSummary(datadir, outdir):
     fio.NewPath(outdir)
@@ -113,6 +112,10 @@ def ExtractReferenceSummary(datadir, outdir):
                 fio.SaveList(sentences, filename)
             
 if __name__ == '__main__':
+    #ExtractDataStatitics('../../data/TAC/', '../../data/TAC/')
+    ExtractDataStatitics('../../data/DUC/DUC04/', '../../data/DUC/DUC04/')
+    exit(-1)
+    
     datadir = "../../data/DUC04/"
     
     outdirs = [#"../../data/DUC_ILP_Sentence/",
@@ -120,12 +123,10 @@ if __name__ == '__main__':
                '../../data/DUC_ILP_MC/',
                ]
     
+    
     for outdir in outdirs:
         ExtractSentence(datadir, outdir)
         ExtractReferenceSummary(datadir, outdir)
-        
-    #ExtractDataStatitics(datadir, outdir)
-    
     
     #ss = ParseTACXML('../../data/TAC/s10\\test_doc_files\\D1035G\\D1035G-A\\new\\APW19980718.0011')
    

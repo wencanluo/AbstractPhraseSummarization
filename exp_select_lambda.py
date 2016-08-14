@@ -4,6 +4,7 @@ import fio
 from scipy.stats import ttest_rel as ttest #paired t-test
 import stats_util
 from sklearn.cross_validation import KFold
+import global_params
 
 def getRougesbyWeek(input):
     head, body = fio.ReadMatrix(input, hasHead=True)        
@@ -14,7 +15,7 @@ def get_ttest_pvalues(body1, body2, index):
     for k in index:
         X = [float(row[k]) for row in body1]
         Y = [float(row[k]) for row in body2]
-        _, p = stats_util.ttest(X, Y, tail=1, type=1)
+        _, p = stats_util.ttest(X, Y, tail=2, type=1)
         
         p_values.append(p)
     
@@ -165,7 +166,128 @@ def select_lambda_MC_Engnieer_cv(): # a random 3 lectures
     fio.WriteMatrix("../../data/Engineer/test.txt", selected_test_scores, head)
     return count
 
+def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
+    sheets = global_params.lectures[cid]
+    
+    head = ['week', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']
+    metric = head.index('R1-F')
+    
+    #score_index = [head.index('R1-F'), head.index('R2-F'), head.index('RSU4-F')]
+    score_index = range(1, 10)
+    
+    ilpdir = "../../data/%s/ILP_MC/"%cid
+    
+    #baseline_rouges_file =  "../../data/%s/ILP_Baseline/rouge.sentence.L%d.txt"%(cid, L)
+    baseline_rouges_file =  ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(0.0) +'.'+ str(0.0) + ".txt"
+    baseline_rouges = getRougesbyWeek(baseline_rouges_file)
+    
+    weeks = sheets
+    
+    #shuffle the weeks ?
+    
+    kf = KFold(len(weeks), n_folds=nfolds, shuffle=False)
+    
+    selected_test_scores = []
+    selected_baseline_scores = []
+    
+    for train_index, test_index in kf:
+        selected = [weeks[i] for i in train_index]
+        test_set = [weeks[i] for i in test_index]
+        
+        #print "dev:", sorted(selected)
+        #print "test:", sorted(test_set)
+        
+        dev_scores = {}
+        
+        for softimpute_lambda in numpy.arange(0.1, 8.0, 0.1):
+            for sparse in [0.0]:
+                
+                
+                rougename = ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(softimpute_lambda) +'.'+ str(sparse) + ".txt"
+                
+                scores = getRougesbyWeek(rougename)
+                
+                #R1
+                selected_scores = []
+                for week in selected:
+                    for row in scores:
+                        if not row[0].startswith('ave') and int(row[0]) == week:
+                            selected_scores.append(float(row[metric]))
+        
+                ave_r1 = numpy.mean(selected_scores)
+                
+                dev_scores[str(softimpute_lambda)] = ave_r1
+        
+        sorted_lambdas = sorted(dev_scores, key=dev_scores.get, reverse=True)
+        
+        #print "lambda:", sorted_lambdas[0]
+        
+        softimpute_lambda = sorted_lambdas[0]
+        sparse = 0.0
+        
+        #get test scores
+        rougename = ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(softimpute_lambda) +'.'+ str(sparse) + ".txt"
+        scores = getRougesbyWeek(rougename)
+        
+        for week in test_set:
+            for row in scores:
+                if not row[0].startswith('ave') and int(row[0]) == week:
+                    selected_test_scores.append(row)
+        
+        for week in test_set:
+            for row in baseline_rouges:
+                if not row[0].startswith('ave') and int(row[0]) == week:
+                    selected_baseline_scores.append(row)
+        
+    pvalues = get_ttest_pvalues(selected_baseline_scores, selected_test_scores, score_index)
+    
+    #print pvalues
+    
+    count = 0
+#     for p in pvalues:
+#         if p <= 0.05:
+#             count += 1
+    
+    baseline_ave = ['ILP']
+    row = ['ILP+MC']
+    for i, p in zip(range(1, len(head)), pvalues):
+        scores = [float(xx[i]) for xx in selected_test_scores]
+        base_scores = [float(xx[i]) for xx in selected_baseline_scores]
+        baseline_ave.append('%.3f'%(numpy.mean(base_scores)))
+        
+        ave = numpy.mean(scores)
+        
+        if ave > float(baseline_ave[-1]):
+            count += 1
+        
+        if p < 0.05:
+            row.append('%.3f%s'%(ave, '+' if ave > float(baseline_ave[-1])  else '-'))
+        else:
+            row.append('%.3f'%(ave))
+    
+    selected_test_scores.append(baseline_ave)
+    selected_test_scores.append(row)
+    
+    fio.WriteMatrix("../../data/%s/test_%d.txt"%(cid,L), selected_test_scores, head)
+    return count
+
 if __name__ == '__main__':
     #select_lambda_MC_Engnieer_dev()
     
-    select_lambda_MC_Engnieer_cv()
+    #select_lambda_MC_Engnieer_cv()
+    
+    #cid = 'CS0445'
+    cid = 'IE256_2016'
+    
+    #for L in [10, 15, 20, 25, 30, 35, 40]:
+    for L in [10, 20, 30, 40]:
+    #for L in [30]:
+        counts = []
+        
+        #folds = range(2, 20)
+        folds = [10]
+        for fold in folds:
+            count = select_lambda_MC_cv(cid, L, fold)
+            counts.append(count)
+        print max(counts), folds[counts.index(max(counts))], counts
+        #select_lambda_MC_cv('CS0445', L)

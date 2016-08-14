@@ -18,7 +18,7 @@ names = ['BASELINE-ILP', 'MC', 'CW', 'BOTH']
 #colors = ['#f1eef6', "#74a9cf", "#045a8d", "#feb24c"]
 #colors = ['#ffffcc', "#a1dab4", "#41b6c4", "#2c7fb8", '#253494']
 #colors = ['#f6eff7', "#bdc9e1", "#67a9cf", "#1c9099", '#016c59']
-colors = ['#f7f7f7', "#cccccc", "#969696", "#636363", '#252525']
+colors = ['#d8b365', "#cccccc", "#969696", "#636363", '#252525']
 
 markers = ['o', 's', '^', 'D', '']
 hatchs = ['', '///', '\\\\\\', '///\\\\\\', '']

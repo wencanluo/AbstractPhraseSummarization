@@ -6,19 +6,19 @@ import os
 from TAC_ILP_baseline import iter_folder
 from numpy import average
 import codecs
+import global_params
+from _ast import Lambda
 
 tmpdir = "../../data/tmp/"
 RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeHeaderSplit = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
 
-def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda):
-    sheets = range(0,26)
-    
+def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets):
     body = []
     
     for sheet in sheets:
-        week = sheet + 1
+        week = sheet
         dir = ilpdir + str(week) + '/'
         
         for type in ['q1', 'q2']:
@@ -90,39 +90,44 @@ def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda):
         row.append(numpy.mean(scores))
     body.append(row)
     
-    fio.WriteMatrix(os.path.join(outputdir, "rouge.sentence." + 'L' + str(L) + ".txt"), body, header)
+    fio.WriteMatrix(os.path.join(outputdir, "rouge.sentence." + 'L' + str(L) + '.' + str(Lambda) + ".txt"), body, header)
     
 if __name__ == '__main__':
     import sys
     
-    ilpdir = sys.argv[1]
-    m_lambda = sys.argv[2]
-    threshold = sys.argv[3]
+    #ilpdir = sys.argv[1]
     
-    #ilpdir = '../../data/IE256/ILP_Sentence_MC/'
-    #m_lambda = 'org'
-    #threshold = '1.0'
-    
-    from config import ConfigFile
-    config = ConfigFile(config_file_name='config_IE256.txt')
+    #cid = 'CS0445'
+    for cid in ['IE256_2016', 'CS0445']:
+        
+        ilpdir = "../../data/%s/ILP_MC/"%cid
+        sheets = global_params.lectures[cid]
+        
+        #m_lambda = 'org'
+        #threshold = '1.0'
+        
+        from config import ConfigFile
+        config = ConfigFile(config_file_name='config_%s.txt'%cid)
+                        
+        rouge_dict = {}
+        
+        for L in [10, 15, 20, 25, 30, 35, 40]:
+        #for L in [39]:
+            for threshold in [0.0]:
+                for m_lambda in numpy.arange(0, 8.0, 0.1):
+                #for m_lambda in numpy.arange(0.5, 6.0, 0.5):
+                #for m_lambda in [0.0]:
+            
+                    if m_lambda == 'None':
+                        Lambda = None
+                    else:
+                        Lambda =  str(m_lambda)+ '.' + str(threshold)
                     
-    rouge_dict = {}
-    
-    for L in [config.get_length_limit()]:
-    #for L in [39]:
-        #for threshold in [0.0]:
-        #for m_lambda in ['2']:
-        
-        if m_lambda == 'None':
-            Lambda = None
-        else:
-            Lambda =  str(m_lambda)+ '.' + str(threshold)
-        
-        getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda)
-        
-        if m_lambda == 'None':
-            fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
-        else:
-            fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.'+Lambda+'.json')
-                     
+                    getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets)
+                    
+                    if m_lambda == 'None':
+                        fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
+                    else:
+                        fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.'+Lambda+'.json')
+                         
     print "done"

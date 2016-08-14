@@ -419,6 +419,8 @@ def getStudentResponseAverageWords(excelfile, output):
             
     fio.WriteMatrix(output, body, ['Week', 'POI', '', 'MP', '', 'LP', '']) 
 
+
+    
 def getStudentResponseWordCountDistribution2(excelfile, output):
     header = ['ID', 'Gender', 'Point of Interest', 'Muddiest Point', 'Learning Point']
     summarykey = "Top Answers"
@@ -1321,7 +1323,6 @@ if __name__ == '__main__':
     excelfile = "../data/2011Spring.xls"
     output = "../data/2011Spring_overivew.txt"
     summaryoutput = "../data/2011Spring_summary.txt"
-    
     
     #datadir_multiple = "../../mead/data/2011SpringMutiple/"
     

@@ -155,6 +155,42 @@ def run_UnsupervisedMC_IE256():
     config.set_softImpute_lambda(old_softimpute_lambda)
     config.save()
 
+def run_UnsupervisedMC_New(cid):
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+    
+    Header = ['method', 'L', 'lambda', 'sparse'] + ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']*3
+    
+    
+    for L in [10, 15, 20, 25, 30, 35, 40]:
+        body = []
+
+        for softimpute_lambda in numpy.arange(0, 8.0, 0.1):
+            if softimpute_lambda == 'org':
+                sparses = [1.0]
+            else:
+                #sparses = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
+                sparses = [0.0]
+                
+            for sparse in sparses:
+                row = ['baseline+MC']
+                row.append(L)
+                row.append(softimpute_lambda)
+                row.append(sparse)
+                
+                ilpdir = "../../data/%s/ILP_MC/"%cid
+                
+                rougename = ilpdir + 'rouge.sentence.L' + str(L) + '.' + str(softimpute_lambda) +'.'+ str(sparse) + ".txt"
+                
+                scores = getRouges(rougename)
+                
+                row = row + scores
+                body.append(row)
+                
+        newname = ilpdir + 'rouge.sentence.L' +str(L) + '.txt'
+        fio.WriteMatrix(newname, body, Header)
+    
 def run_UnsupervisedMC_DUC():
     from config import ConfigFile
     
@@ -514,7 +550,9 @@ if __name__ == '__main__':
     #get_average_CWLearning()
     
     #run_Baseline()
-    run_UnsupervisedMC_IE256()
+    #run_UnsupervisedMC_IE256()
+    
+    run_UnsupervisedMC_New('IE256_2016')
     #run_UnsupervisedMC_DUC()
 #     for iter in [5]:
 #         run_CWLearning(iter)

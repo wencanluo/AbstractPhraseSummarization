@@ -1,5 +1,5 @@
 import softImputeWrapper
-import SVD_getMatrixCompletion
+import ILP_getMatrixCompletion
 import fio
 import re
 from config import dict_ngrams
@@ -11,7 +11,7 @@ def extract_mc(path, ngrams, rank_max, softImpute_lambda):
         dict = fio.LoadDict(path + 'POI_MP_LP_corpus.corpus.dict', 'int')
         
         prefixname = str(rank_max) + '_' +  str(softImpute_lambda)
-        SVD_getMatrixCompletion.SaveNewA(newA, dict, path, ngrams, prefixname, sheets = range(0,12))
+        ILP_getMatrixCompletion.SaveNewA(newA, dict, path, ngrams, prefixname, sheets = range(0,12))
 
 def extract_orgA(path, ngrams): 
     newA = softImputeWrapper.LoadX(path=path)
@@ -20,7 +20,7 @@ def extract_orgA(path, ngrams):
         dict = fio.LoadDict(path + 'POI_MP_LP_corpus.corpus.dict', 'int')
         
         prefixname = "org"
-        SVD_getMatrixCompletion.SaveNewA(newA, dict, path, ngrams, prefixname, sheets = range(0,12))
+        ILP_getMatrixCompletion.SaveNewA(newA, dict, path, ngrams, prefixname, sheets = range(0,12))
         
 def get_lambda(logfile, rank):
     #get the best lambda for a rank

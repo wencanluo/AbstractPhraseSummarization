@@ -31,6 +31,23 @@ def LoadR(rank, Lambda, type='svd', path='./'):
     newX = numpy.array(newX)
     
     return newX.T
+
+#matrix competition using the SoftImpute algorithm
+#X: input matrix
+#R: max rank
+#L: lambda
+def SoftImpute_SaveX(X, name, folder):
+    df = DataFrame(X)
+    df = com.convert_to_r_dataframe(df)
+    r.assign('X', df)
+    r("save(X, file='%s/%s.gzip', compress=TRUE)" % (folder, name)) #(os.path.join(folder, name)))
+     
+    #cmd = 'Rscript softImpute.R %d %f %s' % (rank, Lambda, type)
+    #cmd = 'Rscript softImputeDemo.R %d %f %s' % (rank, Lambda, type)
+    #print cmd
+    #os.system(cmd)
+    
+    #return LoadR(rank, Lambda, type)
     
 #matrix competition using the SoftImpute algorithm
 #X: input matrix

@@ -592,6 +592,36 @@ def getILP_IE256():
             
     print "done"
 
+def getILP_CS0445():
+    cid = 'CS0445'
+    
+    ilpdir = "../../data/%s/ILP_Baseline/"%cid
+    
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+    
+    for L in [10, 15, 20, 25, 30, 35, 40]:
+        for np in ['sentence']:
+            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
+            
+    print "done"
+        
+def getILP_IE256_2016():
+    cid = 'IE256_2016'
+    
+    ilpdir = "../../data/%s/ILP_Baseline/"%cid
+    
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+    
+    for L in [10, 15, 20, 25, 30, 35, 40]:
+        for np in ['sentence']:
+            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
+            
+    print "done"
+
 def getILP_Engineer():
     ilpdir = "../../data/ILP1_Sentence/"
     
@@ -606,6 +636,8 @@ def getILP_Engineer():
     print "done"
                 
 if __name__ == '__main__':
-    getILP_IE256()
+    #getILP_IE256()
+    #getILP_IE256_2016()
+    getILP_CS0445()
     
     #getILP_Engineer()

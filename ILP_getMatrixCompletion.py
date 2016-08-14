@@ -10,6 +10,7 @@ import pickle
 import softImputeWrapper
 import ILP_baseline as ILP
 import os
+import global_params
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -58,12 +59,14 @@ def iter_documents(outdir, types, sheets = range(0,25), np='syntax', ngrams=[1])
     print "types:", types
             
     # find all .txt documents, no matter how deep under top_directory
-    for i, sheet in enumerate(sheets):
-        week = i + 1
+    for sheet in sheets:
+        week = sheet
         dir = outdir + str(week) + '/'
         
         for question in types:
             prefix = dir + question + "." + np
+            
+            print prefix
             
             filename = prefix + phraseext
             if not fio.IsExist(filename): continue
@@ -245,6 +248,52 @@ def SaveNewA(A, dict, path, ngrams, prefixname="", sheets = range(0,25), np='sen
             with open(svdAname, 'w') as fout:
                 json.dump(PartA, fout, indent=2)            
 
+def SaveNewA_New(A, dict, path, ngrams, prefixname="", sheets = range(0,25), np='sentence', types=['POI', 'MP', 'LP']):
+    TotoalLine = 0
+        
+    for i in sheets:
+        week = i
+        dir = path + str(week) + '/'
+        
+        for type in types:
+            prefix = dir + type + "." + np
+            print prefix
+            
+            if not fio.IsExist(prefix + phraseext):
+                print prefix + phraseext
+                continue
+            
+            document = open(prefix + phraseext).readlines()
+            
+            LineRange = range(TotoalLine, TotoalLine + len(document))
+            
+            TotoalLine = TotoalLine + len(document)
+            
+            Bigrams = []
+            for line in document:
+                line = ProcessLine(line, ngrams)
+                
+                tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
+                
+                Bigrams = Bigrams + tokens
+            
+            PartA = {}
+            for bigram in set(Bigrams):
+                if bigram not in dict:
+                    print "error", bigram
+                
+                id = dict[bigram]
+                
+                row = A[id]
+                
+                PartA[bigram] = [row[x] for x in LineRange]
+            
+            svdAname = dir + type + '.' +prefixname + '.softA'
+            print svdAname
+            
+            with open(svdAname, 'w') as fout:
+                json.dump(PartA, fout, indent=2)        
+                
 def ToBinary(csc):
     A = csc.toarray()
     
@@ -323,7 +372,65 @@ def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_m
         
         token2id = fio.LoadDictJson(dictname)
         SaveNewA(newA, token2id, path, ngrams, prefix, np=np, types=types)
+
+def getSVD_WriteX(cid, prefix, np, corpusname, ngrams, binary_matrix, output, types = ['POI', 'MP', 'LP']):
+    path = prefix
+    fio.NewPath(path)
+    
+    sheets = global_params.lectures[cid]
+    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
+    
+    # that's it! the streamed corpus of sparse vectors is ready
+    if corpusname=='book':
+        corpus = BookCorpus(np, ngrams)
+    elif corpusname == 'tac':
+        corpus = TacCorpus(prefix, ngrams)
+        dictname = path + '_' + corpusname + corpusdictexe
+    else:
+        corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams)
+       
+    fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
+ 
+    #https://pypi.python.org/pypi/sparsesvd/
+    scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
+    print scipy_csc_matrix.shape
+      
+    print "binary_matrix: ", binary_matrix
+      
+    A = ToBinary(scipy_csc_matrix)
+      
+    name = 'X'
+    softImputeWrapper.SoftImpute_SaveX(A.T, name=name, folder=output)
+
+def getSVD_SaveOrg(cid, prefix, np, corpusname, ngrams, binary_matrix, output, types = ['POI', 'MP', 'LP']):
+    path = prefix
+    sheets = global_params.lectures[cid]
+    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
+    
+    prefix = "org"
+    newA = softImputeWrapper.LoadA(name='X', folder=output)
+      
+    if newA != None:
+        print newA.shape
+         
+        token2id = fio.LoadDictJson(dictname)
+        SaveNewA_New(newA, token2id, path, ngrams, prefix, sheets=sheets, np=np, types=types)
+    
+def getSVD_LoadMC(cid, prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix, output, types = ['POI', 'MP', 'LP']): 
+    #types = ['POI', 'MP', 'LP']
+    path = prefix
+    sheets = global_params.lectures[cid]
+    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
         
+    prefix = str(softImpute_lambda)
+    Lambda = str(rank_max) + '_' + str(softImpute_lambda)
+    newA = softImputeWrapper.LoadMC(Lambda=Lambda, name='newX', folder=output)
+      
+    if newA != None:
+        print newA.shape
+         
+        token2id = fio.LoadDictJson(dictname)
+        SaveNewA_New(newA, token2id, path, ngrams, prefix, sheets, np=np, types=types) 
 
 def TestProcessLine():
     line = "how to determine the answers to part iii , in the activity ."
@@ -348,6 +455,9 @@ def getMC_IE256():
     config = ConfigFile(config_file_name='config_IE256.txt')
     
     for np in ['sentence']:
+        
+        getSVD_WriteX(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+        
         for softImpute_lambda in numpy.arange(5.0, 5.1, 0.1):
             if softImpute_lambda < 1.4:
                 rank_max = 2000
@@ -359,9 +469,43 @@ def getMC_IE256():
             getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
 
     print "done"
-                    
+    
+def getMC(cid):
+    ILP_dir = "../../data/%s/MC/"%cid 
+    outdir = "../../data/%s/matrix/exp5/"%cid
+    fio.NewPath(outdir)
+    
+    #TestProcessLine()
+    from config import ConfigFile
+    
+    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+    
+    for np in ['sentence']:
+        #getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+        
+        #getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+        
+        #pause, run the MC script
+        
+        for softImpute_lambda in [1.0]:#numpy.arange(0.1, 8.0, 0.1):
+            if softImpute_lambda < 1.4:
+                rank_max = 2000
+            else:
+                rank_max = 500
+            
+            softImpute_lambda = "%.1f"%softImpute_lambda
+             
+#             if softImpute_lambda.endswith('.0'):
+#                 softImpute_lambda = softImpute_lambda[:-2]
+#                 
+            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+
+    print "done"
+                        
 if __name__ == '__main__':
-    getMC_IE256()
+    #getMC_IE256()
+    getMC('IE256_2016')
+    #getMC('CS0445')
     exit(-1)
     
     excelfile = "../../data/2011Spring_norm.xls"
@@ -376,13 +520,16 @@ if __name__ == '__main__':
     config = ConfigFile(config_file_name='tac_config.txt')
     
     for np in ['sentence']:
-        for softImpute_lambda in numpy.arange(0.1, 4.1, 0.1):
+        for softImpute_lambda in numpy.arange(0.1, 8.0, 0.1):
             if softImpute_lambda < 1.4:
                 rank_max = 2000
             else:
                 rank_max = 500
             
             softImpute_lambda = "%.1f"%softImpute_lambda
+            
+            if softImpute_lambda.endswith('.0'):
+                softImpute_lambda = softImpute_lambda[:-2]
             
             getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir)
 

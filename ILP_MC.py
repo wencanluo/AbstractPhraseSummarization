@@ -5,8 +5,9 @@ import porter
 import NLTKWrapper
 import os
 import json
-
+import numpy
 import ILP_baseline as ILP
+import global_params
 
 ngramTag = "___"
 
@@ -224,7 +225,7 @@ def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpha
     
     return PartialPhraseBigram, PartialBigramPhrase
     
-def ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold):
+def ILP1(prefix, svdfile, svdpharefile, L, Ngram, Lambda, threshold):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
@@ -254,10 +255,10 @@ def ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold):
     output = prefix + '.L' + str(L) + '.'+str(Lambda)+ '.' + str(threshold) + ".summary"
     ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
-def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold, sheets = range(0,12), types=['POI', 'MP', 'LP']):
+def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, Lambda, threshold, sheets = range(0,12), types=['POI', 'MP', 'LP']):
     
     for sheet in sheets:
-        week = sheet + 1
+        week = sheet
         dir = ilpdir + str(week) + '/'
         
         for type in types:
@@ -274,7 +275,7 @@ def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, threshold, sheets 
             summary_file = prefix + '.L' + str(L) + '.'+str(Lambda)+ '.' + str(threshold) + ".summary"
             if fio.IsExist(summary_file): continue
             
-            ILP1(prefix, svdfile, svdpharefile, L, Ngram, threshold=threshold)
+            ILP1(prefix, svdfile, svdpharefile, L, Ngram, Lambda, threshold=threshold)
 
 def get_ILP_IE256():
     ilpdir = "../../data/IE256/ILP_Sentence_MC/"
@@ -310,43 +311,35 @@ def get_ILP_IE256():
             ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold(), sheets = range(0,26), types=config.get_types()) 
             
     print "done"
+
+def get_ILP_MC_summary(cid):
+    ilpdir = "../../data/%s/ILP_MC/"%cid
+    sheets = global_params.lectures[cid]
+      
+    from config import ConfigFile
+      
+    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+      
+    matrix_dir = "../../data/%s/MC/"%cid
+    print matrix_dir
+          
+    for L in [10, 15, 20, 25, 30, 35, 40]:
+        for np in ['sentence']:
+            for Lambda in numpy.arange(0, 8.0, 0.1):
+            #for Lambda in [0]:
+                if Lambda == 0:
+                    prefixA = '.org.softA'
+                else:
+                    prefixA = '.' + str(Lambda) + '.softA'
+                  
+                ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, Lambda=Lambda, threshold=config.get_sparse_threshold(), sheets = sheets, types=config.get_types()) 
+                  
+    print "done"
                 
 if __name__ == '__main__':
-#     ilpdir = "../../data/IE256/ILP_Sentence_MC/"
-#      
-#     from config import ConfigFile
-#      
-#     config = ConfigFile(config_file_name='config_IE256.txt')
-#      
-#     matrix_dir = "../../data/IE256/MC/"
-#     print matrix_dir
-#      
-# #     A = {'a':[1,0], 'b':[0,0,1]}
-# #     A = LoadMC("../../data/SVD_Sentence/3/MP.org.softA")
-# #     print getNoneZero(A)
-#      
-# #     matrix_dir = "../../data/matrix/exp5/"
-#      
-#     #print getSparseRatio(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-#     #getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
-#     #exit(1)
-#      
-#     for L in [config.get_length_limit()]:
-#         for np in ['sentence']:
-#             rank = config.get_rank_max()
-#             Lambda = config.get_softImpute_lambda()
-#             if Lambda == 0:
-#                 prefixA = '.org.softA'
-#             else:
-#                 #prefixA = '.' + str(rank) + '_' + str(Lambda) + '.softA'
-#                 prefixA = '.' + str(Lambda) + '.softA'
-#              
-#              
-#             ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram=config.get_ngrams(), prefixA=prefixA, threshold=config.get_sparse_threshold(), sheets = range(0,26), types=config.get_types()) 
-#              
-#     print "done"
-#      
-#     exit(-1)
+    get_ILP_MC_summary('IE256_2016')
+    #get_ILP_MC_summary('CS0445')
+    exit(-1)
     
     ilpdir = "../../data/Engineer/ILP_MC/"
      
@@ -364,7 +357,7 @@ if __name__ == '__main__':
 #     matrix_dir = "../../data/matrix/exp5/"
      
     #print getSparseRatio(matrix_dir, prefixA=".org.softA", eps=1.0)
-    getSparseRatioExample(matrix_dir, prefixA=".500_2.0.softA", eps=0.9)
+    getSparseRatioExample(matrix_dir, prefixA=".500_2.5.softA", eps=0.9)
     exit(1)
      
     for L in [config.get_length_limit()]:

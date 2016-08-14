@@ -7,6 +7,9 @@ import codecs
 import Cosin
 from collections import defaultdict
 import stats_util
+from nltk.metrics.agreement import AnnotationTask
+import numpy as np
+
 
 folders = {'Mead':'../../data/Engineer/Mead/',
            'Oracle_ILP':'../../data/Engineer/ILP_Oracle/',
@@ -101,7 +104,150 @@ def generate_checking_point(prompt, week, summaryA, summaryB):
     row = ['"%s"'%prompts[prompt], list2paragraph(H), list2paragraph(A), list2paragraph(B)]
                     
     return logrow, row
+
+def get_kappa(input):
+    head,body = fio.ReadMatrix(input, True)
     
+    data = []
+    for i,row in enumerate(body):
+        for coder, label in enumerate(row):
+            if label == 'a': label = '0'
+            data.append((head[coder], i, label))
+    
+    task = AnnotationTask(data)
+    
+    print head[0], head[1], task.kappa_pairwise(head[0], head[1])
+    print head[0], head[2], task.kappa_pairwise(head[0], head[2])
+    print head[1], head[2], task.kappa_pairwise(head[1], head[2])
+    return task.kappa()
+
+def get_majority(A):
+    dict = defaultdict(int)
+    
+    for x in A:
+        dict[x] += 1
+    
+    keys = sorted(dict, key=dict.get, reverse=True)
+    
+    return keys[0]
+    
+def get_agreement(logfile, results, output):
+    head, body = fio.ReadMatrix(logfile, hasHead=True)
+    head_res, body_res = fio.ReadMatrix(results, hasHead=True)
+    
+    preference_index = head_res.index('Preference')
+    
+    subjects = []
+    dict_preference = {}
+    for row in body_res:
+        id = row[head_res.index('id')]
+        preference = int(row[preference_index])
+        subject_id = row[head_res.index('Worker ID')]
+        
+        subjects.append(subject_id)
+        
+        if id not in dict_preference:
+            dict_preference[id] = {}
+        
+        dict_preference[id][subject_id] = preference
+    
+    bad_annotators = []
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point != 'Y': continue
+        
+        for subject_id, preference in dict_preference[id].items():
+            preference = int(preference)
+            
+            if abs(preference) == 2:
+                bad_annotators.append(subject_id)
+    
+    bad_annotators = list(set(bad_annotators)) 
+    #print bad_annotators
+    
+    count = 0
+    total_count = 0
+    
+    data = []
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        #for subject_id, preference in dict_preference[id].items():
+        values = dict_preference[id].values()
+        for i in range(len(values)):
+            preference = int(values[i])
+            
+#             if preference < 0:
+#                 preference = -1
+#             elif preference > 0:
+#                 preference = 1
+            
+            values[i] = preference
+            
+        majority = get_majority(values)
+        
+        for k, preference in enumerate(values):
+            #if subject_id in bad_annotators: continue
+        
+            if preference == majority:
+                count += 1
+            
+            total_count += 1
+    
+    print count, '\t', total_count, '\t', count*1.0/total_count
+               
+           
+def get_agreement2(logfile, results, output):
+    head, body = fio.ReadMatrix(logfile, hasHead=True)
+    head_res, body_res = fio.ReadMatrix(results, hasHead=True)
+    
+    preference_index = head_res.index('Preference')
+    
+    subjects = []
+    dict_preference = {}
+    for row in body_res:
+        id = row[head_res.index('id')]
+        preference = int(row[preference_index])
+        subject_id = row[head_res.index('Worker ID')]
+        
+        subjects.append(subject_id)
+        
+        if id not in dict_preference:
+            dict_preference[id] = {}
+        
+        dict_preference[id][subject_id] = preference
+    
+    subjects = list(set(subjects))
+    
+    #print dict_preference
+    new_body = []
+    dict = defaultdict(int)
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        new_now = []
+        
+        for preference in dict_preference[id].values():
+            preference = int(preference)
+            if preference < 0:
+                preference = -1
+            elif preference > 0:
+                preference = 1
+                
+            new_now.append(preference)
+#             if subject not in dict_preference[id]: 
+#                 preference = 5
+#             else:
+#                 preference = dict_preference[id][subject]
+            
+        
+        new_body.append(new_now)
+    
+    fio.WriteMatrix(output, new_body, header=['1', '2', '3', '4', '5'])
+    
+        
 def result_analyze(logfile, results, output):
     head, body = fio.ReadMatrix(logfile, hasHead=True)
     head_res, body_res = fio.ReadMatrix(results, hasHead=True)
@@ -137,6 +283,20 @@ def result_analyze(logfile, results, output):
         
             count += 1
     
+    #print dict_preference
+    perference_body = []
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        row = [id, prompt, week, system_A, system_B]
+        for subject, preference in dict_preference[id].items():
+            row.append(preference)
+        row.append(numpy.sum(dict_preference[id].values()))
+        
+        perference_body.append(row)
+    
+    fio.WriteMatrix(output, perference_body, header=None)
     print dict
     
     PerferenceValue = {}
@@ -240,22 +400,34 @@ if __name__ == '__main__':
     output = '../../data/Engineer/input_'
     #task_generator(modelpairs, output)
     
-    result_analyze('../../data/Engineer/done/input_0_MC_ILP.log', 
+#     result_analyze('../../data/Engineer/done/input_0_MC_ILP.log', 
+#                    '../../data/Engineer/done/input_0_MC_ILP.out', 
+#                    '../../data/Engineer/done/input_0_MC_ILP.results.txt')
+#     
+#     result_analyze('../../data/Engineer/done/input_1_MC_Mead.log', 
+#                    '../../data/Engineer/done/input_1_MC_Mead.out', 
+#                    '../../data/Engineer/done/input_1_MC_Mead.results.txt')
+#     
+#     #result_analyze('../../data/Engineer/done/input_2_MC_Oracle_ILP.log', 
+#     #               '../../data/Engineer/done/input_2_MC_Oracle_ILP.out', 
+#     #               '../../data/Engineer/done/input_2_MC_Oracle_ILP.results.txt')
+#      
+#     #result_analyze('../../data/Engineer/done/input_2_MC_Oracle.log', 
+#     #               '../../data/Engineer/done/input_2_MC_Oracle.out', 
+#     #               '../../data/Engineer/done/input_2_MC_Oracle.results.txt')
+#     
+#     result_analyze('../../data/Engineer/done/input_3_ILP_Mead.log', 
+#                    '../../data/Engineer/done/input_3_ILP_Mead.out', 
+#                    '../../data/Engineer/done/input_3_ILP_Mead.results.txt')
+        
+    get_agreement('../../data/Engineer/done/input_0_MC_ILP.log', 
                    '../../data/Engineer/done/input_0_MC_ILP.out', 
                    '../../data/Engineer/done/input_0_MC_ILP.results.txt')
     
-    result_analyze('../../data/Engineer/done/input_1_MC_Mead.log', 
+    get_agreement('../../data/Engineer/done/input_1_MC_Mead.log', 
                    '../../data/Engineer/done/input_1_MC_Mead.out', 
                    '../../data/Engineer/done/input_1_MC_Mead.results.txt')
-    
-    result_analyze('../../data/Engineer/done/input_2_MC_Oracle_ILP.log', 
-                   '../../data/Engineer/done/input_2_MC_Oracle_ILP.out', 
-                   '../../data/Engineer/done/input_2_MC_Oracle_ILP.results.txt')
-     
-    result_analyze('../../data/Engineer/done/input_2_MC_Oracle.log', 
-                   '../../data/Engineer/done/input_2_MC_Oracle.out', 
-                   '../../data/Engineer/done/input_2_MC_Oracle.results.txt')
-    
-    result_analyze('../../data/Engineer/done/input_3_ILP_Mead.log', 
+        
+    get_agreement('../../data/Engineer/done/input_3_ILP_Mead.log', 
                    '../../data/Engineer/done/input_3_ILP_Mead.out', 
                    '../../data/Engineer/done/input_3_ILP_Mead.results.txt')
