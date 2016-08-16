@@ -481,30 +481,28 @@ def getMC(cid):
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
     
     for np in ['sentence']:
-        #getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+#         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
         
-        #getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+#         getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
         
         #pause, run the MC script
         
-        for softImpute_lambda in [1.0]:#numpy.arange(0.1, 8.0, 0.1):
+        for softImpute_lambda in numpy.arange(0.1, 8.0, 0.1):
             if softImpute_lambda < 1.4:
                 rank_max = 2000
             else:
                 rank_max = 500
-            
-            softImpute_lambda = "%.1f"%softImpute_lambda
              
-#             if softImpute_lambda.endswith('.0'):
-#                 softImpute_lambda = softImpute_lambda[:-2]
-#                 
+            softImpute_lambda = "%.1f"%softImpute_lambda
+                           
             getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
 
     print "done"
                         
 if __name__ == '__main__':
     #getMC_IE256()
-    getMC('IE256_2016')
+    getMC('IE256')
+    #getMC('IE256_2016')
     #getMC('CS0445')
     exit(-1)
     

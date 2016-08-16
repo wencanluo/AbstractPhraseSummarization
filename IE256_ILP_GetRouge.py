@@ -91,14 +91,31 @@ def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets):
     body.append(row)
     
     fio.WriteMatrix(os.path.join(outputdir, "rouge.sentence." + 'L' + str(L) + '.' + str(Lambda) + ".txt"), body, header)
+
+
+def getBaselineROUGE(cid):
+    ilpdir = "../../data/%s/ILP_Baseline/"%cid
+    sheets = global_params.lectures[cid]
     
+    rouge_dict = {}
+    
+    for L in [10, 15, 20, 25, 30, 35, 40]:
+        Lambda = None
+                
+        getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets)
+                
+        fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
+                        
 if __name__ == '__main__':
     import sys
     
+#     getBaselineROUGE('IE256')
+#     exit(-1)
+#     
     #ilpdir = sys.argv[1]
     
     #cid = 'CS0445'
-    for cid in ['IE256_2016', 'CS0445']:
+    for cid in ['IE256']: #'IE256_2016', 'CS0445', 
         
         ilpdir = "../../data/%s/ILP_MC/"%cid
         sheets = global_params.lectures[cid]

@@ -337,7 +337,8 @@ def get_ILP_MC_summary(cid):
     print "done"
                 
 if __name__ == '__main__':
-    get_ILP_MC_summary('IE256_2016')
+    get_ILP_MC_summary('IE256')
+    #get_ILP_MC_summary('IE256_2016')
     #get_ILP_MC_summary('CS0445')
     exit(-1)
     

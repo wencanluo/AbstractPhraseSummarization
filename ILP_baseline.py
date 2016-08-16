@@ -592,9 +592,7 @@ def getILP_IE256():
             
     print "done"
 
-def getILP_CS0445():
-    cid = 'CS0445'
-    
+def getILP_NewCourse(cid):
     ilpdir = "../../data/%s/ILP_Baseline/"%cid
     
     from config import ConfigFile
@@ -636,8 +634,7 @@ def getILP_Engineer():
     print "done"
                 
 if __name__ == '__main__':
-    #getILP_IE256()
-    #getILP_IE256_2016()
-    getILP_CS0445()
+    #getILP_NewCourse('CS0445')
+    getILP_NewCourse('IE256')
     
     #getILP_Engineer()
