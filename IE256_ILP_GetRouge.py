@@ -14,7 +14,7 @@ RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P
 RougeHeaderSplit = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
 
-def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets):
+def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets, N=2):
     body = []
     
     for sheet in sheets:
@@ -44,7 +44,7 @@ def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets):
             
             #read TA's summmary
             refs = []
-            for i in range(2):
+            for i in range(N):
                 reffile = os.path.join(ilpdir, str(week), type + '.ref.%d' %i)
                 if not fio.IsExist(reffile):
                     print reffile
@@ -56,8 +56,10 @@ def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets):
             
             if len(refs) == 0: continue
               
-            lstref = refs[0] + refs[1]
-        
+            lstref = []
+            for ref in refs:
+                lstref += ref
+            
             lines = fio.ReadFile(summary_file)
             TmpSum = [line.strip() for line in lines]
         
@@ -115,10 +117,14 @@ if __name__ == '__main__':
     #ilpdir = sys.argv[1]
     
     #cid = 'CS0445'
-    for cid in ['IE256']: #'IE256_2016', 'CS0445', 
+    for cid in [#'review_camera', 
+                'review_IMDB', 
+                #'review_prHistory',
+                ]: #'IE256', 'IE256_2016', 'CS0445', 
         
         ilpdir = "../../data/%s/ILP_MC/"%cid
         sheets = global_params.lectures[cid]
+        N = global_params.no_human[cid]
         
         #m_lambda = 'org'
         #threshold = '1.0'
@@ -128,10 +134,12 @@ if __name__ == '__main__':
                         
         rouge_dict = {}
         
-        for L in [10, 15, 20, 25, 30, 35, 40]:
+        #for L in [10, 15, 20, 25, 30, 35, 40]:
+        #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+        for L in [150, 175, 200, 225, 250]:
         #for L in [39]:
             for threshold in [0.0]:
-                for m_lambda in numpy.arange(0, 8.0, 0.1):
+                for m_lambda in numpy.arange(0, 10.0, 0.5):
                 #for m_lambda in numpy.arange(0.5, 6.0, 0.5):
                 #for m_lambda in [0.0]:
             
@@ -140,7 +148,7 @@ if __name__ == '__main__':
                     else:
                         Lambda =  str(m_lambda)+ '.' + str(threshold)
                     
-                    getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets)
+                    getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets, N)
                     
                     if m_lambda == 'None':
                         fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')

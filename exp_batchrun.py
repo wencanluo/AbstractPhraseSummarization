@@ -163,10 +163,11 @@ def run_UnsupervisedMC_New(cid):
     Header = ['method', 'L', 'lambda', 'sparse'] + ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']*3
     
     
-    for L in [10, 15, 20, 25, 30, 35, 40]:
+    #for L in [10, 15, 20, 25, 30, 35, 40]:
+    for L in [150, 175, 200, 225, 250]:
         body = []
 
-        for softimpute_lambda in numpy.arange(0, 8.0, 0.1):
+        for softimpute_lambda in numpy.arange(0, 10.0, 0.5):
             if softimpute_lambda == 'org':
                 sparses = [1.0]
             else:
@@ -552,7 +553,9 @@ if __name__ == '__main__':
     #run_Baseline()
     #run_UnsupervisedMC_IE256()
     
-    run_UnsupervisedMC_New('IE256_2016')
+    #run_UnsupervisedMC_New('IE256_2016')
+    run_UnsupervisedMC_New('review_camera')
+    
     #run_UnsupervisedMC_DUC()
 #     for iter in [5]:
 #         run_CWLearning(iter)

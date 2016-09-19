@@ -482,28 +482,34 @@ def getMC(cid):
     
     for np in ['sentence']:
 #         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
-        
+#         
 #         getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
         
         #pause, run the MC script
         
-        for softImpute_lambda in numpy.arange(0.1, 8.0, 0.1):
+        for softImpute_lambda in numpy.arange(0.1, 10.0, 0.1):
             if softImpute_lambda < 1.4:
-                rank_max = 2000
+                rank_max = 500
             else:
                 rank_max = 500
-             
+              
             softImpute_lambda = "%.1f"%softImpute_lambda
-                           
+            
             getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
 
     print "done"
                         
 if __name__ == '__main__':
     #getMC_IE256()
-    getMC('IE256')
+    #getMC('IE256')
     #getMC('IE256_2016')
     #getMC('CS0445')
+    
+    for cid in [#'review_camera', 
+                'review_IMDB', 
+                #'review_prHistory',
+                ]:
+        getMC(cid)
     exit(-1)
     
     excelfile = "../../data/2011Spring_norm.xls"
@@ -518,7 +524,8 @@ if __name__ == '__main__':
     config = ConfigFile(config_file_name='tac_config.txt')
     
     for np in ['sentence']:
-        for softImpute_lambda in numpy.arange(0.1, 8.0, 0.1):
+        #for softImpute_lambda in numpy.arange(0.1, 8.0, 0.1):
+        for softImpute_lambda in numpy.arange(7.4, 10.0, 0.1):
             if softImpute_lambda < 1.4:
                 rank_max = 2000
             else:

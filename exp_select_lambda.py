@@ -5,6 +5,8 @@ from scipy.stats import ttest_rel as ttest #paired t-test
 import stats_util
 from sklearn.cross_validation import KFold
 import global_params
+from _collections import defaultdict
+import os
 
 def getRougesbyWeek(input):
     head, body = fio.ReadMatrix(input, hasHead=True)        
@@ -190,6 +192,8 @@ def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
     selected_test_scores = []
     selected_baseline_scores = []
     
+    lamda_dict = defaultdict(list)
+    
     for train_index, test_index in kf:
         selected = [weeks[i] for i in train_index]
         test_set = [weeks[i] for i in test_index]
@@ -199,9 +203,8 @@ def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
         
         dev_scores = {}
         
-        for softimpute_lambda in numpy.arange(0.1, 8.0, 0.1):
+        for softimpute_lambda in numpy.arange(0.5, 5.5, 0.5):
             for sparse in [0.0]:
-                
                 
                 rougename = ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(softimpute_lambda) +'.'+ str(sparse) + ".txt"
                 
@@ -223,6 +226,10 @@ def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
         #print "lambda:", sorted_lambdas[0]
         
         softimpute_lambda = sorted_lambdas[0]
+        
+        for week in test_set:
+            lamda_dict[week].append(softimpute_lambda)
+            
         sparse = 0.0
         
         #get test scores
@@ -240,6 +247,10 @@ def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
                     selected_baseline_scores.append(row)
         
     pvalues = get_ttest_pvalues(selected_baseline_scores, selected_test_scores, score_index)
+    
+    
+    lamda_dict_file = os.path.join("../../data/%s/MC/"%cid, 'lambda_%d.json'%L)
+    fio.SaveDict2Json(lamda_dict, lamda_dict_file)
     
     #print pvalues
     
@@ -276,17 +287,21 @@ if __name__ == '__main__':
     
     #select_lambda_MC_Engnieer_cv()
     
+    #cid = 'review_camera'
+    cid = 'review_IMDB'
+    #cid = 'review_prHistory'
+                
     #cid = 'CS0445'
     #cid = 'IE256_2016'
-    cid = 'IE256'
+    #cid = 'IE256'
     
     #for L in [10, 15, 20, 25, 30, 35, 40]:
-    for L in [10, 20, 30, 40]:
+    for L in [150, 175, 200, 225, 250]:
     #for L in [30]:
         counts = []
         
         #folds = range(2, 20)
-        folds = [10]
+        folds = [2]
         for fold in folds:
             count = select_lambda_MC_cv(cid, L, fold)
             counts.append(count)

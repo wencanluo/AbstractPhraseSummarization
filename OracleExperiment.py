@@ -18,7 +18,8 @@ def getRouge_IE256(refs, model):
     for i, ref in enumerate(refs):
         fio.SaveList(ref, tmpdir+'ref%d.txt'%(i+1), '\n')
     
-    retcode = subprocess.call(['./get_rouge_ie256'], shell=True)
+    N = len(refs)
+    retcode = subprocess.call(['./get_rouge_ie256_%d'%N], shell=True)
     if retcode != 0:
         print("Failed!")
         exit(-1)

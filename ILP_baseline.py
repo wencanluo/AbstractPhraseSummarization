@@ -594,12 +594,11 @@ def getILP_IE256():
 
 def getILP_NewCourse(cid):
     ilpdir = "../../data/%s/ILP_Baseline/"%cid
-    
     from config import ConfigFile
     
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
     
-    for L in [10, 15, 20, 25, 30, 35, 40]:
+    for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
         for np in ['sentence']:
             ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
             
@@ -635,6 +634,8 @@ def getILP_Engineer():
                 
 if __name__ == '__main__':
     #getILP_NewCourse('CS0445')
-    getILP_NewCourse('IE256')
+    #getILP_NewCourse('IE256')
+    
+    getILP_NewCourse('review_camera')
     
     #getILP_Engineer()
