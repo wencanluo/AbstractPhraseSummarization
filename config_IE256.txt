@@ -1,0 +1,17 @@
+L	15
+student_coverage	0
+student_lambda	1.0
+ngrams	2
+features	tf, tf_rank, idftf, idftf_rank, pos, inNP, ave_length, #ave_length_rank, #ave_sim, stop_word, #word_ratio, #ngram_length, frequency_of_words, title, position
+position_bin	5
+perceptron_threshold	0
+weight_normalization	5
+perceptron_maxIter	5
+matrix_dir	E:/project/AbstractPhraseSummarization/data/IE256/MC/
+types	q1,q2
+sparse_threshold	0
+softInpute_lambda	org
+exp_id	5
+no_training	0
+lcs_ratio	1.0
+binary_matrix	1

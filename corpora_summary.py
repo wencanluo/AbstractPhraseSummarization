@@ -4,6 +4,7 @@ import ILP_MC
 import numpy as np
 import json
 from scipy.stats import entropy
+import collections
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -18,10 +19,17 @@ class MCCorpus:
         self.maxLec = 100
         self.ngrams = [2] #bigram only
         self.task_prefix = []
+        self.summary_files = []
+        
         self.keyfiles = []
+        self.sumfiles = []
+        
         self.bigrams = []
+        self.bigram_counts = []
         self.As = []
-        self.N = 2
+        self.N = 2 #bigram cut
+        
+        self.sum_bigram_counts = []
         
     def load_task(self):
         for lec in range(self.maxLec):
@@ -33,6 +41,22 @@ class MCCorpus:
                 if not fio.IsExist(prefix + phraseext): continue
                 
                 self.task_prefix.append(prefix)
+                
+                summaryfile = []
+                for posfix in ['.ref.summary', '.ref.0', '.ref.1', '.ref.2', '.ref.3', '.ref.4', '.ref.5', '.ref.6', '.ref.7']:
+                    sum_file = os.path.join(lec_folder, prompt + posfix)
+                    if not fio.IsExist(sum_file): continue
+                    summaryfile.append(sum_file)
+                
+                self.summary_files.append(summaryfile)
+    
+    def load_sumfiles(self):
+        for sum_files in self.summary_files:
+            sum_file_lines = []
+            for sum_file in sum_files:
+                doc = open(sum_file).readlines()
+                sum_file_lines.append(doc)
+            self.sumfiles.append(sum_file_lines)
     
     def load_keyfiles(self):
         for prefix in self.task_prefix:
@@ -56,10 +80,30 @@ class MCCorpus:
     def extract_bigrams(self):
         for doc in self.keyfiles:
             bigrams = []
+            bigram_count = collections.defaultdict(int)
             for line in doc:
                 bigram_tokens = ILP_getMC.ProcessLine(line, self.ngrams)
+                
+                for bi in bigram_tokens.split():
+                    bigram_count[bi] += 1
+                    
                 bigrams.append(len(bigram_tokens.split()))
             self.bigrams.append(bigrams)
+            self.bigram_counts.append(bigram_count)
+    
+    def extract_sum_bigram(self):
+        for docs in self.sumfiles:
+            sum_bigram = []
+            for doc in docs:
+                bigram_count = collections.defaultdict(int)
+                for line in doc:
+                    bigram_tokens = ILP_getMC.ProcessLine(line, self.ngrams)
+                    
+                    for bi in bigram_tokens.split():
+                        bigram_count[bi] += 1
+
+                sum_bigram.append(bigram_count)
+            self.sum_bigram_counts.append(sum_bigram)
     
     def get_number_of_sentence_per_task(self):
         return '%.1f'%np.mean(self.number_of_sentences)
@@ -143,12 +187,104 @@ class MCCorpus:
             self.bigram_entropies.append(self.get_bigram_entropy_A(A))
         
         return '%.4f'%(np.mean(self.bigram_entropies))
+    
+    def get_human_summary_bigram_percentage(self, N=0):
+        if not self.sumfiles:
+            self.load_sumfiles()
         
+        if not self.sum_bigram_counts:
+            self.extract_sum_bigram()
+        
+        total = 0.
+        count_N = 0
+        for bigram_counts, sum_bigram_counts in zip(self.bigram_counts, self.sum_bigram_counts):
+            
+            for bigram_lists in sum_bigram_counts:
+                total += len(bigram_lists)
+                for bigram in bigram_lists:
+                    #check its count in keyfile
+                    count = bigram_counts[bigram] if bigram in bigram_counts else 0
+                    if count == N:
+                        count_N += 1
+                        #print bigram
+                   
+        return count_N/total
+    
+    def get_response_in_human_bigram_percentage(self, N=0):
+        if not self.sumfiles:
+            self.load_sumfiles()
+        
+        if not self.sum_bigram_counts:
+            self.extract_sum_bigram()
+        
+        total = 0.
+        count_N = 0
+        for bigram_counts, sum_bigram_counts in zip(self.bigram_counts, self.sum_bigram_counts):
+            
+            for bigram, count in bigram_counts.items():
+                if count != N: continue
+                total += 1
+                
+                print bigram
+                
+                found = False
+                for bigram_lists in sum_bigram_counts:
+                    if bigram in bigram_lists:
+                        found = True
+                        break
+                if found:
+                    count_N += 1
+                    
+        return count_N/total
+
+    def get_response_in_human_bigram_percentage_bigger(self, N=0):
+        if not self.sumfiles:
+            self.load_sumfiles()
+        
+        if not self.sum_bigram_counts:
+            self.extract_sum_bigram()
+        
+        total = 0.
+        count_N = 0
+        for bigram_counts, sum_bigram_counts in zip(self.bigram_counts, self.sum_bigram_counts):
+            
+            total += len(bigram_counts)
+            
+            for bigram, count in bigram_counts.items():
+                if count < N: continue
+                for bigram_lists in sum_bigram_counts:
+                    if bigram in bigram_lists:
+                        count_N += 1
+                   
+        return count_N/total
+    
+    def get_human_summary_bigram_percentage_bigger(self, N=0):
+        if not self.sumfiles:
+            self.load_sumfiles()
+        
+        if not self.sum_bigram_counts:
+            self.extract_sum_bigram()
+        
+        total = 0.
+        count_N = 0
+        for bigram_counts, sum_bigram_counts in zip(self.bigram_counts, self.sum_bigram_counts):
+            
+            for bigram_lists in sum_bigram_counts:
+                total += len(bigram_lists)
+                for bigram in bigram_lists:
+                    #check its count in keyfile
+                    count = bigram_counts[bigram] if bigram in bigram_counts else 0
+                    if count >= N:
+                        count_N += 1
+                   
+        return count_N/total
     
 def get_summary(datadir, corpus, output):
     
     head = ['name', 'domain', 'task #', 'sen #', 'sen #/task', 'bigram #', 'bigram #/task', 'bigram #/sentence', 'size of A', 
-            'sparsity of A', 'ratio of bigram >=2', 'Shannon index'
+            'sparsity of A', 'ratio of bigram >=2', 'Shannon index',
+            'human in response N=0', 'human in response N=1', 'human in response N>1',
+            'response in human N=1', 'response in human N=2', 'response in human N=3', 'response in human N=4', 'response in human N>=2',
             ]
     
     body = []
@@ -171,6 +307,16 @@ def get_summary(datadir, corpus, output):
         row.append(mc_corpus.get_bigram_ratio_more_than_N())
         row.append(mc_corpus.get_bigram_entropy())
         
+        #output
+        row.append(mc_corpus.get_human_summary_bigram_percentage(N=0))
+        row.append(mc_corpus.get_human_summary_bigram_percentage(N=1))
+        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2))
+        
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2))
         body.append(row)
     
     fio.WriteMatrix(output, body, head)

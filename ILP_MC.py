@@ -323,11 +323,11 @@ def get_ILP_MC_summary(cid):
     matrix_dir = "../../data/%s/MC/"%cid
     print matrix_dir
           
-    #for L in [10, 15, 20, 25, 30, 35, 40]:
+    for L in [10, 15, 20, 25, 30, 35, 40]:
     #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
-    for L in [150, 175, 200, 225, 250]:
+#     for L in [150, 175, 200, 225, 250]:
         for np in ['sentence']:
-            for Lambda in numpy.arange(0, 10.0, 0.5):
+            for Lambda in numpy.arange(0, 6.0, 0.5):
             #for Lambda in [0]:
                 if Lambda == 0:
                     prefixA = '.org.softA'
@@ -339,13 +339,20 @@ def get_ILP_MC_summary(cid):
     print "done"
                 
 if __name__ == '__main__':
-    #get_ILP_MC_summary('review_camera')
-    #get_ILP_MC_summary('review_prHistory')
-    get_ILP_MC_summary('review_IMDB')
+    cid = sys.argv[1]
     
-    #get_ILP_MC_summary('IE256')
-    #get_ILP_MC_summary('IE256_2016')
-    #get_ILP_MC_summary('CS0445')
+#     for cid in [
+# #                 'IE256',
+# #                 'IE256_2016',
+# #                 'CS0445',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'review_all',
+#                 ]:
+#         
+    get_ILP_MC_summary(cid)
+    
     exit(-1)
     
     ilpdir = "../../data/Engineer/ILP_MC/"

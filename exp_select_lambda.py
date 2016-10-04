@@ -295,15 +295,25 @@ if __name__ == '__main__':
     #cid = 'IE256_2016'
     #cid = 'IE256'
     
-    #for L in [10, 15, 20, 25, 30, 35, 40]:
-    for L in [150, 175, 200, 225, 250]:
-    #for L in [30]:
-        counts = []
+    for cid in [
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+                'review_camera',
+                'review_IMDB', 
+                'review_prHistory',
+                'review_all',
+                ]:
         
-        #folds = range(2, 20)
-        folds = [2]
-        for fold in folds:
-            count = select_lambda_MC_cv(cid, L, fold)
-            counts.append(count)
-        print max(counts), folds[counts.index(max(counts))], counts
-        #select_lambda_MC_cv('CS0445', L)
+        #for L in [10, 15, 20, 25, 30, 35, 40]:
+        for L in [150, 175, 200, 225, 250]:
+        #for L in [30]:
+            counts = []
+            
+            #folds = range(2, 20)
+            folds = [3]
+            for fold in folds:
+                count = select_lambda_MC_cv(cid, L, fold)
+                counts.append(count)
+            print max(counts), folds[counts.index(max(counts))], counts
+            #select_lambda_MC_cv('CS0445', L)

@@ -11,6 +11,7 @@ import softImputeWrapper
 import ILP_baseline as ILP
 import os
 import global_params
+import collections
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -19,18 +20,28 @@ lpext = ".lp"
 lpsolext = ".sol"
 ngramext = ".ngram.json"
 corpusdictexe = ".corpus.dict"
+countdictexe = ".corpus.count.dict"
 cscexe = ".mat.txt"
 mcexe = ".mc.txt"
 
 ngramTag = "___"
 
-def ProcessLine(line,ngrams=[1]):
+def ProcessLine(line,ngrams=[1], cutoff=1, countdict = None):
     #tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
     tokens = line.lower().split()
+    tokens = ['ssss'] + tokens + ['tttt']
     
     new_tokens = []
     for n in ngrams:
         ngram = ILP.getNgramTokenized(tokens, n, NoStopWords=True, Stemmed=True, ngramTag=ngramTag)
+        
+        cutoff_ngram = []
+        if countdict != None:
+            for x in ngram:
+                if x in countdict and countdict[x] >= cutoff:
+                    cutoff_ngram.append(x)
+            ngram = cutoff_ngram
+        
         new_tokens = new_tokens + ngram
     
     return " ".join(new_tokens)
@@ -80,6 +91,35 @@ def iter_documents(outdir, types, sheets = range(0,25), np='syntax', ngrams=[1])
                 # break document into utf8 tokens
                 yield gensim.utils.tokenize(line, lower=True, errors='ignore')
 
+def iter_documents_cutoff(outdir, types, sheets = range(0,25), np='syntax', ngrams=[1], cutoff=2, countdict=None):
+    """
+    Generator: iterate over all relevant documents, yielding one
+    document (=list of utf8 tokens) at a time.
+    """
+    print "types:", types
+            
+    # find all .txt documents, no matter how deep under top_directory
+    for sheet in sheets:
+        week = sheet
+        dir = outdir + str(week) + '/'
+        
+        for question in types:
+            prefix = dir + question + "." + np
+            
+            print prefix
+            
+            filename = prefix + phraseext
+            if not fio.IsExist(filename): continue
+            
+            document = open(prefix + phraseext).readlines()
+            
+            for line in document:
+                line = ProcessLine(line,ngrams,cutoff, countdict)
+                #print line
+                
+                # break document into utf8 tokens
+                yield gensim.utils.tokenize(line, lower=True, errors='ignore')
+                
 def readbook(path, ngrams=[1]):
     document = open(path).readlines()
     
@@ -101,20 +141,32 @@ class TxtSubdirsCorpus(object):
     load the entire corpus into RAM.
  
     """
-    def __init__(self, top_dir, types=['POI', 'MP', 'LP'], sheets = range(0,25), np='syntax', ngrams=[1]):
+    def __init__(self, top_dir, types=['POI', 'MP', 'LP'], sheets = range(0,25), np='syntax', ngrams=[1], cutoff=2):
         self.types = types
         self.top_dir = top_dir
         self.np = np
         self.ngrams = ngrams
         self.sheets = sheets
+        
+        self.cutoff = cutoff
+        self.countdict = self.getCount(top_dir, types, sheets, np, ngrams)
+        
         # create dictionary = mapping for documents => sparse vectors
-        self.dictionary = gensim.corpora.Dictionary(iter_documents(top_dir, types, sheets, np, ngrams))
- 
+        self.dictionary = gensim.corpora.Dictionary(iter_documents_cutoff(top_dir, types, sheets, np, ngrams, cutoff, self.countdict))
+    
+    def getCount(self,top_dir, types, sheets, np, ngrams):
+        count = collections.defaultdict(int)
+        for tokens in iter_documents(top_dir, types, sheets, np, ngrams):
+            for token in tokens:
+                count[token] += 1
+        
+        return count
+    
     def __iter__(self):
         """
         Again, __iter__ is a generator => TxtSubdirsCorpus is a streamed iterable.
         """
-        for tokens in iter_documents(self.top_dir, self.types, self.sheets, self.np, self.ngrams):
+        for tokens in iter_documents_cutoff(self.top_dir, self.types, self.sheets, self.np, self.ngrams, self.cutoff, self.countdict):
             # transform tokens (strings) into a sparse vector, one at a time
             yield self.dictionary.doc2bow(tokens)
 
@@ -280,7 +332,8 @@ def SaveNewA_New(A, dict, path, ngrams, prefixname="", sheets = range(0,25), np=
             PartA = {}
             for bigram in set(Bigrams):
                 if bigram not in dict:
-                    print "error", bigram
+                    #print "error", bigram
+                    continue
                 
                 id = dict[bigram]
                 
@@ -373,7 +426,7 @@ def getSVD(prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_m
         token2id = fio.LoadDictJson(dictname)
         SaveNewA(newA, token2id, path, ngrams, prefix, np=np, types=types)
 
-def getSVD_WriteX(cid, prefix, np, corpusname, ngrams, binary_matrix, output, types = ['POI', 'MP', 'LP']):
+def getSVD_WriteX(cid, prefix, np, corpusname, ngrams, binary_matrix, output, types = ['POI', 'MP', 'LP'], cutoff=2):
     path = prefix
     fio.NewPath(path)
     
@@ -387,10 +440,13 @@ def getSVD_WriteX(cid, prefix, np, corpusname, ngrams, binary_matrix, output, ty
         corpus = TacCorpus(prefix, ngrams)
         dictname = path + '_' + corpusname + corpusdictexe
     else:
-        corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams)
+        corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams, cutoff)
        
     fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
- 
+    
+    countdictname = output + "_".join(types) + '_' + corpusname + countdictexe
+    fio.SaveDict2Json(corpus.countdict, countdictname)
+    
     #https://pypi.python.org/pypi/sparsesvd/
     scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
     print scipy_csc_matrix.shape
@@ -444,33 +500,8 @@ def TestProcessLine():
         ngrams = ngrams + grams
     print ngrams
 
-             
-def getMC_IE256():
-    ILP_dir = "../../data/IE256/MC/" 
-    outdir = "../../data/matrix/exp8/"
-    
-    #TestProcessLine()
-    from config import ConfigFile
-    
-    config = ConfigFile(config_file_name='config_IE256.txt')
-    
-    for np in ['sentence']:
-        
-        getSVD_WriteX(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
-        
-        for softImpute_lambda in numpy.arange(5.0, 5.1, 0.1):
-            if softImpute_lambda < 1.4:
-                rank_max = 2000
-            else:
-                rank_max = 500
-            
-            softImpute_lambda = "%.1f"%softImpute_lambda
-            
-            getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
-
-    print "done"
-    
-def getMC(cid):
+                 
+def getMC(cid, cutoff=2):
     ILP_dir = "../../data/%s/MC/"%cid 
     outdir = "../../data/%s/matrix/exp5/"%cid
     fio.NewPath(outdir)
@@ -481,36 +512,39 @@ def getMC(cid):
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
     
     for np in ['sentence']:
-        getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
-         
+#         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'], cutoff=cutoff)
         getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
-        
+         
         #pause, run the MC script
         
-#         for softImpute_lambda in numpy.arange(0.1, 10.0, 0.1):
+#         for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
 #             if softImpute_lambda < 1.4:
 #                 rank_max = 500
 #             else:
 #                 rank_max = 500
-#               
+#                
 #             softImpute_lambda = "%.1f"%softImpute_lambda
-#             
+#              
 #             getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
 
     print "done"
                         
 if __name__ == '__main__':
-    #getMC_IE256()
-#     getMC('IE256')
-    #getMC('IE256_2016')
-    #getMC('CS0445')
-    
-    for cid in ['review_camera', 
-                #'review_IMDB', 
-                #'review_prHistory',
-                #'review_all',
+    for cid in [
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'review_all',
+#                   'DUC04',
+                'TAC_s08',
+#                   'TAC_s09',
+#                   'TAC_s10',
+#                   'TAC_s11',
                 ]:
-        getMC(cid)
+        getMC(cid, cutoff=10)
     exit(-1)
     
     excelfile = "../../data/2011Spring_norm.xls"

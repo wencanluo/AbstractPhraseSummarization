@@ -107,9 +107,49 @@ def getBaselineROUGE(cid):
         getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets)
                 
         fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
+
+def gatherRouge():
+    
+    Allbody = []
+    for cid in [
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera',
+                'review_IMDB', 
+                'review_prHistory',
+                'review_all',
+                ]:
+        
+        if cid in ['IE256', 'IE256_2016', 'CS0445']:
+            #Ls = [10, 15, 20, 25, 30, 35, 40]
+            Ls = [10, 20, 30, 40]
+        else:
+            Ls = [150, 175, 200, 225, 250]
+            
+        for L in Ls:
+            ilpdir = "../../data/%s_nocutoff/"%cid
+            rougefile = os.path.join(ilpdir, 'test_%d.txt'%L)
+            
+            if not fio.IsExist(rougefile): continue
+            
+            head, body = fio.ReadMatrix(rougefile, hasHead=True)
+            
+            row = [cid, L] + body[-2]
+            Allbody.append(row)
+            
+            row = [cid, L] + body[-1]
+            Allbody.append(row)
+    
+    output = '../../data/rouge_all_gather_no_cut.txt'
+    fio.WriteMatrix(output, Allbody, ['cid', 'L'] + head)
+    
                         
 if __name__ == '__main__':
     import sys
+    
+    gatherRouge()
+    exit(-1)
     
 #     getBaselineROUGE('IE256')
 #     exit(-1)
@@ -117,10 +157,15 @@ if __name__ == '__main__':
     #ilpdir = sys.argv[1]
     
     #cid = 'CS0445'
-    for cid in [#'review_camera', 
-                'review_IMDB', 
-                #'review_prHistory',
-                ]: #'IE256', 'IE256_2016', 'CS0445', 
+    for cid in [
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+                'review_all',
+                ]:
         
         ilpdir = "../../data/%s/ILP_MC/"%cid
         sheets = global_params.lectures[cid]
@@ -139,7 +184,7 @@ if __name__ == '__main__':
         for L in [150, 175, 200, 225, 250]:
         #for L in [39]:
             for threshold in [0.0]:
-                for m_lambda in numpy.arange(0, 10.0, 0.5):
+                for m_lambda in numpy.arange(0, 6.0, 0.5):
                 #for m_lambda in numpy.arange(0.5, 6.0, 0.5):
                 #for m_lambda in [0.0]:
             

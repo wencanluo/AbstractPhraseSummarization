@@ -48,7 +48,7 @@ def PrepareCourseForILP(cid):
                 fio.SaveDict(count, output)
                                    
 if __name__ == '__main__':
-    PrepareCourseForILP('IE256')
-    #PrepareCourseForILP('IE256_2016')
-    #PrepareCourseForILP('CS0445')
+#     PrepareCourseForILP('IE256')
+#     PrepareCourseForILP('IE256_2016')
+    PrepareCourseForILP('CS0445')
     #exit(0)
