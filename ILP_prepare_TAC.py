@@ -48,16 +48,24 @@ def ParseTACXML(input):
         lstSentences += sentences
     return lstSentences
            
-def ExtractSentence(datadir, outdir, year = 's08'):
-    fio.NewPath(outdir)
-    
+def ExtractSentence(datadir, outdir, year = 's08', split=False):
     filelist = datadir+'list.json'
     data = fio.LoadDictJson(filelist)
     
     folder = year
     
     for lec, doc_id in enumerate(data[folder]):
-        path = os.path.join(outdir, str(lec))
+        
+        if split:
+            if lec < len(data[folder])/2:
+                suboutdir = outdir.replace(year, year+'_A')
+            else:
+                suboutdir = outdir.replace(year, year+'_B')
+                lec = lec/2
+        else:
+            suboutdir = outdir
+            
+        path = os.path.join(suboutdir, str(lec))
         fio.NewPath(path)
         
         type = 'q1'
@@ -123,16 +131,24 @@ def ExtractDataStatitics(datadir, outdir):
     header = ['# of document',   '# of sentences',    'average # of sentences',    'average # of words']
     fio.WriteMatrix("../../data/TAC/statistics.txt", body, header)
     
-def ExtractReferenceSummary(datadir, outdir, year):
-    fio.NewPath(outdir)
-    
+def ExtractReferenceSummary(datadir, outdir, year, split=False):
     filelist = datadir+'list.json'
     data = fio.LoadDictJson(filelist)
     
     folder = year
     
     for lec, doc_id in enumerate(data[folder]):
-        path = os.path.join(outdir, str(lec))
+        if split:
+            if lec < len(data[folder])/2:
+                suboutdir = outdir.replace(year, year+'_A')
+            else:
+                suboutdir = outdir.replace(year, year+'_B')
+                lec = lec/2
+        else:
+            suboutdir = outdir
+            
+        path = os.path.join(suboutdir, str(lec))
+        
         fio.NewPath(path)
         
         models = data[folder][doc_id]['models']
@@ -160,9 +176,10 @@ if __name__ == '__main__':
         
         for outdir in outdirs:
             print outdir
+            split = True
             
-            ExtractSentence(datadir, outdir, year)
-            ExtractReferenceSummary(datadir, outdir, year)
+            ExtractSentence(datadir, outdir, year, split)
+            ExtractReferenceSummary(datadir, outdir, year, split)
     
     #ss = ParseTACXML('../../data/TAC/s10\\test_doc_files\\D1035G\\D1035G-A\\new\\APW19980718.0011')
    

@@ -7,7 +7,7 @@ position_bin	5
 perceptron_threshold	0
 weight_normalization	5
 perceptron_maxIter	5
-matrix_dir	E:/project/AbstractPhraseSummarization/data/TAC_s08/MC/
+matrix_dir	E:/project/AbstractPhraseSummarization/data/TAC_s08_A/MC/
 types	q1
 sparse_threshold	0.0
 softInpute_lambda	2

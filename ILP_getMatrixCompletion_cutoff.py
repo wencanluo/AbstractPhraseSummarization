@@ -538,13 +538,13 @@ if __name__ == '__main__':
 #                 'review_IMDB', 
 #                 'review_prHistory',
 #                 'review_all',
-#                   'DUC04',
+#                 'DUC04',
                 'TAC_s08',
-#                   'TAC_s09',
-#                   'TAC_s10',
-#                   'TAC_s11',
+#                 'TAC_s09',
+#                 'TAC_s10',
+#                 'TAC_s11',
                 ]:
-        getMC(cid, cutoff=10)
+        getMC(cid, cutoff=20)
     exit(-1)
     
     excelfile = "../../data/2011Spring_norm.xls"

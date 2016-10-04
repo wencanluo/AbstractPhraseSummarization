@@ -247,14 +247,17 @@ class MCCorpus:
         total = 0.
         count_N = 0
         for bigram_counts, sum_bigram_counts in zip(self.bigram_counts, self.sum_bigram_counts):
-            
-            total += len(bigram_counts)
-            
             for bigram, count in bigram_counts.items():
                 if count < N: continue
+                
+                total += 1
+                found = False
                 for bigram_lists in sum_bigram_counts:
                     if bigram in bigram_lists:
-                        count_N += 1
+                        found = True
+                        break
+                if found:
+                    count_N += 1
                    
         return count_N/total
     
@@ -310,6 +313,10 @@ def get_summary(datadir, corpus, output):
         #output
         row.append(mc_corpus.get_human_summary_bigram_percentage(N=0))
         row.append(mc_corpus.get_human_summary_bigram_percentage(N=1))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=2))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=3))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=4))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=5))
         row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2))
         
         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1))
@@ -332,12 +339,12 @@ if __name__ == '__main__':
             ('review_camera','review'),
             ('review_prHistory','review'),
             ('review_IMDB','review'),
-#               ('DUC04', )
-#               ('TAC08', )
-#               ('TAC09', )
-#               ('TAC10', )
-#               ('TAC11', )
+            ('DUC04', 'news'),
+            ('TAC_s08', 'news'),
+            ('TAC_s09', 'news'),
+            ('TAC_s10', 'news'),
+            ('TAC_s11', 'news'),
               ]
     
-    output = '../../data/statistcis_all.txt'
+    output = '../../data/statistcis_all_news.txt'
     get_summary(datadir, corpus, output)
