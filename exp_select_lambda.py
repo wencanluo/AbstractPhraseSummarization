@@ -299,19 +299,33 @@ if __name__ == '__main__':
 #                 'IE256',
 #                 'IE256_2016',
 #                 'CS0445',
-                'review_camera',
-                'review_IMDB', 
-                'review_prHistory',
-                'review_all',
+#                 'review_camera',
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'review_all',
+#                 'DUC04',
+#                 'TAC_s08_A',
+#                 'TAC_s08_B',
+#                 'TAC_s09_A',
+#                 'TAC_s09_B',
+#                 'TAC_s10_A',
+#                 'TAC_s10_B',
+#                 'TAC_s11_A',
+#                 'TAC_s11_B',
+                    'IE256_21.0',
+                    'IE256_26.5',
+                    'IE256_2016_23.7',
+                    'IE256_2016_29.9',
+                    'IE256_2016_31.2',
                 ]:
         
-        #for L in [10, 15, 20, 25, 30, 35, 40]:
-        for L in [150, 175, 200, 225, 250]:
+        for L in [10, 15, 20, 25, 30, 35, 40]:
+        #for L in [80, 90, 100, 110, 120]:
         #for L in [30]:
             counts = []
             
             #folds = range(2, 20)
-            folds = [3]
+            folds = [10]
             for fold in folds:
                 count = select_lambda_MC_cv(cid, L, fold)
                 counts.append(count)

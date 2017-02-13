@@ -186,7 +186,7 @@ def getPartialPhraseBigram(IndexPhrase, IndexBigram, phrasefile, svdfile, svdpha
             svdvalue = row[i]
             
             if bigram not in BigramIndex: 
-                print "bigram not in BigramIndex:"
+                #print "bigram not in BigramIndex:"
                 continue
             bKey = BigramIndex[bigram]
             
@@ -253,6 +253,8 @@ def ILP1(prefix, svdfile, svdpharefile, L, Ngram, Lambda, threshold):
     m = ILP.SloveILP(lpfile)
     
     output = prefix + '.L' + str(L) + '.'+str(Lambda)+ '.' + str(threshold) + ".summary"
+    print 'output'
+    
     ILP.ExtractSummaryfromILP(lpfile, IndexPhrase, output)
     
 def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, Lambda, threshold, sheets = range(0,12), types=['POI', 'MP', 'LP']):
@@ -273,7 +275,9 @@ def ILP_Summarizer(ilpdir, matrix_dir, np, L, Ngram, prefixA, Lambda, threshold,
             print svdfile
             
             summary_file = prefix + '.L' + str(L) + '.'+str(Lambda)+ '.' + str(threshold) + ".summary"
-            if fio.IsExist(summary_file): continue
+            if fio.IsExist(summary_file):
+                print 'skip:', summary_file
+                continue
             
             ILP1(prefix, svdfile, svdpharefile, L, Ngram, Lambda, threshold=threshold)
 
@@ -315,7 +319,8 @@ def get_ILP_IE256():
 def get_ILP_MC_summary(cid):
     ilpdir = "../../data/%s/ILP_MC/"%cid
     sheets = global_params.lectures[cid]
-      
+    print sheets
+    
     from config import ConfigFile
       
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
@@ -326,6 +331,7 @@ def get_ILP_MC_summary(cid):
     for L in [10, 15, 20, 25, 30, 35, 40]:
     #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
 #     for L in [150, 175, 200, 225, 250]:
+#     for L in [80, 90, 100, 110, 120]:
         for np in ['sentence']:
             for Lambda in numpy.arange(0, 6.0, 0.5):
             #for Lambda in [0]:
@@ -345,12 +351,22 @@ if __name__ == '__main__':
 # #                 'IE256',
 # #                 'IE256_2016',
 # #                 'CS0445',
-#                 'review_camera', 
-#                 'review_IMDB', 
-#                 'review_prHistory',
-#                 'review_all',
+# #                 'review_camera', 
+# #                 'review_IMDB', 
+# #                 'review_prHistory',
+# #                 'review_all',
+# #                 
+#                 'DUC04',
+#                 'TAC_s08_A',
+#                 'TAC_s08_B',
+#                 'TAC_s09_A',
+#                 'TAC_s09_B',
+#                 'TAC_s10_A',
+#                 'TAC_s10_B',
+#                 'TAC_s11_A',
+#                 'TAC_s11_B',
 #                 ]:
-#         
+        
     get_ILP_MC_summary(cid)
     
     exit(-1)

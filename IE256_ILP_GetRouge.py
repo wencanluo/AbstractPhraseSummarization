@@ -7,7 +7,6 @@ from TAC_ILP_baseline import iter_folder
 from numpy import average
 import codecs
 import global_params
-from _ast import Lambda
 
 tmpdir = "../../data/tmp/"
 RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
@@ -81,8 +80,8 @@ def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets, N=2):
         
             try:
                 fio.SaveDict2Json(Cache, cachefile)
-            except:
-                #fio.SaveDict(Cache, cachefile + '.dict')
+            except Exception as e:
+                print e
                 pass
         
     header = ['id'] + RougeHeader
@@ -112,23 +111,41 @@ def gatherRouge():
     
     Allbody = []
     for cid in [
-                'IE256',
-                'IE256_2016',
-                'CS0445',
-                'review_camera',
-                'review_IMDB', 
-                'review_prHistory',
-                'review_all',
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera',
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'review_all',
+#                 'DUC04',
+#                 'TAC_s08_A',
+#                 'TAC_s08_B',
+#                 'TAC_s09_A',
+#                 'TAC_s09_B',
+#                 'TAC_s10_A',
+#                 'TAC_s10_B',
+#                 'TAC_s11_A',
+#                 'TAC_s11_B',
+                    'IE256_21.0',
+                    'IE256_26.5',
+                    'IE256_2016_23.7',
+                    'IE256_2016_29.9',
+                    'IE256_2016_31.2',
                 ]:
         
-        if cid in ['IE256', 'IE256_2016', 'CS0445']:
+        if cid in ['IE256', 'IE256_2016', 'CS0445','IE256_21.0','IE256_26.5','IE256_2016_23.7','IE256_2016_29.9','IE256_2016_31.2']:
             #Ls = [10, 15, 20, 25, 30, 35, 40]
-            Ls = [10, 20, 30, 40]
+            #Ls = [10, 20, 30, 40]
+            Ls = [10, 20]
+        elif cid in ['DUC04','TAC_s08_A','TAC_s08_B','TAC_s09_A','TAC_s09_B','TAC_s10_A','TAC_s10_B','TAC_s11_A','TAC_s11_B']:
+            Ls = [80, 90, 100, 110, 120]
         else:
             Ls = [150, 175, 200, 225, 250]
             
         for L in Ls:
-            ilpdir = "../../data/%s_nocutoff/"%cid
+            #ilpdir = "../../data/%s_nocutoff/"%cid
+            ilpdir = "../../data/%s/"%cid
             rougefile = os.path.join(ilpdir, 'test_%d.txt'%L)
             
             if not fio.IsExist(rougefile): continue
@@ -141,7 +158,7 @@ def gatherRouge():
             row = [cid, L] + body[-1]
             Allbody.append(row)
     
-    output = '../../data/rouge_all_gather_no_cut.txt'
+    output = '../../data/rouge_all_gather_cut1_newdata.txt'
     fio.WriteMatrix(output, Allbody, ['cid', 'L'] + head)
     
                         
@@ -150,7 +167,7 @@ if __name__ == '__main__':
     
     gatherRouge()
     exit(-1)
-    
+#     
 #     getBaselineROUGE('IE256')
 #     exit(-1)
 #     
@@ -164,7 +181,21 @@ if __name__ == '__main__':
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-                'review_all',
+#                 'review_all',
+#                 'DUC04',
+#                 'TAC_s08_A',
+#                 'TAC_s08_B',
+#                 'TAC_s09_A',
+#                 'TAC_s09_B',
+#                 'TAC_s10_A',
+#                 'TAC_s10_B',
+#                 'TAC_s11_A',
+#                 'TAC_s11_B',
+                    'IE256_21.0',
+                    'IE256_26.5',
+                    'IE256_2016_23.7',
+                    'IE256_2016_29.9',
+                    'IE256_2016_31.2',
                 ]:
         
         ilpdir = "../../data/%s/ILP_MC/"%cid
@@ -179,12 +210,15 @@ if __name__ == '__main__':
                         
         rouge_dict = {}
         
-        #for L in [10, 15, 20, 25, 30, 35, 40]:
-        #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
-        for L in [150, 175, 200, 225, 250]:
-        #for L in [39]:
-            for threshold in [0.0]:
-                for m_lambda in numpy.arange(0, 6.0, 0.5):
+        for L in [10, 15, 20, 25, 30, 35, 40]:
+            for m_lambda in numpy.arange(0, 6.0, 0.5):
+            
+            #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+            #for L in [150, 175, 200, 225, 250]:
+    #         for L in [80, 90, 100, 110, 120]:
+            #for L in [39]:
+                for threshold in [0.0]:
+                
                 #for m_lambda in numpy.arange(0.5, 6.0, 0.5):
                 #for m_lambda in [0.0]:
             
@@ -192,6 +226,8 @@ if __name__ == '__main__':
                         Lambda = None
                     else:
                         Lambda =  str(m_lambda)+ '.' + str(threshold)
+                    
+                    print ilpdir, m_lambda, L, threshold 
                     
                     getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets, N)
                     

@@ -12,6 +12,7 @@ import ILP_baseline as ILP
 import os
 import global_params
 import collections
+import sys
 
 phraseext = ".key" #a list
 studentext = ".keys.source" #json
@@ -501,7 +502,7 @@ def TestProcessLine():
     print ngrams
 
                  
-def getMC(cid, cutoff=2):
+def getMC(cid, cutoff=2, softImpute_lambda=1.0):
     ILP_dir = "../../data/%s/MC/"%cid 
     outdir = "../../data/%s/matrix/exp5/"%cid
     fio.NewPath(outdir)
@@ -513,38 +514,71 @@ def getMC(cid, cutoff=2):
     
     for np in ['sentence']:
 #         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'], cutoff=cutoff)
-        getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
-         
+#         getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+#          
         #pause, run the MC script
-        
-#         for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
-#             if softImpute_lambda < 1.4:
-#                 rank_max = 500
-#             else:
-#                 rank_max = 500
-#                
-#             softImpute_lambda = "%.1f"%softImpute_lambda
-#              
-#             getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+        #for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
+        for softImpute_lambda in [0.5]:
+#         for softImpute_lambda in [softImpute_lambda]:
+            if softImpute_lambda < 1.4:
+                rank_max = 500
+            else:
+                rank_max = 500
+                   
+            softImpute_lambda = "%.1f"%softImpute_lambda
+                 
+            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
 
     print "done"
+
+def writecmd():
+    for cid in [
+                'DUC04',
+                'TAC_s08_A',
+                'TAC_s08_B',
+                'TAC_s09_A',
+                'TAC_s09_B',
+                'TAC_s10_A',
+                'TAC_s10_B',
+                'TAC_s11_A',
+                'TAC_s11_B',
+                ]:
+        for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
+            filename = os.path.join('../../data/%s/MC/0/q1.%.1f.softA'%(cid,softImpute_lambda))
+            if fio.IsExist(filename): continue
+            
+            print 'python ILP_getMatrixCompletion_cutoff.py %s %.1f' % (cid, softImpute_lambda)
                         
 if __name__ == '__main__':
-    for cid in [
-#                 'IE256',
-#                 'IE256_2016',
-#                 'CS0445',
-#                 'review_camera', 
-#                 'review_IMDB', 
-#                 'review_prHistory',
-#                 'review_all',
+#     writecmd()
+#     exit(-1)
+    
+    cid = sys.argv[1]
+    softImpute_lambda = float(sys.argv[2])
+    
+#     for cid in [
+# #                 'IE256',
+# #                 'IE256_2016',
+# #                 'CS0445',
+# #                 'review_camera', 
+# #                 'review_IMDB', 
+# #                 'review_prHistory',
+# #                 'review_all',
 #                 'DUC04',
-                'TAC_s08',
-#                 'TAC_s09',
-#                 'TAC_s10',
-#                 'TAC_s11',
-                ]:
-        getMC(cid, cutoff=20)
+# #                 'TAC_s08',
+# #                 'TAC_s09',
+# #                 'TAC_s10',
+# #                 'TAC_s11',
+# #                   'TAC_s08_A',
+# #                   'TAC_s08_B',
+# #                 'TAC_s09_A',
+# #                 'TAC_s09_B',
+# #                 'TAC_s10_A',
+# #                 'TAC_s10_B',
+# #                 'TAC_s11_A',
+# #                 'TAC_s11_B',
+#                 ]:
+    getMC(cid, cutoff=2,softImpute_lambda=softImpute_lambda)
     exit(-1)
     
     excelfile = "../../data/2011Spring_norm.xls"
