@@ -281,22 +281,44 @@ def H(cid, sentencedir, L=10, h_tag=h1_tag):
         else:
             m1 = m1 + '-'
     
-    return m1, m2
+    return m1, m2, '%.3f'%p
 
 if __name__ == '__main__':
-    phrasedir = '../../../QuantitativeSummarization/data/'
+    phrasedir = '../../data/'
     sentencedir = '../../data/'
     
-    for cid in ['IE256', 'IE256_2016', 'CS0445']:
+    for cid in ['IE256_nocutoff',
+                'IE256_2016_nocutoff',
+                'CS0445_nocutoff',
+                ]:
         print cid
         
-        for L in [10, 20, 30, 40]:
-            #eval_mc = EvalMC(phrasedir, sentencedir, cid)
-            #print '\t'.join([str(x) for x in eval_mc.extract_bigram_number()])
+        if cid.startswith('CS0445'):
+            LL = [16]
+        elif cid.startswith('IE256_2016'):
+            LL = [13]
+        elif cid.startswith('IE256'):
+            LL = [15]
+        elif cid.startswith('Engineer'):
+            LL = [30]
+        elif cid.startswith('review_camera'):
+            LL = [216]
+        elif cid.startswith('review_IMDB'):
+            LL = [242]
+        elif cid.startswith('review_prHistory'):
+            LL = [190]
+        elif cid.startswith('DUC'):
+            LL = [105]
+        else: #news
+            LL = [100]
             
+        for L in LL:
+#             eval_mc = EvalMC(phrasedir, sentencedir, cid)
+#             print '\t'.join([str(x) for x in eval_mc.extract_bigram_number()])
+#             
             print '\t'.join(H(cid, sentencedir, L, h1_tag))
-        
-        for L in [10, 20, 30, 40]:
+#         
+#         for L in [10, 20, 30, 40]:
             print '\t'.join(H(cid, sentencedir, L, h2_tag))
         
         

@@ -513,21 +513,19 @@ def getMC(cid, cutoff=2, softImpute_lambda=1.0):
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
     
     for np in ['sentence']:
-#         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'], cutoff=cutoff)
-#         getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+#         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types(), cutoff=cutoff)
+       getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 #          
         #pause, run the MC script
-        #for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
-        for softImpute_lambda in [0.5]:
-#         for softImpute_lambda in [softImpute_lambda]:
+       for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
             if softImpute_lambda < 1.4:
                 rank_max = 500
             else:
                 rank_max = 500
-                   
+                     
             softImpute_lambda = "%.1f"%softImpute_lambda
-                 
-            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=['q1','q2'])
+                   
+            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 
     print "done"
 
@@ -553,32 +551,47 @@ if __name__ == '__main__':
 #     writecmd()
 #     exit(-1)
     
-    cid = sys.argv[1]
-    softImpute_lambda = float(sys.argv[2])
+    #cid = sys.argv[1]
+    #softImpute_lambda = float(sys.argv[2])
     
-#     for cid in [
-# #                 'IE256',
-# #                 'IE256_2016',
-# #                 'CS0445',
-# #                 'review_camera', 
-# #                 'review_IMDB', 
-# #                 'review_prHistory',
-# #                 'review_all',
+    for cid in [
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'review_all',
 #                 'DUC04',
-# #                 'TAC_s08',
-# #                 'TAC_s09',
-# #                 'TAC_s10',
-# #                 'TAC_s11',
-# #                   'TAC_s08_A',
-# #                   'TAC_s08_B',
-# #                 'TAC_s09_A',
-# #                 'TAC_s09_B',
-# #                 'TAC_s10_A',
-# #                 'TAC_s10_B',
-# #                 'TAC_s11_A',
-# #                 'TAC_s11_B',
-#                 ]:
-    getMC(cid, cutoff=2,softImpute_lambda=softImpute_lambda)
+#                 'TAC_s08',
+#                 'TAC_s09',
+#                 'TAC_s10',
+#                 'TAC_s11',
+#                   'TAC_s08_A',
+#                   'TAC_s08_B',
+#                 'TAC_s09_A',
+#                 'TAC_s09_B',
+#                 'TAC_s10_A',
+#                 'TAC_s10_B',
+#                 'TAC_s11_A',
+#                 'TAC_s11_B',
+#                 'Engineer_36.0', 'Engineer_38.6', 'Engineer_41.4', 
+#                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
+#                 'review_IMDB_76.5', 'review_IMDB_76.8', 
+#                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4', 
+#                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
+#                 'DUC04_21.2', 'DUC04_23.4', 
+#                 'Engineer_16.0', 'Engineer_26.5', 
+#                 'IE256_5.6', 'IE256_11.9', 
+#                 'IE256_2016_5.4', 'IE256_2016_13.2', 
+#                 'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2', 
+#                 'review_prHistory_71.3', 'review_prHistory_75.6',
+#                 'CS0445_11.0', 'CS0445_19.3',
+                'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8', 
+                ]:
+
+        getMC(cid, cutoff=2,softImpute_lambda=1.0)
+    #getMC(cid, cutoff=5,softImpute_lambda=1.0) #for news
     exit(-1)
     
     excelfile = "../../data/2011Spring_norm.xls"
@@ -605,6 +618,6 @@ if __name__ == '__main__':
             if softImpute_lambda.endswith('.0'):
                 softImpute_lambda = softImpute_lambda[:-2]
             
-            getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir)
+            getSVD(ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 
     print "done"

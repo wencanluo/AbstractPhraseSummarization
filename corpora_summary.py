@@ -157,9 +157,10 @@ class MCCorpus:
         return '%.1f'%(self.bigram_num/float(self.total_number_of_sentences))
     
     def get_size(self):
+        self.get_number_of_sentence()
         print self.total_number_of_sentences
         print self.bigram_num
-        return self.total_number_of_sentences * self.bigram_num
+        return self.total_number_of_sentences * long(self.bigram_num)
     
     def load_A(self):
         self.As = []
@@ -249,6 +250,25 @@ class MCCorpus:
         
         return '%.4f'%(np.mean(self.bigram_entropies))
     
+    def get_human_summary_length(self):
+        '''
+        Extract the average human summary length in number of words
+        '''
+        if not self.sumfiles:
+            self.load_sumfiles()
+        
+        lengthes = []
+        for sun_file_lines in self.sumfiles:
+            ave = []
+            for lines in sun_file_lines:
+                length = 0
+                for line in lines:
+                    tokens = line.lower().split()
+                    length += len(tokens)
+                ave.append(length)
+            lengthes.append(np.mean(ave))
+        return '%.0f'%(np.mean(lengthes))
+        
     def get_human_summary_bigram_percentage(self, N=0):
         if not self.sumfiles:
             self.load_sumfiles()
@@ -347,7 +367,7 @@ def get_summary(datadir, corpus, output):
     
     head = ['name', 'domain', 'author #', 'human summary #', 'task #', 'sen #', 'sen #/task', 'bigram #', 'bigram #/task', 'bigram #/sentence', 'size of A', 
             'sparsity of A', 'ratio of bigram >=2', 'Shannon index',
-            'human in response N=0', 'human in response N=1', 'human in response N>1',
+            'human summary length', 'human in response N=0', 'human in response N=1', 'human in response N>1',
             'response in human N=1', 'response in human N=2', 'response in human N=3', 'response in human N=4', 'response in human N>=2',
             ]
     
@@ -360,36 +380,37 @@ def get_summary(datadir, corpus, output):
         mc_corpus.load_task()
         
         row.append(mc_corpus.get_number_of_ave_authors())
-#         row.append(global_params.no_human[name])
-#         row.append(mc_corpus.get_task_num())
-#         row.append(mc_corpus.get_number_of_sentence())
-#         row.append(mc_corpus.get_number_of_sentence_per_task())
-#         row.append(mc_corpus.get_bigram_num())
-#         row.append(mc_corpus.get_bigram_num_per_task())
-#         row.append(mc_corpus.get_bigram_num_per_sentence())
-#         row.append(mc_corpus.get_size())
-#         
-#         row.append(mc_corpus.get_sparsity_ratio())
-#         row.append(mc_corpus.get_bigram_ratio_more_than_N())
-#         row.append(mc_corpus.get_bigram_entropy())
-#         
-#         #output
-#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=0))
-#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=1))
-# #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=2))
-# #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=3))
-# #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=4))
-# #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=5))
-#         row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2))
-#         
-#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1))
-#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2))
-#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))
-#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4))
-#         row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2))
+        row.append(global_params.no_human[name])
+        row.append(mc_corpus.get_task_num())
+        row.append(mc_corpus.get_number_of_sentence())
+        row.append(mc_corpus.get_number_of_sentence_per_task())
+        row.append(mc_corpus.get_bigram_num())
+        row.append(mc_corpus.get_bigram_num_per_task())
+        row.append(mc_corpus.get_bigram_num_per_sentence())
+        row.append(mc_corpus.get_size())
+          
+        row.append(mc_corpus.get_sparsity_ratio())
+        row.append(mc_corpus.get_bigram_ratio_more_than_N())
+        row.append(mc_corpus.get_bigram_entropy())
+         
+        row.append(mc_corpus.get_human_summary_length())
+        #output
+        row.append(mc_corpus.get_human_summary_bigram_percentage(N=0))
+        row.append(mc_corpus.get_human_summary_bigram_percentage(N=1))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=2))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=3))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=4))
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=5))
+        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2))
+          
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2))
         body.append(row)
     
-    fio.WriteMatrix(output, body, head)
+    fio.Write2LatexTrans(output, body, head)
         
 if __name__ == '__main__':
     

@@ -107,16 +107,24 @@ def getBaselineROUGE(cid):
                 
         fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
 
+def mapcid(cid):
+    cidname = cid
+    cidname = cidname.replace('IE256_2016', 'Stat2016')
+    cidname = cidname.replace('IE256', 'Stat2015')
+    cidname = cidname.replace('CS0445', 'CS')
+    cidname = cidname.replace('review_prHistory', 'review_peer')
+    return cidname
+            
 def gatherRouge():
     
     Allbody = []
     for cid in [
-#                 'IE256',
-#                 'IE256_2016',
-#                 'CS0445',
-#                 'review_camera',
-#                 'review_IMDB', 
-#                 'review_prHistory',
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera',
+                'review_IMDB', 
+                'review_prHistory',
 #                 'review_all',
 #                 'DUC04',
 #                 'TAC_s08_A',
@@ -127,23 +135,67 @@ def gatherRouge():
 #                 'TAC_s10_B',
 #                 'TAC_s11_A',
 #                 'TAC_s11_B',
-                    'IE256_21.0',
-                    'IE256_26.5',
-                    'IE256_2016_23.7',
-                    'IE256_2016_29.9',
-                    'IE256_2016_31.2',
+#                      'IE256_5.6', 'IE256_11.9', 
+#                      'IE256',
+#                       'IE256_21.0', 'IE256_26.5',
+#                      
+#                      'IE256_2016_5.4', 'IE256_2016_13.2',
+#                      'IE256_2016',
+#                      'IE256_2016_23.7', 'IE256_2016_29.9', 'IE256_2016_31.2',
+#                      
+#                      'Engineer_16.0', 'Engineer_26.5',
+#                      'Engineer',
+#                      'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+#                      
+#                      'CS0445_11.0', 'CS0445_19.3',
+#                      'CS0445',
+#                      'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
+#                  
+#                  'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2',
+#                  'review_camera',
+#                  'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2',
+#                   
+#                  'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8',
+#                  'review_IMDB',
+#                  'review_IMDB_76.5', 'review_IMDB_76.8',
+#                  
+#                  
+#                  'review_prHistory_71.3', 'review_prHistory_75.6',
+#                  'review_prHistory', 
+#                  'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
+                 
+#                'DUC04_23.4', 'DUC04_21.2',
                 ]:
         
-        if cid in ['IE256', 'IE256_2016', 'CS0445','IE256_21.0','IE256_26.5','IE256_2016_23.7','IE256_2016_29.9','IE256_2016_31.2']:
-            #Ls = [10, 15, 20, 25, 30, 35, 40]
-            #Ls = [10, 20, 30, 40]
-            Ls = [10, 20]
-        elif cid in ['DUC04','TAC_s08_A','TAC_s08_B','TAC_s09_A','TAC_s09_B','TAC_s10_A','TAC_s10_B','TAC_s11_A','TAC_s11_B']:
-            Ls = [80, 90, 100, 110, 120]
-        else:
-            Ls = [150, 175, 200, 225, 250]
+#         if cid in ['IE256', 'IE256_2016', 'CS0445','IE256_21.0','IE256_26.5','IE256_2016_23.7','IE256_2016_29.9','IE256_2016_31.2']:
+#             #Ls = [10, 15, 20, 25, 30, 35, 40]
+#             #Ls = [10, 20, 30, 40]
+#             Ls = [10, 20]
+#         elif cid in ['DUC04','TAC_s08_A','TAC_s08_B','TAC_s09_A','TAC_s09_B','TAC_s10_A','TAC_s10_B','TAC_s11_A','TAC_s11_B']:
+#             Ls = [80, 90, 100, 110, 120]
+#         else:
+#             Ls = [150, 175, 200, 225, 250]
+        
+        if cid.startswith('CS0445'):
+            LL = [16]
+        elif cid.startswith('IE256_2016'):
+            LL = [13]
+        elif cid.startswith('IE256'):
+            LL = [15]
+        elif cid.startswith('Engineer'):
+            LL = [30]
+        elif cid.startswith('review_camera'):
+            LL = [216]
+        elif cid.startswith('review_IMDB'):
+            LL = [242]
+        elif cid.startswith('review_prHistory'):
+            LL = [190]
+        elif cid.startswith('DUC'):
+            LL = [105]
+        else: #news
+            LL = [100]
             
-        for L in Ls:
+        for L in LL:
             #ilpdir = "../../data/%s_nocutoff/"%cid
             ilpdir = "../../data/%s/"%cid
             rougefile = os.path.join(ilpdir, 'test_%d.txt'%L)
@@ -152,19 +204,54 @@ def gatherRouge():
             
             head, body = fio.ReadMatrix(rougefile, hasHead=True)
             
-            row = [cid, L] + body[-2]
+            cidname = mapcid(cid)
+            
+            row = [cidname, L] + body[-2]
             Allbody.append(row)
             
-            row = [cid, L] + body[-1]
+            row = [cidname, L] + body[-1]
             Allbody.append(row)
     
-    output = '../../data/rouge_all_gather_cut1_newdata.txt'
-    fio.WriteMatrix(output, Allbody, ['cid', 'L'] + head)
+    output = '../../rouge_all_gather_cutoff.txt'
+    fio.Write2Latex(output, Allbody, ['cid', 'L'] + head)
     
+def writebatchmc():
+        for cid in [
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                'DUC04',
+                    'IE256_21.0',
+                    'IE256_26.5',
+                    'IE256_2016_23.7',
+                    'IE256_2016_29.9',
+                    'IE256_2016_31.2',
+                'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
+                'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+                'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
+                'review_IMDB_76.5', 'review_IMDB_76.8', 
+                'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
+                #'DUC04_23.4', 'DUC04_21.2',
+                'CS0445_11.0', 'CS0445_19.3',
+                'Engineer_16.0', 'Engineer_26.5', 
+                'IE256_5.6', 'IE256_11.9', 
+                'IE256_2016_5.4', 'IE256_2016_13.2', 
+                'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2', 
+                'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8',
+                'review_prHistory_71.3', 'review_prHistory_75.6',
+                ]:
+            
+            filename = 'run_mc_new_%s.bat'%cid
+            s = 'python ILP_MC.py %s'%cid
+            fio.SaveText(s, filename)
                         
 if __name__ == '__main__':
     import sys
     
+#     writebatchmc()
     gatherRouge()
     exit(-1)
 #     
@@ -178,39 +265,73 @@ if __name__ == '__main__':
 #                 'IE256',
 #                 'IE256_2016',
 #                 'CS0445',
+#                 'IE256_nocutoff',
+#                 'IE256_2016_nocutoff',
+#                 'CS0445_nocutoff',
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-#                 'review_all',
-#                 'DUC04',
-#                 'TAC_s08_A',
-#                 'TAC_s08_B',
-#                 'TAC_s09_A',
-#                 'TAC_s09_B',
-#                 'TAC_s10_A',
-#                 'TAC_s10_B',
-#                 'TAC_s11_A',
-#                 'TAC_s11_B',
-                    'IE256_21.0',
-                    'IE256_26.5',
-                    'IE256_2016_23.7',
-                    'IE256_2016_29.9',
-                    'IE256_2016_31.2',
+                'DUC04',
+                'DUC04_nocutoff',
+#                 'IE256_21.0',
+#                 'IE256_26.5',
+#                 'IE256_2016_23.7',
+#                 'IE256_2016_29.9',
+#                 'IE256_2016_31.2',
+#                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
+#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+#                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
+#                 'review_IMDB_76.5', 'review_IMDB_76.8', 
+#                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
+#                 #'DUC04_23.4', 'DUC04_21.2',
+#                 'CS0445_11.0', 'CS0445_19.3',
+#                 'Engineer_16.0', 'Engineer_26.5', 
+#                 'IE256_5.6', 'IE256_11.9', 
+#                 'IE256_2016_5.4', 
+#                 'IE256_2016_13.2', 
+#                 'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2', 
+#                 'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8',
+#                 'review_prHistory_71.3', 'review_prHistory_75.6',
                 ]:
         
         ilpdir = "../../data/%s/ILP_MC/"%cid
         sheets = global_params.lectures[cid]
         N = global_params.no_human[cid]
         
-        #m_lambda = 'org'
-        #threshold = '1.0'
-        
         from config import ConfigFile
         config = ConfigFile(config_file_name='config_%s.txt'%cid)
                         
         rouge_dict = {}
         
-        for L in [10, 15, 20, 25, 30, 35, 40]:
+#         if cid.startswith('CS0445') or cid.startswith('IE256'):
+#             LL = [10, 20, 30, 40]
+#         elif cid.startswith('Engineer'):
+#             LL = [20, 30, 40, 50, 60]
+#         elif cid.startswith('review'):
+#             LL = [150, 175, 200, 225, 250]
+#         else: #news
+#             LL = [80, 90, 100, 110, 120]
+        
+        if cid.startswith('CS0445'):
+            LL = [16]
+        elif cid.startswith('IE256_2016'):
+            LL = [13]
+        elif cid.startswith('IE256'):
+            LL = [15]
+        elif cid.startswith('Engineer'):
+            LL = [30]
+        elif cid.startswith('review_camera'):
+            LL = [216]
+        elif cid.startswith('review_IMDB'):
+            LL = [242]
+        elif cid.startswith('review_prHistory'):
+            LL = [190]
+        elif cid.startswith('DUC'):
+            LL = [105]
+        else: #news
+            LL = [100]
+            
+        for L in LL:
             for m_lambda in numpy.arange(0, 6.0, 0.5):
             
             #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:

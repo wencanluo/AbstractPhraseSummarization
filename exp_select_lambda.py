@@ -288,7 +288,7 @@ if __name__ == '__main__':
     #select_lambda_MC_Engnieer_cv()
     
     #cid = 'review_camera'
-    cid = 'review_IMDB'
+#     cid = 'review_IMDB'
     #cid = 'review_prHistory'
                 
     #cid = 'CS0445'
@@ -299,35 +299,67 @@ if __name__ == '__main__':
 #                 'IE256',
 #                 'IE256_2016',
 #                 'CS0445',
-#                 'review_camera',
+                'IE256_nocutoff',
+                'IE256_2016_nocutoff',
+                'CS0445_nocutoff',
+#                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-#                 'review_all',
 #                 'DUC04',
-#                 'TAC_s08_A',
-#                 'TAC_s08_B',
-#                 'TAC_s09_A',
-#                 'TAC_s09_B',
-#                 'TAC_s10_A',
-#                 'TAC_s10_B',
-#                 'TAC_s11_A',
-#                 'TAC_s11_B',
-                    'IE256_21.0',
-                    'IE256_26.5',
-                    'IE256_2016_23.7',
-                    'IE256_2016_29.9',
-                    'IE256_2016_31.2',
+#                 'IE256_21.0',
+#                 'IE256_26.5',
+#                 'IE256_2016_23.7',
+#                 'IE256_2016_29.9',
+#                 'IE256_2016_31.2',
+#                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
+#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+#                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
+#                 'review_IMDB_76.5', 'review_IMDB_76.8', 
+#                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
+#                 #'DUC04_23.4', 'DUC04_21.2',
+#                 'CS0445_11.0', 'CS0445_19.3',
+#                 'Engineer_16.0', 'Engineer_26.5', 
+#                 'IE256_5.6', 'IE256_11.9', 
+#                 'IE256_2016_5.4', 
+#                 'IE256_2016_13.2', 
+#                 'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2', 
+#                 'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8',
+#                 'review_prHistory_71.3', 'review_prHistory_75.6',
                 ]:
-        
-        for L in [10, 15, 20, 25, 30, 35, 40]:
-        #for L in [80, 90, 100, 110, 120]:
-        #for L in [30]:
+    
+        if cid.startswith('CS0445'):
+            LL = [16]
+        elif cid.startswith('IE256_2016'):
+            LL = [13]
+        elif cid.startswith('IE256'):
+            LL = [15]
+        elif cid.startswith('Engineer'):
+            LL = [30]
+        elif cid.startswith('review_camera'):
+            LL = [216]
+        elif cid.startswith('review_IMDB'):
+            LL = [242]
+        elif cid.startswith('review_prHistory'):
+            LL = [190]
+        elif cid.startswith('DUC'):
+            LL = [105]
+        else: #news
+            LL = [100]
+            
+        for L in LL:
             counts = []
             
             #folds = range(2, 20)
-            folds = [10]
+#             if cid.startswith('review'):
+#                 FF = [3]
+#             else:
+#                 FF = [10]
+        
+            FF = [len(global_params.lectures[cid])]
+            
+            folds = FF
             for fold in folds:
                 count = select_lambda_MC_cv(cid, L, fold)
                 counts.append(count)
-            print max(counts), folds[counts.index(max(counts))], counts
+            print cid, L, max(counts), folds[counts.index(max(counts))], counts
             #select_lambda_MC_cv('CS0445', L)

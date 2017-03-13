@@ -327,10 +327,39 @@ def get_ILP_MC_summary(cid):
       
     matrix_dir = "../../data/%s/MC/"%cid
     print matrix_dir
-          
-    for L in [10, 15, 20, 25, 30, 35, 40]:
-    #for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
-#     for L in [150, 175, 200, 225, 250]:
+    
+#     if cid.startswith('CS0445') or cid.startswith('IE256'):
+#         LL = [10, 20, 30, 40]
+#     elif cid.startswith('Engineer'):
+#         LL = [20, 30, 40, 50, 60]
+#     elif cid.startswith('review'):
+#         LL = [150, 175, 200, 225, 250]
+#     else: #news
+#         LL = [80, 90, 100, 110, 120]
+    
+    if cid.startswith('CS0445'):
+        LL = [16]
+    elif cid.startswith('IE256_2016'):
+        LL = [13]
+    elif cid.startswith('IE256'):
+        LL = [15]
+    elif cid.startswith('Engineer'):
+        LL = [30]
+    elif cid.startswith('review_camera'):
+        LL = [216]
+    elif cid.startswith('review_IMDB'):
+        LL = [242]
+    elif cid.startswith('review_prHistory'):
+        LL = [190]
+    elif cid.startswith('DUC'):
+        LL = [105]
+    else: #news
+        LL = [100]
+    
+    #for L in [10, 15, 20, 25, 30, 35, 40]:
+#     for L in [10, 20, 30, 40]:
+#     for L in [20, 30, 40, 50, 60]:
+    for L in LL:
 #     for L in [80, 90, 100, 110, 120]:
         for np in ['sentence']:
             for Lambda in numpy.arange(0, 6.0, 0.5):
@@ -389,7 +418,7 @@ if __name__ == '__main__':
     #print getSparseRatio(matrix_dir, prefixA=".org.softA", eps=1.0)
     getSparseRatioExample(matrix_dir, prefixA=".500_2.5.softA", eps=0.9)
     exit(1)
-     
+    
     for L in [config.get_length_limit()]:
         for np in ['sentence']:
             rank = config.get_rank_max()
