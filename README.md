@@ -9,3 +9,4 @@ required softwares
 * Cygwin (to run ROUGE)
 * Mead
 * ROUGE
+  * Perl
