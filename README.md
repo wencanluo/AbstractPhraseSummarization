@@ -10,3 +10,4 @@ required softwares
 * Mead
 * ROUGE
   * Perl
+    * XML:DOM
