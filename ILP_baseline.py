@@ -12,7 +12,7 @@ from collections import defaultdict
 from Survey import punctuations
 ngramTag = "___"
 
-stopwords = [line.lower().strip() for line in fio.ReadFile("../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt")]
+stopwords = [line.lower().strip() for line in fio.ReadFile("../../../ROUGE-1.5.5/data/smart_common_words.txt")]
 
 stopwordswithpunctuations = stopwords + punctuations
 #stopwords = stopwords + punctuations

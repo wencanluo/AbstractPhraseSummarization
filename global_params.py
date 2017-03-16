@@ -221,3 +221,25 @@ no_human = {'Engineer':1,
             'TAC_s11_A': 4,
             'TAC_s11_B': 4,
             }
+
+def mapcid(cid):
+    cidname = cid
+    cidname = cidname.replace('Engineer', 'Eng')
+    cidname = cidname.replace('IE256_2016', 'Stat2016')
+    cidname = cidname.replace('IE256', 'Stat2015')
+    cidname = cidname.replace('CS0445', 'CS')
+    cidname = cidname.replace('review_prHistory', 'peer')
+    cidname = cidname.replace('review_camera', 'camera')
+    cidname = cidname.replace('review_IMDB', 'IMDB')
+    return cidname
+
+
+AlphaDict = {'DUC04':15.9,
+             'review_camera':84.9,
+             'review_IMDB':76.4,
+             'review_prHistory':77.1,
+             'Engineer':34.1,
+             'IE256':18.1,
+             'IE256_2016':20.9,
+             'CS0445':25.6,
+             }

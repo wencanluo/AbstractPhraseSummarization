@@ -123,6 +123,15 @@ class MCCorpus:
             self.bigrams.append(bigrams)
             self.bigram_counts.append(bigram_count)
     
+    def get_num_words_per_task(self):
+        self.wc = []
+        for doc in self.keyfiles:
+            count = 0
+            for line in doc:
+                count += len(line.split())
+            self.wc.append(count)
+        return '%.1f'%np.mean(self.wc)
+    
     def extract_sum_bigram(self):
         for docs in self.sumfiles:
             sum_bigram = []
@@ -208,6 +217,14 @@ class MCCorpus:
                     zero += 1
         return zero/total
     
+    def get_bigram_ratio_eqK_A(self, A, K=1):
+        total = float(len(A))
+        count = 0
+        for bigram in A:
+            if sum(A[bigram]) == K:
+                count += 1
+        return count/total
+    
     def get_bigram_ratio_N_A(self, A):
         total = float(len(A))
         count = 0
@@ -232,7 +249,15 @@ class MCCorpus:
         for A in self.As:
             self.sparsities.append(self.get_sparsity_ratio_A(A))
         
-        return '%.3f%%'%(np.mean(self.sparsities)*100)
+        return '%.1f%%'%(np.mean(self.sparsities)*100)
+    
+    def get_bigram_ratio_more_than_eqK(self, K):
+        self.bigram_ratio_eqNs = []
+        
+        for A in self.As:
+            self.bigram_ratio_eqNs.append(self.get_bigram_ratio_eqK_A(A, K))
+        
+        return '%.1f%%'%(np.mean(self.bigram_ratio_eqNs)*100)
     
     def get_bigram_ratio_more_than_N(self):
         self.bigram_ratio_Ns = []
@@ -240,7 +265,8 @@ class MCCorpus:
         for A in self.As:
             self.bigram_ratio_Ns.append(self.get_bigram_ratio_N_A(A))
         
-        return '%.3f%%'%(np.mean(self.bigram_ratio_Ns)*100)
+        return '%.1f%%'%(np.mean(self.bigram_ratio_Ns)*100)
+    
     
     def get_bigram_entropy(self):
         self.bigram_entropies = []
@@ -248,7 +274,7 @@ class MCCorpus:
         for A in self.As:
             self.bigram_entropies.append(self.get_bigram_entropy_A(A))
         
-        return '%.4f'%(np.mean(self.bigram_entropies))
+        return '%.3f'%(np.mean(self.bigram_entropies))
     
     def get_human_summary_length(self):
         '''
@@ -257,7 +283,7 @@ class MCCorpus:
         if not self.sumfiles:
             self.load_sumfiles()
         
-        lengthes = []
+        self.sum_lengthes = []
         for sun_file_lines in self.sumfiles:
             ave = []
             for lines in sun_file_lines:
@@ -266,9 +292,15 @@ class MCCorpus:
                     tokens = line.lower().split()
                     length += len(tokens)
                 ave.append(length)
-            lengthes.append(np.mean(ave))
-        return '%.0f'%(np.mean(lengthes))
-        
+            self.sum_lengthes.append(np.mean(ave))
+        return '%.0f'%(np.mean(self.sum_lengthes))
+    
+    def get_compression_ratio(self):
+        self.compression_ratio = []
+        for length, wc in zip(self.sum_lengthes, self.wc):
+            self.compression_ratio.append(float(length)/wc)
+        return '%.3f'%(np.mean(self.compression_ratio))
+    
     def get_human_summary_bigram_percentage(self, N=0):
         if not self.sumfiles:
             self.load_sumfiles()
@@ -289,7 +321,7 @@ class MCCorpus:
                         count_N += 1
                         #print bigram
                    
-        return count_N/total
+        return '%.1f%%'%(count_N/total*100)
     
     def get_response_in_human_bigram_percentage(self, N=0):
         if not self.sumfiles:
@@ -316,7 +348,7 @@ class MCCorpus:
                 if found:
                     count_N += 1
                     
-        return count_N/total
+        return '%.1f%%'%(count_N/total*100)
 
     def get_response_in_human_bigram_percentage_bigger(self, N=0):
         if not self.sumfiles:
@@ -340,7 +372,7 @@ class MCCorpus:
                 if found:
                     count_N += 1
                    
-        return count_N/total
+        return '%.1f%%'%(count_N/total*100)
     
     def get_human_summary_bigram_percentage_bigger(self, N=0):
         if not self.sumfiles:
@@ -361,73 +393,91 @@ class MCCorpus:
                     if count >= N:
                         count_N += 1
                    
-        return count_N/total
+        return '%.1f%%'%(count_N/total*100)
     
 def get_summary(datadir, corpus, output):
     
-    head = ['name', 'domain', 'author #', 'human summary #', 'task #', 'sen #', 'sen #/task', 'bigram #', 'bigram #/task', 'bigram #/sentence', 'size of A', 
-            'sparsity of A', 'ratio of bigram >=2', 'Shannon index',
-            'human summary length', 'human in response N=0', 'human in response N=1', 'human in response N>1',
-            'response in human N=1', 'response in human N=2', 'response in human N=3', 'response in human N=4', 'response in human N>=2',
+    head = ['name', 'genre', 'T', 'au', 
+            'M*N', 'M', 'N', 'M/T', 'N/T', 'N/M', 'W/T',  
+            's', 'b=1', 'b>1', 'H',
+            'L', 'hs', 'r', '$\\alpha_{b>0}$', '$\\alpha_{b=0}$', '$\\alpha_{b=1}$', '$\\alpha_{b>1}$',
+            '$\\beta_{b=1}$', '$\\beta_{b=2}$', '$\\beta_{b=3}$', '$\\beta_{b=4}$', '$\\beta_{b>1}$',
             ]
     
-    body = []
+    ids = ['id'] + range(1, len(head))
+    print ids
+    
+    body = [head]
+    
     for name, domain in corpus:
-        row = [name, domain]
+        print name
+        
+        row = [global_params.mapcid(name), domain]  #1
         folder = os.path.join(datadir, name)
         
         mc_corpus = MCCorpus(folder)
         mc_corpus.load_task()
+
+        row.append(mc_corpus.get_task_num()) #2
+        row.append('%.1f'%mc_corpus.get_number_of_ave_authors()) #3
         
-        row.append(mc_corpus.get_number_of_ave_authors())
-        row.append(global_params.no_human[name])
-        row.append(mc_corpus.get_task_num())
-        row.append(mc_corpus.get_number_of_sentence())
-        row.append(mc_corpus.get_number_of_sentence_per_task())
-        row.append(mc_corpus.get_bigram_num())
-        row.append(mc_corpus.get_bigram_num_per_task())
-        row.append(mc_corpus.get_bigram_num_per_sentence())
-        row.append(mc_corpus.get_size())
+        M = mc_corpus.get_number_of_sentence()
+        N = mc_corpus.get_bigram_num()
+        row.append(mc_corpus.get_size()) #4
+        row.append(M) #5
+        row.append(N) #6
+        
+        row.append(mc_corpus.get_number_of_sentence_per_task()) #7
+        
+        row.append(mc_corpus.get_bigram_num_per_task()) #8
+        row.append(mc_corpus.get_bigram_num_per_sentence()) #9
+        row.append(mc_corpus.get_num_words_per_task()) #10
+        
           
-        row.append(mc_corpus.get_sparsity_ratio())
-        row.append(mc_corpus.get_bigram_ratio_more_than_N())
-        row.append(mc_corpus.get_bigram_entropy())
-         
-        row.append(mc_corpus.get_human_summary_length())
+        row.append(mc_corpus.get_sparsity_ratio()) #11
+        row.append(mc_corpus.get_bigram_ratio_more_than_eqK(1)) #12
+        
+        row.append(mc_corpus.get_bigram_ratio_more_than_N()) #13
+        row.append(mc_corpus.get_bigram_entropy()) #14
+
         #output
-        row.append(mc_corpus.get_human_summary_bigram_percentage(N=0))
-        row.append(mc_corpus.get_human_summary_bigram_percentage(N=1))
+        row.append(mc_corpus.get_human_summary_length()) #15        
+        row.append(global_params.no_human[name]) #16
+        row.append(mc_corpus.get_compression_ratio()) #17
+        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(1)) #18
+        row.append(mc_corpus.get_human_summary_bigram_percentage(N=0)) #19
+        row.append(mc_corpus.get_human_summary_bigram_percentage(N=1)) #20
 #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=2))
 #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=3))
 #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=4))
 #         row.append(mc_corpus.get_human_summary_bigram_percentage(N=5))
-        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2))
+        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2)) #21
           
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1))
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2))
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4))
-        row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2))
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1)) #22
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2)) #23
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))#24
+        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4)) #25
+        row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2)) #26
         body.append(row)
     
-    fio.Write2LatexTrans(output, body, head)
+    fio.Write2LatexTrans(output, body, ids)
         
 if __name__ == '__main__':
     
     datadir = '../../data/'
     corpus = [
+            ('DUC04', 'news'),
+            ('review_camera','review'),
+            ('review_IMDB','review'),
+            ('review_prHistory','review'),
             ('Engineer','response'),
             ('IE256','response'),
             ('IE256_2016','response'),
-            ('CS0445','response'),
-            ('review_camera','review'),
-            ('review_prHistory','review'),
-            ('review_IMDB','review'),
-            ('DUC04', 'news'),
-            ('TAC_s08', 'news'),
-            ('TAC_s09', 'news'),
-            ('TAC_s10', 'news'),
-            ('TAC_s11', 'news'),
+            ('CS0445','response')
+#             ('TAC_s08', 'news'),
+#             ('TAC_s09', 'news'),
+#             ('TAC_s10', 'news'),
+#             ('TAC_s11', 'news'),
               ]
     
     output = '../../data/statistcis_all_news.txt'

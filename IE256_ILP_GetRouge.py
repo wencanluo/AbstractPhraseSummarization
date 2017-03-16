@@ -106,25 +106,17 @@ def getBaselineROUGE(cid):
         getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets)
                 
         fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')
-
-def mapcid(cid):
-    cidname = cid
-    cidname = cidname.replace('IE256_2016', 'Stat2016')
-    cidname = cidname.replace('IE256', 'Stat2015')
-    cidname = cidname.replace('CS0445', 'CS')
-    cidname = cidname.replace('review_prHistory', 'review_peer')
-    return cidname
             
 def gatherRouge():
     
     Allbody = []
     for cid in [
-                'IE256',
-                'IE256_2016',
-                'CS0445',
-                'review_camera',
-                'review_IMDB', 
-                'review_prHistory',
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera',
+#                 'review_IMDB', 
+#                 'review_prHistory',
 #                 'review_all',
 #                 'DUC04',
 #                 'TAC_s08_A',
@@ -135,35 +127,42 @@ def gatherRouge():
 #                 'TAC_s10_B',
 #                 'TAC_s11_A',
 #                 'TAC_s11_B',
-#                      'IE256_5.6', 'IE256_11.9', 
-#                      'IE256',
-#                       'IE256_21.0', 'IE256_26.5',
-#                      
-#                      'IE256_2016_5.4', 'IE256_2016_13.2',
-#                      'IE256_2016',
-#                      'IE256_2016_23.7', 'IE256_2016_29.9', 'IE256_2016_31.2',
-#                      
-#                      'Engineer_16.0', 'Engineer_26.5',
-#                      'Engineer',
-#                      'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
-#                      
-#                      'CS0445_11.0', 'CS0445_19.3',
-#                      'CS0445',
-#                      'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-#                  
-#                  'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2',
-#                  'review_camera',
-#                  'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2',
-#                   
-#                  'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8',
-#                  'review_IMDB',
-#                  'review_IMDB_76.5', 'review_IMDB_76.8',
-#                  
-#                  
-#                  'review_prHistory_71.3', 'review_prHistory_75.6',
-#                  'review_prHistory', 
-#                  'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
-                 
+#
+                #'review_camera_74.5', 
+                'review_camera_78.7', 'review_camera_83.2',
+                'review_camera',
+                #'review_camera_84.9', 
+                'review_camera_85.8', 'review_camera_86.2',
+                   
+                #'review_IMDB_70.8', 
+                'review_IMDB_71.9', 'review_IMDB_74.8',
+                'review_IMDB',
+                'review_IMDB_76.5', 'review_IMDB_76.8',
+#               
+                'review_prHistory_71.3', 'review_prHistory_75.6',
+                'review_prHistory', 
+                #'review_prHistory_77.4', 
+                'review_prHistory_78.7', 'review_prHistory_80.4',
+                
+                'Engineer_16.0', 'Engineer_26.5',
+                'Engineer',
+                #'Engineer_36.0', 
+                'Engineer_38.6',  'Engineer_41.4',
+                  
+                'IE256_5.6', 'IE256_11.9', 
+                'IE256',
+                'IE256_21.0', 'IE256_26.5',
+                  
+                'IE256_2016_5.4', 'IE256_2016_13.2',
+                'IE256_2016',
+                'IE256_2016_23.7', 'IE256_2016_29.9', 
+                #'IE256_2016_31.2',
+                      
+                'CS0445_11.0', 'CS0445_19.3',
+                'CS0445',
+                'CS0445_28.0', 'CS0445_32.7', 
+                #'CS0445_34.2',
+                   
 #                'DUC04_23.4', 'DUC04_21.2',
                 ]:
         
@@ -204,16 +203,33 @@ def gatherRouge():
             
             head, body = fio.ReadMatrix(rougefile, hasHead=True)
             
-            cidname = mapcid(cid)
+            cidname = global_params.mapcid(cid)
             
-            row = [cidname, L] + body[-2]
+            if cid in global_params.AlphaDict:
+                s = global_params.AlphaDict[cid]
+                row = [cidname, s] + body[-2]
+            else:
+                s = cidname.split('_')[-1]
+                row = ['', s] + body[-2]
+            
             Allbody.append(row)
             
-            row = [cidname, L] + body[-1]
-            Allbody.append(row)
+            row2 = ['', ''] + body[-1]
+            
+            #process row2
+            
+            for i in range(1, 10):
+                if row2[-i][-1] == '+':
+                    row2[-i] = '\\bf{%s}'%row2[-i]
+                elif  row2[-i][-1] == '-':
+                    pass
+                else:
+                    if float(row2[-i]) > float(row[-i]):
+                        row2[-i] = '\\bf{%s}'%row2[-i]
+            Allbody.append(row2)
     
     output = '../../rouge_all_gather_cutoff.txt'
-    fio.Write2Latex(output, Allbody, ['cid', 'L'] + head)
+    fio.Write2Latex(output, Allbody, ['Corpus', '$\\alpha_{b=1}$'] + head)
     
 def writebatchmc():
         for cid in [
