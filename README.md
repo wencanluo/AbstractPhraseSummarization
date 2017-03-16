@@ -4,7 +4,7 @@ required softwares
 * python (2.7)
   * numpy
   * nltk
-  * xml
+  * xlrd
 * Gurobi (for ILP)
 * Cygwin (to run ROUGE)
 * Mead
