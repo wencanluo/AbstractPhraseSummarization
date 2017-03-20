@@ -301,52 +301,50 @@ def SaveNewA(A, dict, path, ngrams, prefixname="", sheets = range(0,25), np='sen
             with open(svdAname, 'w') as fout:
                 json.dump(PartA, fout, indent=2)            
 
-def SaveNewA_New(A, dict, path, ngrams, prefixname="", sheets = range(0,25), np='sentence', types=['POI', 'MP', 'LP']):
+def SaveNewA_New(A, dict, week, path, ngrams, prefixname="", sheets = range(0,25), np='sentence', types=['POI', 'MP', 'LP']):
     TotoalLine = 0
         
-    for i in sheets:
-        week = i
-        dir = path + str(week) + '/'
+    dir = path
+    
+    for type in types:
+        prefix = os.path.join(dir, type + "." + np)
+        print prefix
         
-        for type in types:
-            prefix = dir + type + "." + np
-            print prefix
+        if not fio.IsExist(prefix + phraseext):
+            print prefix + phraseext
+            continue
+        
+        document = open(prefix + phraseext).readlines()
+        
+        LineRange = range(TotoalLine, TotoalLine + len(document))
+        
+        TotoalLine = TotoalLine + len(document)
+        
+        Bigrams = []
+        for line in document:
+            line = ProcessLine(line, ngrams)
             
-            if not fio.IsExist(prefix + phraseext):
-                print prefix + phraseext
+            tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
+            
+            Bigrams = Bigrams + tokens
+        
+        PartA = {}
+        for bigram in set(Bigrams):
+            if bigram not in dict:
+                #print "error", bigram
                 continue
             
-            document = open(prefix + phraseext).readlines()
+            id = dict[bigram]
             
-            LineRange = range(TotoalLine, TotoalLine + len(document))
+            row = A[id]
             
-            TotoalLine = TotoalLine + len(document)
-            
-            Bigrams = []
-            for line in document:
-                line = ProcessLine(line, ngrams)
-                
-                tokens = list(gensim.utils.tokenize(line, lower=True, errors='ignore'))
-                
-                Bigrams = Bigrams + tokens
-            
-            PartA = {}
-            for bigram in set(Bigrams):
-                if bigram not in dict:
-                    #print "error", bigram
-                    continue
-                
-                id = dict[bigram]
-                
-                row = A[id]
-                
-                PartA[bigram] = [row[x] for x in LineRange]
-            
-            svdAname = dir + type + '.' +prefixname + '.softA'
-            print svdAname
-            
-            with open(svdAname, 'w') as fout:
-                json.dump(PartA, fout, indent=2)        
+            PartA[bigram] = [row[x] for x in LineRange]
+        
+        svdAname = os.path.join(dir, type + '.' +prefixname + '.softA')
+        print svdAname
+        
+        with open(svdAname, 'w') as fout:
+            json.dump(PartA, fout, indent=2)        
                 
 def ToBinary(csc):
     A = csc.toarray()
@@ -432,62 +430,75 @@ def getSVD_WriteX(cid, prefix, np, corpusname, ngrams, binary_matrix, output, ty
     fio.NewPath(path)
     
     sheets = global_params.lectures[cid]
-    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
     
-    # that's it! the streamed corpus of sparse vectors is ready
-    if corpusname=='book':
-        corpus = BookCorpus(np, ngrams)
-    elif corpusname == 'tac':
-        corpus = TacCorpus(prefix, ngrams)
-        dictname = path + '_' + corpusname + corpusdictexe
-    else:
-        corpus = TxtSubdirsCorpus(prefix, types, sheets, np, ngrams, cutoff)
-       
-    fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
-    
-    countdictname = output + "_".join(types) + '_' + corpusname + countdictexe
-    fio.SaveDict2Json(corpus.countdict, countdictname)
-    
-    #https://pypi.python.org/pypi/sparsesvd/
-    scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
-    print scipy_csc_matrix.shape
-      
-    print "binary_matrix: ", binary_matrix
-      
-    A = ToBinary(scipy_csc_matrix)
-      
-    name = 'X'
-    softImputeWrapper.SoftImpute_SaveX(A.T, name=name, folder=output)
+    for sheet in sheets:
+        folder = os.path.join(output, str(sheet))
+        fio.NewPath(folder)
+        
+        dictname = os.path.join(folder, "_".join(types) + '_' + corpusname + corpusdictexe)
+        
+        # that's it! the streamed corpus of sparse vectors is ready
+        if corpusname=='book':
+            corpus = BookCorpus(np, ngrams)
+        elif corpusname == 'tac':
+            corpus = TacCorpus(prefix, ngrams)
+            dictname = path + '_' + corpusname + corpusdictexe
+        else:
+            corpus = TxtSubdirsCorpus(prefix, types, [sheet], np, ngrams, cutoff)
+           
+        fio.SaveDict2Json(corpus.dictionary.token2id, dictname)
+        
+        countdictname = os.path.join(folder, "_".join(types) + '_' + corpusname + countdictexe)
+        fio.SaveDict2Json(corpus.countdict, countdictname)
+        
+        #https://pypi.python.org/pypi/sparsesvd/
+        scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
+        print scipy_csc_matrix.shape
+          
+        print "binary_matrix: ", binary_matrix
+          
+        A = ToBinary(scipy_csc_matrix)
+          
+        name = 'X'
+        softImputeWrapper.SoftImpute_SaveX(A.T, name=name, folder=folder)
 
 def getSVD_SaveOrg(cid, prefix, np, corpusname, ngrams, binary_matrix, output, types = ['POI', 'MP', 'LP']):
-    path = prefix
+    ILP_dir = prefix
     sheets = global_params.lectures[cid]
-    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
-    
     prefix = "org"
-    newA = softImputeWrapper.LoadA(name='X', folder=output)
+    
+    for sheet in sheets:
+        local_MC_dir = os.path.join(output, str(sheet))
+        local_ILP_dir = os.path.join(ILP_dir, str(sheet))
+        
+        dictname = os.path.join(local_MC_dir, "_".join(types) + '_' + corpusname + corpusdictexe)
+    
+        newA = softImputeWrapper.LoadA(name='X', folder=local_MC_dir)
       
-    if newA != None:
-        print newA.shape
-         
-        token2id = fio.LoadDictJson(dictname)
-        SaveNewA_New(newA, token2id, path, ngrams, prefix, sheets=sheets, np=np, types=types)
+        if newA != None:
+            print newA.shape
+             
+            token2id = fio.LoadDictJson(dictname)
+            SaveNewA_New(newA, token2id, sheet, local_ILP_dir, ngrams, prefix, sheets=[sheet], np=np, types=types)
     
 def getSVD_LoadMC(cid, prefix, np, corpusname, ngrams, rank_max, softImpute_lambda, binary_matrix, output, types = ['POI', 'MP', 'LP']): 
     #types = ['POI', 'MP', 'LP']
     path = prefix
     sheets = global_params.lectures[cid]
-    dictname = output + "_".join(types) + '_' + corpusname + corpusdictexe
+    
         
     prefix = str(softImpute_lambda)
     Lambda = str(rank_max) + '_' + str(softImpute_lambda)
-    newA = softImputeWrapper.LoadMC(Lambda=Lambda, name='newX', folder=output)
-      
-    if newA != None:
-        print newA.shape
-         
-        token2id = fio.LoadDictJson(dictname)
-        SaveNewA_New(newA, token2id, path, ngrams, prefix, sheets, np=np, types=types) 
+    
+    for sheet in sheets:
+        dictname = os.path.join(output, str(sheet), "_".join(types) + '_' + corpusname + corpusdictexe)
+        newA = softImputeWrapper.LoadMC(Lambda=Lambda, name='newX', folder= os.path.join(output, str(sheet)))
+          
+        if newA != None:
+            print newA.shape
+             
+            token2id = fio.LoadDictJson(dictname)
+            SaveNewA_New(newA, token2id, sheet, os.path.join(path, str(sheet)), ngrams, prefix, [sheet], np=np, types=types) 
 
 def TestProcessLine():
     line = "how to determine the answers to part iii , in the activity ."
@@ -513,33 +524,26 @@ def getMC(cid, cutoff=2, softImpute_lambda=1.0):
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
     
     for np in ['sentence']:
-         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types(), cutoff=cutoff)
-#       getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
+#         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types(), cutoff=cutoff)
+#         getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 #          
         #pause, run the MC script
-#       for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
-#            if softImpute_lambda < 1.4:
-#                rank_max = 500
-#            else:
-#                rank_max = 500
-#                     
-#            softImpute_lambda = "%.1f"%softImpute_lambda
-#                   
-#            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
+        for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
+            if softImpute_lambda < 1.4:
+                rank_max = 500
+            else:
+                rank_max = 500
+                      
+            softImpute_lambda = "%.1f"%softImpute_lambda
+                    
+            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 
     print "done"
 
 def writecmd():
     for cid in [
                 'DUC04',
-                'TAC_s08_A',
-                'TAC_s08_B',
-                'TAC_s09_A',
-                'TAC_s09_B',
-                'TAC_s10_A',
-                'TAC_s10_B',
-                'TAC_s11_A',
-                'TAC_s11_B',
+                'DUC04_nocutoff'
                 ]:
         for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
             filename = os.path.join('../../data/%s/MC/0/q1.%.1f.softA'%(cid,softImpute_lambda))
@@ -563,6 +567,7 @@ if __name__ == '__main__':
 #                 'review_prHistory',
 #                 'review_all',
 #                 'DUC04',
+                'DUC04_nocutoff',
 #                 'TAC_s08',
 #                 'TAC_s09',
 #                 'TAC_s10',
@@ -575,8 +580,6 @@ if __name__ == '__main__':
 #                 'TAC_s10_B',
 #                 'TAC_s11_A',
 #                 'TAC_s11_B',
-#				  'Engineer',
-				  'Engineer_nocutoff',
 #                 'Engineer_36.0', 'Engineer_38.6', 'Engineer_41.4', 
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
@@ -591,16 +594,13 @@ if __name__ == '__main__':
 #                 'CS0445_11.0', 'CS0445_19.3',
 #                 'review_IMDB_70.8', 'review_IMDB_71.9', 'review_IMDB_74.8', 
                 ]:
-        
         if cid.endswith('nocutoff'):
             cutoff = 1
             if cid.startswith('DUC'):
                 cutoff = 2
         else:
             cutoff = 2
-        
-        print cutoff
-		
+            
         getMC(cid, cutoff=cutoff,softImpute_lambda=1.0)
     #getMC(cid, cutoff=5,softImpute_lambda=1.0) #for news
     exit(-1)

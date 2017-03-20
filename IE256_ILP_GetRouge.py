@@ -268,8 +268,8 @@ if __name__ == '__main__':
     import sys
     
 #     writebatchmc()
-    gatherRouge()
-    exit(-1)
+#     gatherRouge()
+#     exit(-1)
 #     
 #     getBaselineROUGE('IE256')
 #     exit(-1)

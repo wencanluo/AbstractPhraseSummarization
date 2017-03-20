@@ -89,6 +89,7 @@ Phraselectures = {
             'Engineer_36.0': range(12),
             'Engineer_38.6': range(12),
             'Engineer_41.4': range(12),
+			'Engineer_nocutoff': range(12),
             
             'IE256': [x for x in range(14, 26) if x != 22],
             'IE256_nocutoff': [x for x in range(14, 26) if x != 22],
@@ -151,7 +152,8 @@ no_human = {'Engineer':1,
             'Engineer_36.0': 1,
             'Engineer_38.6': 1,
             'Engineer_41.4': 1,
-            
+            'Engineer_nocutoff': 1,
+			
             'IE256': 2,
             'IE256_nocutoff': 2,
             

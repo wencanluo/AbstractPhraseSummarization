@@ -374,30 +374,8 @@ def get_ILP_MC_summary(cid):
     print "done"
                 
 if __name__ == '__main__':
-    cid = sys.argv[1]
-    
-#     for cid in [
-# #                 'IE256',
-# #                 'IE256_2016',
-# #                 'CS0445',
-# #                 'review_camera', 
-# #                 'review_IMDB', 
-# #                 'review_prHistory',
-# #                 'review_all',
-# #                 
-#                 'DUC04',
-#                 'TAC_s08_A',
-#                 'TAC_s08_B',
-#                 'TAC_s09_A',
-#                 'TAC_s09_B',
-#                 'TAC_s10_A',
-#                 'TAC_s10_B',
-#                 'TAC_s11_A',
-#                 'TAC_s11_B',
-#                 ]:
-        
+    cid = sys.argv[1]        
     get_ILP_MC_summary(cid)
-    
     exit(-1)
     
     ilpdir = "../../data/Engineer/ILP_MC/"
