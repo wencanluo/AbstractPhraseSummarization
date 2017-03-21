@@ -10,6 +10,7 @@ required softwares
   * gemsim
   * rpy2
   * pandas
+  * scikit-learn
 * Gurobi (for ILP)
 * Cygwin (to run ROUGE)
 * Mead
@@ -18,3 +19,5 @@ required softwares
     * XML:DOM
 * R
   * set R_HOME and R_User
+  * install.packages('softImpute')
+  
