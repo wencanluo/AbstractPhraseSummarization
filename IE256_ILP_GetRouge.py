@@ -13,14 +13,14 @@ RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P
 RougeHeaderSplit = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
 
-def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets, N=2):
+def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets, types, N=2):
     body = []
     
     for sheet in sheets:
         week = sheet
         dir = ilpdir + str(week) + '/'
         
-        for type in ['q1', 'q2']:
+        for type in types:
             prefix = dir + type + "." + 'sentence'
             
             if Lambda == None:
@@ -287,21 +287,23 @@ if __name__ == '__main__':
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-                'DUC04',
-                'DUC04_nocutoff',
+#                'DUC04',
+#                'DUC04_nocutoff',
 #                 'IE256_21.0',
 #                 'IE256_26.5',
 #                 'IE256_2016_23.7',
 #                 'IE256_2016_29.9',
 #                 'IE256_2016_31.2',
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
-#                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
+			     'Engineer', 'Engineer_nocutoff',
+                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+                 'Engineer_16.0', 'Engineer_26.5',
+				 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
 #                 #'DUC04_23.4', 'DUC04_21.2',
 #                 'CS0445_11.0', 'CS0445_19.3',
-#                 'Engineer_16.0', 'Engineer_26.5', 
+
 #                 'IE256_5.6', 'IE256_11.9', 
 #                 'IE256_2016_5.4', 
 #                 'IE256_2016_13.2', 
@@ -313,10 +315,11 @@ if __name__ == '__main__':
         ilpdir = "../../data/%s/ILP_MC/"%cid
         sheets = global_params.lectures[cid]
         N = global_params.no_human[cid]
-        
+        		
         from config import ConfigFile
         config = ConfigFile(config_file_name='config_%s.txt'%cid)
-                        
+        types = config.get_types()
+		
         rouge_dict = {}
         
 #         if cid.startswith('CS0445') or cid.startswith('IE256'):
@@ -366,7 +369,7 @@ if __name__ == '__main__':
                     
                     print ilpdir, m_lambda, L, threshold 
                     
-                    getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets, N)
+                    getRouge(rouge_dict, ilpdir, L, ilpdir, Lambda, sheets, types, N)
                     
                     if m_lambda == 'None':
                         fio.SaveDict2Json(rouge_dict, ilpdir + 'rouge.L'+str(L)+'.json')

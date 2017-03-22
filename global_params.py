@@ -1,12 +1,12 @@
 lectures = {
-            'Engineer': range(12),
-            'Engineer_nocutoff': range(12),
+            'Engineer': range(1,13),
+            'Engineer_nocutoff': range(1,13),
             
-            'Engineer_16.0': range(12),
-            'Engineer_26.5': range(12),
-            'Engineer_36.0': range(12),
-            'Engineer_38.6': range(12),
-            'Engineer_41.4': range(12),
+            'Engineer_16.0': range(1,13),
+            'Engineer_26.5': range(1,13),
+            'Engineer_36.0': range(1,13),
+            'Engineer_38.6': range(1,13),
+            'Engineer_41.4': range(1,13),
             
             
             'IE256': [x for x in range(3, 26) if x != 22],
@@ -60,6 +60,8 @@ lectures = {
             'review_all': range(9),
             'DUC04': range(50),
             'DUC04_nocutoff': range(50),
+			'DUC04_12.6': range(50),
+			'DUC04_13.9': range(50),
             'DUC04_16.0': range(50),
             'DUC04_16.5': range(50),
             'DUC04_17.2': range(50),
@@ -83,13 +85,13 @@ lectures = {
             }
 
 Phraselectures = {
-            'Engineer': range(12),
-            'Engineer_16.0': range(12),
-            'Engineer_26.5': range(12),
-            'Engineer_36.0': range(12),
-            'Engineer_38.6': range(12),
-            'Engineer_41.4': range(12),
-			'Engineer_nocutoff': range(12),
+            'Engineer': range(1,13),
+            'Engineer_16.0': range(1,13),
+            'Engineer_26.5': range(1,13),
+            'Engineer_36.0': range(1,13),
+            'Engineer_38.6': range(1,13),
+            'Engineer_41.4': range(1,13),
+			'Engineer_nocutoff': range(1,13),
             
             'IE256': [x for x in range(14, 26) if x != 22],
             'IE256_nocutoff': [x for x in range(14, 26) if x != 22],
@@ -116,6 +118,8 @@ Phraselectures = {
             
             'DUC04': range(50),
             'DUC04_nocutoff': range(50),
+			'DUC04_12.6': range(50),
+			'DUC04_13.9': range(50),
             'DUC04_16.0': range(50),
             'DUC04_16.5': range(50),
             'DUC04_17.2': range(50),
@@ -203,6 +207,8 @@ no_human = {'Engineer':1,
             'review_all': 8,
             'DUC04': 4,
             'DUC04_nocutoff': 4,
+			'DUC04_12.6': 4,
+			'DUC04_13.9': 4,
             'DUC04_16.0': 4,
             'DUC04_16.5': 4,
             'DUC04_17.2': 4,

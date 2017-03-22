@@ -305,21 +305,22 @@ if __name__ == '__main__':
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-                'DUC04',
-                'DUC04_nocutoff'
+#                'DUC04',
+#                'DUC04_nocutoff'
 #                 'IE256_21.0',
 #                 'IE256_26.5',
 #                 'IE256_2016_23.7',
 #                 'IE256_2016_29.9',
 #                 'IE256_2016_31.2',
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+				 'Engineer', 'Engineer_nocutoff',
+                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+				 'Engineer_16.0', 'Engineer_26.5', 
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
 #                 #'DUC04_23.4', 'DUC04_21.2',
 #                 'CS0445_11.0', 'CS0445_19.3',
-#                 'Engineer_16.0', 'Engineer_26.5', 
 #                 'IE256_5.6', 'IE256_11.9', 
 #                 'IE256_2016_5.4', 
 #                 'IE256_2016_13.2', 
@@ -357,7 +358,8 @@ if __name__ == '__main__':
 #                 FF = [10]
         
             FF = [len(global_params.lectures[cid])]
-            
+            #FF = [10]
+			
             folds = FF
             for fold in folds:
                 count = select_lambda_MC_cv(cid, L, fold)

@@ -131,6 +131,13 @@ class MCCorpus:
                 count += len(line.split())
             self.wc.append(count)
         return '%.1f'%np.mean(self.wc)
+	
+    def get_num_words_per_sentence(self):
+        self.wc_sen = []
+        for doc in self.keyfiles:
+            for line in doc:
+                self.wc_sen.append(len(line.split()))
+        return '%.1f'%np.mean(self.wc_sen)
     
     def extract_sum_bigram(self):
         for docs in self.sumfiles:
@@ -398,7 +405,7 @@ class MCCorpus:
 def get_summary(datadir, corpus, output):
     
     head = ['name', 'genre', 'T', 'au', 
-            'M*N', 'M', 'N', 'M/T', 'N/T', 'N/M', 'W/T',  
+            'M*N', 'M', 'N', 'M/T', 'N/T', 'N/M', 'W/T', 'W/M',
             's', 'b=1', 'b>1', 'H',
             'L', 'hs', 'r', '$\\alpha_{b>0}$', '$\\alpha_{b=0}$', '$\\alpha_{b=1}$', '$\\alpha_{b>1}$',
             '$\\beta_{b=1}$', '$\\beta_{b=2}$', '$\\beta_{b=3}$', '$\\beta_{b=4}$', '$\\beta_{b>1}$',
@@ -432,6 +439,7 @@ def get_summary(datadir, corpus, output):
         row.append(mc_corpus.get_bigram_num_per_task()) #8
         row.append(mc_corpus.get_bigram_num_per_sentence()) #9
         row.append(mc_corpus.get_num_words_per_task()) #10
+        row.append(mc_corpus.get_num_words_per_sentence()) #10.5
         
           
         row.append(mc_corpus.get_sparsity_ratio()) #11

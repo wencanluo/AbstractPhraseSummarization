@@ -513,19 +513,19 @@ def getMC(cid, cutoff=2, softImpute_lambda=1.0):
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
     
     for np in ['sentence']:
-         getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types(), cutoff=cutoff)
+       #getSVD_WriteX(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types(), cutoff=cutoff)
 #       getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 #          
         #pause, run the MC script
-#       for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
-#            if softImpute_lambda < 1.4:
-#                rank_max = 500
-#            else:
-#                rank_max = 500
-#                     
-#            softImpute_lambda = "%.1f"%softImpute_lambda
-#                   
-#            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
+       for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
+            if softImpute_lambda < 1.4:
+                rank_max = 500
+            else:
+                rank_max = 500
+                     
+            softImpute_lambda = "%.1f"%softImpute_lambda
+                   
+            getSVD_LoadMC(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), rank_max = rank_max, softImpute_lambda = softImpute_lambda, binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 
     print "done"
 
@@ -575,15 +575,14 @@ if __name__ == '__main__':
 #                 'TAC_s10_B',
 #                 'TAC_s11_A',
 #                 'TAC_s11_B',
-#				  'Engineer',
-				  'Engineer_nocutoff',
-#                 'Engineer_36.0', 'Engineer_38.6', 'Engineer_41.4', 
+				  'Engineer', 'Engineer_nocutoff',
+                 'Engineer_36.0', 'Engineer_38.6', 'Engineer_41.4', 
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4', 
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
 #                 'DUC04_21.2', 'DUC04_23.4', 
-#                 'Engineer_16.0', 'Engineer_26.5', 
+                 'Engineer_16.0', 'Engineer_26.5', 
 #                 'IE256_5.6', 'IE256_11.9', 
 #                 'IE256_2016_5.4', 'IE256_2016_13.2', 
 #                 'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2', 
@@ -594,8 +593,6 @@ if __name__ == '__main__':
         
         if cid.endswith('nocutoff'):
             cutoff = 1
-            if cid.startswith('DUC'):
-                cutoff = 2
         else:
             cutoff = 2
         

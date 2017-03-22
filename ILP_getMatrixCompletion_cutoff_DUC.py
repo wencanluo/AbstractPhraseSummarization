@@ -567,7 +567,7 @@ if __name__ == '__main__':
 #                 'review_prHistory',
 #                 'review_all',
 #                 'DUC04',
-                'DUC04_nocutoff',
+#                'DUC04_nocutoff',
 #                 'TAC_s08',
 #                 'TAC_s09',
 #                 'TAC_s10',
@@ -585,7 +585,7 @@ if __name__ == '__main__':
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4', 
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-#                 'DUC04_21.2', 'DUC04_23.4', 
+                 'DUC04_12.6', 'DUC04_13.9', 'DUC04_16.5', 'DUC04_17.2', 
 #                 'Engineer_16.0', 'Engineer_26.5', 
 #                 'IE256_5.6', 'IE256_11.9', 
 #                 'IE256_2016_5.4', 'IE256_2016_13.2', 
@@ -596,11 +596,10 @@ if __name__ == '__main__':
                 ]:
         if cid.endswith('nocutoff'):
             cutoff = 1
-            if cid.startswith('DUC'):
-                cutoff = 2
         else:
             cutoff = 2
-            
+        
+        print cutoff
         getMC(cid, cutoff=cutoff,softImpute_lambda=1.0)
     #getMC(cid, cutoff=5,softImpute_lambda=1.0) #for news
     exit(-1)

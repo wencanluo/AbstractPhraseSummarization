@@ -318,7 +318,7 @@ class MCCorpus:
         #IE256, K=1->11.9, K5=5.6, K=10->5.4
         #IE256_2016, K=1->13.2, K=5->5.4
         
-        #DUC04, K=1->, K=5->
+        #DUC04, K=1->15.5, K=5->13.9, K=10->12.6
         #CS0445, K=1->19.3, K=5->11.0
         #Engineer, K=1->26.5, K=5->16.0, K=10->15.2
         
@@ -539,8 +539,8 @@ if __name__ == '__main__':
 #             ('CS0445','response'),
 #             ('review_camera','review'),
 #             ('review_prHistory','review'),
-            ('review_IMDB','review'),
-#             ('DUC04', 'news'),
+#            ('review_IMDB','review'),
+             ('DUC04', 'news'),
 #             ('TAC_s08', 'news'),
 #             ('TAC_s09', 'news'),
 #             ('TAC_s10', 'news'),
