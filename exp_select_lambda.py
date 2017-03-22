@@ -179,8 +179,13 @@ def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
     
     ilpdir = "../../data/%s/ILP_MC/"%cid
     
-    #baseline_rouges_file =  "../../data/%s/ILP_Baseline/rouge.sentence.L%d.txt"%(cid, L)
-    baseline_rouges_file =  ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(0.0) +'.'+ str(0.0) + ".txt"
+    if cid.startswith('CS0445') \
+        or cid.startswith('Engineer')  \
+        or cid.startswith('IE256')  \
+        or cid.startswith('IE256_2016'):
+        baseline_rouges_file =  "../../data/%s/ILP_Baseline/rouge.sentence.L%d.None.txt"%(cid, L)
+    else:
+        baseline_rouges_file =  ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(0.0) +'.'+ str(0.0) + ".txt"
     baseline_rouges = getRougesbyWeek(baseline_rouges_file)
     
     weeks = sheets
@@ -298,7 +303,7 @@ if __name__ == '__main__':
     for cid in [
 #                 'IE256',
 #                 'IE256_2016',
-#                 'CS0445',
+                 'CS0445',
 #                 'IE256_nocutoff',
 #                 'IE256_2016_nocutoff',
 #                 'CS0445_nocutoff',
@@ -313,9 +318,9 @@ if __name__ == '__main__':
 #                 'IE256_2016_29.9',
 #                 'IE256_2016_31.2',
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-				 'Engineer', 'Engineer_nocutoff',
-                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
-				 'Engineer_16.0', 'Engineer_26.5', 
+#				 'Engineer', 'Engineer_nocutoff',
+#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+#				 'Engineer_16.0', 'Engineer_26.5', 
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',

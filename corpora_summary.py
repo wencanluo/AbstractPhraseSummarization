@@ -406,7 +406,7 @@ def get_summary(datadir, corpus, output):
     
     head = ['name', 'genre', 'T', 'au', 
             'M*N', 'M', 'N', 'M/T', 'N/T', 'N/M', 'W/T', 'W/M',
-            's', 'b=1', 'b>1', 'H',
+            's', '$b=1$', '$b>1$', 'H',
             'L', 'hs', 'r', '$\\alpha_{b>0}$', '$\\alpha_{b=0}$', '$\\alpha_{b=1}$', '$\\alpha_{b>1}$',
             '$\\beta_{b=1}$', '$\\beta_{b=2}$', '$\\beta_{b=3}$', '$\\beta_{b=4}$', '$\\beta_{b>1}$',
             ]

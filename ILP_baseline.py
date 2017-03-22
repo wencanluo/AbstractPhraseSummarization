@@ -8,6 +8,7 @@ import json
 import ILP_MC
 import numpy
 from collections import defaultdict
+import global_params
 
 from Survey import punctuations
 ngramTag = "___"
@@ -534,12 +535,12 @@ def getStudentWeight_One(StudentPhrase):
         StudentGamma[student] = 1.0
     return StudentGamma
             
-def ILP1(prefix, L, Ngram = [1,2], student_coverage = False, student_lambda = None):
+def ILP1(prefix, L, Ngram = [1,2], student_coverage = False, student_lambda = None, svdfile = None):
     # get each stemmed bigram, sequence the bigram and the phrase
     # bigrams: {index:bigram}, a dictionary of bigram index, X
     # phrases: {index:phrase}, is a dictionary of phrase index, Y
     #PhraseBigram: {phrase, [bigram]}
-    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, Ngram=Ngram)
+    IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, Ngram=Ngram, svdfile=svdfile)
     fio.SaveDict(IndexPhrase, prefix + ".phrase_index.dict")
     fio.SaveDict(IndexBigram, prefix + ".bigram_index.dict")
     
@@ -563,12 +564,38 @@ def ILP1(prefix, L, Ngram = [1,2], student_coverage = False, student_lambda = No
     
     output = lpfile + '.L' + str(L) + ".summary"
     ExtractSummaryfromILP(lpfile, IndexPhrase, output)
+
+def getBigramAfterCutoff(ilpdir, np, L, Ngram = [1,2], student_coverage = False, student_lambda = None, types=['POI', 'MP', 'LP'], sheets= range(0,26), cutoff=1):
+    bigramDict = defaultdict(int)
+    for sheet in sheets:
+        week = sheet
+        dir = ilpdir + str(week) + '/'
+        
+        for type in types:
+            prefix = dir + type + "." + np
+            
+            if not fio.IsExist(prefix+phraseext):continue
+            IndexPhrase, IndexBigram, PhraseBigram = getPhraseBigram(prefix + phraseext, Ngram=Ngram)
+            BigramTheta = getBigramWeight_StudentNo(PhraseBigram, IndexPhrase, prefix + countext) # return a dictionary
+            
+            for bigramIndex, theta in BigramTheta.items():
+                bigram = IndexBigram[bigramIndex]
+                bigramDict[bigram] += int(theta)
     
-def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, student_lambda = None, types=['POI', 'MP', 'LP']):
-    sheets = range(0,26)
+    for bigram, count in bigramDict.items():
+        if count < cutoff:
+            del bigramDict[bigram]
     
-    for i, sheet in enumerate(sheets):
-        week = i + 1
+    return bigramDict
+         
+def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, student_lambda = None, types=['POI', 'MP', 'LP'], sheets= range(0,26), cutoff=1):
+    #load bigram and apply cutoff
+    bigram_cutoff = os.path.join(ilpdir, 'bigram_cutoff_%d.json'%cutoff)
+    bigramDict = getBigramAfterCutoff(ilpdir, np, L, Ngram, student_coverage, student_lambda, types, sheets, cutoff)
+    fio.SaveDict2Json(bigramDict, bigram_cutoff)
+    
+    for sheet in sheets:
+        week = sheet
         dir = ilpdir + str(week) + '/'
         
         for type in types:
@@ -576,66 +603,76 @@ def ILP_Summarizer(ilpdir, np, L, Ngram = [1,2], student_coverage = False, stude
             
             if not fio.IsExist(prefix+phraseext):continue
             
-            ILP1(prefix, L, Ngram=Ngram, student_coverage = student_coverage, student_lambda = student_lambda)
-
-def getILP_IE256():
-    ilpdir = "../../data/IE256/ILP_Baseline_Sentence/"
-    
-    from config import ConfigFile
-    
-    config = ConfigFile(config_file_name='config_IE256.txt')
-    
-    #for L in [config.get_length_limit()]:
-    for L in [15, 16, 27, 39]:
-        for np in ['sentence']:
-            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
-            
-    print "done"
-
+            summary_file = prefix + '.L' + str(L) + ".summary"
+            if fio.IsExist(summary_file):
+                print 'exit:', summary_file
+                #continue
+            ILP1(prefix, L, Ngram=Ngram, student_coverage = student_coverage, student_lambda = student_lambda, svdfile=bigram_cutoff)
+                             
 def getILP_NewCourse(cid):
     ilpdir = "../../data/%s/ILP_Baseline/"%cid
     from config import ConfigFile
     
     config = ConfigFile(config_file_name='config_%s.txt'%cid)
+    sheets = global_params.lectures[cid]
     
-    for L in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+    if cid.startswith('CS0445'):
+        LL = [16]
+    elif cid.startswith('IE256_2016'):
+        LL = [13]
+    elif cid.startswith('IE256'):
+        LL = [15]
+    elif cid.startswith('Engineer'):
+        LL = [30]
+    elif cid.startswith('review_camera'):
+        LL = [216]
+    elif cid.startswith('review_IMDB'):
+        LL = [242]
+    elif cid.startswith('review_prHistory'):
+        LL = [190]
+    elif cid.startswith('DUC'):
+        LL = [105]
+    else: #news
+        LL = [100]
+	
+    cutoff = 1
+    if cid.endswith('nocutoff'):
+        cutoff = 1
+    else:
+        cutoff = 2
+    
+    print cutoff
+    
+    for L in LL:
         for np in ['sentence']:
-            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
+            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types(), sheets=sheets, cutoff=cutoff)
             
     print "done"
         
-def getILP_IE256_2016():
-    cid = 'IE256_2016'
-    
-    ilpdir = "../../data/%s/ILP_Baseline/"%cid
-    
-    from config import ConfigFile
-    
-    config = ConfigFile(config_file_name='config_%s.txt'%cid)
-    
-    for L in [10, 15, 20, 25, 30, 35, 40]:
-        for np in ['sentence']:
-            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda(), types=config.get_types())
-            
-    print "done"
 
-def getILP_Engineer():
-    ilpdir = "../../data/ILP1_Sentence/"
-    
-    from config import ConfigFile
-    
-    config = ConfigFile()
-    
-    for L in [config.get_length_limit()]:
-        for np in ['sentence']:
-            ILP_Summarizer(ilpdir, np, L, Ngram = config.get_ngrams(), student_coverage = config.get_student_coverage(), student_lambda = config.get_student_lambda())
-            
-    print "done"
-                
 if __name__ == '__main__':
     #getILP_NewCourse('CS0445')
     #getILP_NewCourse('IE256')
     
-    getILP_NewCourse('review_camera')
+    #cid = sys.argv[1]
+    for cid in [
+                 'Engineer', 
+                 'Engineer_nocutoff',
+                 'IE256',
+                 'IE256_nocutoff',
+                 'IE256_2016',
+                 'IE256_2016_nocutoff',
+#                 'CS0445',
+                 'CS0445_nocutoff',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'review_camera_nocutoff', 
+#                 'review_IMDB_nocutoff', 
+#                 'review_prHistory_nocutoff',
+#                 'DUC04',
+#                 'DUC04_nocutoff'
+                 ]:
+                 
+        getILP_NewCourse(cid)
     
-    #getILP_Engineer()

@@ -36,6 +36,7 @@ lectures = {
             'CS0445_34.2': [x for x in range(5, 29) if x != 15],
             
             'review_camera': range(3),
+            'review_camera_nocutoff': range(3),
             'review_camera_74.5': range(3),
             'review_camera_78.7': range(3),
             'review_camera_83.2': range(3),
@@ -44,6 +45,7 @@ lectures = {
             'review_camera_86.2': range(3),
             
             'review_IMDB': range(3),
+            'review_IMDB_nocutoff': range(3),
             'review_IMDB_70.8': range(3),
             'review_IMDB_71.9': range(3),
             'review_IMDB_74.8': range(3),
@@ -51,6 +53,7 @@ lectures = {
             'review_IMDB_76.8': range(3),
             
             'review_prHistory': range(3),
+            'review_prHistory_nocutoff': range(3),
             'review_prHistory_71.3': range(3),
             'review_prHistory_75.6': range(3),
             'review_prHistory_77.4': range(3),
@@ -128,6 +131,7 @@ Phraselectures = {
             'DUC04_23.4': range(50),
             
             'review_camera': range(3),
+            'review_camera_nocutoff': range(3),
             'review_camera_74.5': range(3),
             'review_camera_78.7': range(3),
             'review_camera_83.2': range(3),
@@ -136,6 +140,7 @@ Phraselectures = {
             'review_camera_86.2': range(3),
             
             'review_IMDB': range(3),
+            'review_IMDB_nocutoff': range(3),
             'review_IMDB_70.8': range(3),
             'review_IMDB_71.9': range(3),
             'review_IMDB_74.8': range(3),
@@ -143,6 +148,7 @@ Phraselectures = {
             'review_IMDB_76.8': range(3),
             
             'review_prHistory': range(3),
+            'review_prHistory_nocutoff': range(3),
             'review_prHistory_71.3': range(3),
             'review_prHistory_75.6': range(3),
             'review_prHistory_77.4': range(3),
@@ -183,6 +189,7 @@ no_human = {'Engineer':1,
             'CS0445_34.2': 2,
             
             'review_camera': 8,
+            'review_camera_nocutoff': 8,
             'review_camera_74.5': 8,
             'review_camera_78.7': 8,
             'review_camera_83.2': 8,
@@ -191,6 +198,7 @@ no_human = {'Engineer':1,
             'review_camera_86.2': 8,
             
             'review_IMDB':5,
+            'review_IMDB_nocutoff':5,
             'review_IMDB_70.8': 5,
             'review_IMDB_71.9': 5,
             'review_IMDB_74.8': 5,
@@ -198,6 +206,7 @@ no_human = {'Engineer':1,
             'review_IMDB_76.8': 5,
             
             'review_prHistory': 2,
+            'review_prHistory_nocutoff': 2,
             'review_prHistory_71.3': 2,
             'review_prHistory_75.6': 2,
             'review_prHistory_77.4': 2,
