@@ -9,7 +9,7 @@ import NLTKWrapper
 import tfidf
 import phraseClusteringKmedoid
 
-stopwordfilename = "../../../Fall2014/summarization/ROUGE-1.5.5/data/smart_common_words.txt"
+stopwordfilename = "../../../ROUGE-1.5.5/data/smart_common_words.txt"
 stopwords = [line.lower().strip() for line in fio.ReadFile(stopwordfilename)]
 print "stopwords:", len(stopwords)
 

@@ -440,11 +440,11 @@ def get_summary(datadir, corpus, output):
         row.append(mc_corpus.get_bigram_num_per_sentence()) #9
         row.append(mc_corpus.get_num_words_per_task()) #10
         row.append(mc_corpus.get_num_words_per_sentence()) #10.5
-        
+        fio.SaveList(mc_corpus.wc_sen, os.path.join(datadir, '%s.length'%str(name)))
           
         row.append(mc_corpus.get_sparsity_ratio()) #11
         row.append(mc_corpus.get_bigram_ratio_more_than_eqK(1)) #12
-        
+        row.append(mc_corpus.get_bigram_ratio_more_than_eqK(2)) #12
         row.append(mc_corpus.get_bigram_ratio_more_than_N()) #13
         row.append(mc_corpus.get_bigram_entropy()) #14
 
@@ -467,7 +467,9 @@ def get_summary(datadir, corpus, output):
         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4)) #25
         row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2)) #26
         body.append(row)
-    
+        
+        
+    fio.WriteMatrix(output+'.txt', body, ids)    
     fio.Write2LatexTrans(output, body, ids)
         
 if __name__ == '__main__':
@@ -475,9 +477,9 @@ if __name__ == '__main__':
     datadir = '../../data/'
     corpus = [
             ('DUC04', 'news'),
-            ('review_camera','review'),
-            ('review_IMDB','review'),
-            ('review_prHistory','review'),
+            #('review_camera','review'),
+            #('review_IMDB','review'),
+            #('review_prHistory','review'),
             ('Engineer','response'),
             ('IE256','response'),
             ('IE256_2016','response'),

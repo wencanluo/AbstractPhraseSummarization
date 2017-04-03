@@ -1,3 +1,5 @@
+meaddir = '../../../mead/bin/'
+
 lectures = {
             'Engineer': range(1,13),
             'Engineer_nocutoff': range(1,13),
@@ -260,3 +262,28 @@ AlphaDict = {'DUC04':15.9,
              'IE256_2016':20.9,
              'CS0445':25.6,
              }
+
+def getLL(cid):
+    LL = []
+    if cid.startswith('CS0445'):
+        LL = [16]
+    elif cid.startswith('IE256_2016'):
+        LL = [13]
+    elif cid.startswith('IE256'):
+        LL = [15]
+    elif cid.startswith('Engineer'):
+        LL = [30]
+    elif cid.startswith('review_camera'):
+        LL = [216]
+    elif cid.startswith('review_IMDB'):
+        LL = [242]
+    elif cid.startswith('review_prHistory'):
+        LL = [190]
+    elif cid.startswith('DUC'):
+        LL = [105]
+    else: #news
+        LL = [100]
+    
+    return LL
+
+            

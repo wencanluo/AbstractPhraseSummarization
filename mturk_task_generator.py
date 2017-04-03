@@ -9,7 +9,7 @@ from collections import defaultdict
 import stats_util
 from nltk.metrics.agreement import AnnotationTask
 import numpy as np
-
+import global_params
 
 folders = {'Mead':'../../data/Engineer/Mead/',
            'Oracle_ILP':'../../data/Engineer/ILP_Oracle/',
@@ -21,6 +21,7 @@ folders = {'Mead':'../../data/Engineer/Mead/',
 prompts = {'MP':"Describe what was confusing or needed more detail.",
            'POI':"Describe what you found most interesting in today's class.",
            'LP':"Describe what you learned about how you learn.",
+           'other':'',
            }
 
 def load_summary(input):#re-order it by cosine
@@ -389,6 +390,8 @@ def task_generator(modelpairs, output):
         print count, nocount, checking_count
             
 if __name__ == '__main__':
+    
+    
     modelpairs = [('MC', 'ILP'), 
                   ('MC', 'Mead'), 
                   ('MC', 'Oracle'),
@@ -398,7 +401,7 @@ if __name__ == '__main__':
                   ]
     
     output = '../../data/Engineer/input_'
-    #task_generator(modelpairs, output)
+    task_generator(modelpairs, output)
     
 #     result_analyze('../../data/Engineer/done/input_0_MC_ILP.log', 
 #                    '../../data/Engineer/done/input_0_MC_ILP.out', 
@@ -419,15 +422,15 @@ if __name__ == '__main__':
 #     result_analyze('../../data/Engineer/done/input_3_ILP_Mead.log', 
 #                    '../../data/Engineer/done/input_3_ILP_Mead.out', 
 #                    '../../data/Engineer/done/input_3_ILP_Mead.results.txt')
-        
-    get_agreement('../../data/Engineer/done/input_0_MC_ILP.log', 
-                   '../../data/Engineer/done/input_0_MC_ILP.out', 
-                   '../../data/Engineer/done/input_0_MC_ILP.results.txt')
-    
-    get_agreement('../../data/Engineer/done/input_1_MC_Mead.log', 
-                   '../../data/Engineer/done/input_1_MC_Mead.out', 
-                   '../../data/Engineer/done/input_1_MC_Mead.results.txt')
-        
-    get_agreement('../../data/Engineer/done/input_3_ILP_Mead.log', 
-                   '../../data/Engineer/done/input_3_ILP_Mead.out', 
-                   '../../data/Engineer/done/input_3_ILP_Mead.results.txt')
+#         
+#     get_agreement('../../data/Engineer/done/input_0_MC_ILP.log', 
+#                    '../../data/Engineer/done/input_0_MC_ILP.out', 
+#                    '../../data/Engineer/done/input_0_MC_ILP.results.txt')
+#     
+#     get_agreement('../../data/Engineer/done/input_1_MC_Mead.log', 
+#                    '../../data/Engineer/done/input_1_MC_Mead.out', 
+#                    '../../data/Engineer/done/input_1_MC_Mead.results.txt')
+#         
+#     get_agreement('../../data/Engineer/done/input_3_ILP_Mead.log', 
+#                    '../../data/Engineer/done/input_3_ILP_Mead.out', 
+#                    '../../data/Engineer/done/input_3_ILP_Mead.results.txt')

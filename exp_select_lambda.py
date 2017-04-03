@@ -12,12 +12,12 @@ def getRougesbyWeek(input):
     head, body = fio.ReadMatrix(input, hasHead=True)        
     return body
 
-def get_ttest_pvalues(body1, body2, index):
+def get_ttest_pvalues(body1, body2, index, type=1):
     p_values = []
     for k in index:
         X = [float(row[k]) for row in body1]
         Y = [float(row[k]) for row in body2]
-        _, p = stats_util.ttest(X, Y, tail=2, type=1)
+        _, p = stats_util.ttest(X, Y, tail=2, type=type)
         
         p_values.append(p)
     
@@ -179,10 +179,7 @@ def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
     
     ilpdir = "../../data/%s/ILP_MC/"%cid
     
-    if cid.startswith('CS0445') \
-        or cid.startswith('Engineer')  \
-        or cid.startswith('IE256')  \
-        or cid.startswith('IE256_2016'):
+    if cid.startswith('Engineer'):
         baseline_rouges_file =  "../../data/%s/ILP_Baseline/rouge.sentence.L%d.None.txt"%(cid, L)
     else:
         baseline_rouges_file =  ilpdir + 'rouge.sentence.L' +str(L) + '.' + str(0.0) +'.'+ str(0.0) + ".txt"
@@ -301,26 +298,30 @@ if __name__ == '__main__':
     #cid = 'IE256'
     
     for cid in [
-#                 'IE256',
-#                 'IE256_2016',
-                 'CS0445',
-#                 'IE256_nocutoff',
-#                 'IE256_2016_nocutoff',
+#				 'Engineer', 'Engineer_nocutoff',
+#                 'IE256', 'IE256_nocutoff',
+#                 'IE256_2016','IE256_2016_nocutoff',
+#                 'CS0445', 
 #                 'CS0445_nocutoff',
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-#                'DUC04',
-#                'DUC04_nocutoff'
+                 'review_camera_nocutoff', 
+                 'review_IMDB_nocutoff', 
+                 'review_prHistory_nocutoff',
+                #'DUC04',
+                #'DUC04_nocutoff'
+#                'DUC04_12.6', 'DUC04_13.9', 'DUC04_16.5', 'DUC04_17.2',
 #                 'IE256_21.0',
 #                 'IE256_26.5',
 #                 'IE256_2016_23.7',
 #                 'IE256_2016_29.9',
 #                 'IE256_2016_31.2',
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-#				 'Engineer', 'Engineer_nocutoff',
-#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+
 #				 'Engineer_16.0', 'Engineer_26.5', 
+#                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+                 
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4',
@@ -361,7 +362,8 @@ if __name__ == '__main__':
 #                 FF = [3]
 #             else:
 #                 FF = [10]
-        
+            
+            #FF = [3]
             FF = [len(global_params.lectures[cid])]
             #FF = [10]
 			

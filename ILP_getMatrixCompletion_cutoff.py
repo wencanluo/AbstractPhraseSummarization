@@ -517,7 +517,7 @@ def getMC(cid, cutoff=2, softImpute_lambda=1.0):
 #       getSVD_SaveOrg(cid, ILP_dir, np, corpusname='corpus', ngrams=config.get_ngrams(), binary_matrix = config.get_binary_matrix(), output=outdir, types=config.get_types())
 #          
         #pause, run the MC script
-       for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
+       for softImpute_lambda in [5.0]:#numpy.arange(0.5, 5.6, 0.5):
             if softImpute_lambda < 1.4:
                 rank_max = 500
             else:
@@ -529,24 +529,7 @@ def getMC(cid, cutoff=2, softImpute_lambda=1.0):
 
     print "done"
 
-def writecmd():
-    for cid in [
-                'DUC04',
-                'TAC_s08_A',
-                'TAC_s08_B',
-                'TAC_s09_A',
-                'TAC_s09_B',
-                'TAC_s10_A',
-                'TAC_s10_B',
-                'TAC_s11_A',
-                'TAC_s11_B',
-                ]:
-        for softImpute_lambda in numpy.arange(0.5, 5.6, 0.5):
-            filename = os.path.join('../../data/%s/MC/0/q1.%.1f.softA'%(cid,softImpute_lambda))
-            if fio.IsExist(filename): continue
-            
-            print 'python ILP_getMatrixCompletion_cutoff.py %s %.1f' % (cid, softImpute_lambda)
-                        
+
 if __name__ == '__main__':
 #     writecmd()
 #     exit(-1)
@@ -556,9 +539,10 @@ if __name__ == '__main__':
     
     for cid in [
 #                 'IE256',
-#                 'IE256_2016',
+                 'IE256_2016',
 #                 'CS0445',
 #                 'review_camera', 
+#                  'review_IMDB_nocutoff',
 #                 'review_IMDB', 
 #                 'review_prHistory',
 #                 'review_all',
@@ -575,14 +559,14 @@ if __name__ == '__main__':
 #                 'TAC_s10_B',
 #                 'TAC_s11_A',
 #                 'TAC_s11_B',
-				  'Engineer', 'Engineer_nocutoff',
-                 'Engineer_36.0', 'Engineer_38.6', 'Engineer_41.4', 
+#				  'Engineer', 'Engineer_nocutoff',
+#                 'Engineer_36.0', 'Engineer_38.6', 'Engineer_41.4', 
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 
 #                 'review_IMDB_76.5', 'review_IMDB_76.8', 
 #                 'review_prHistory_77.4', 'review_prHistory_78.7', 'review_prHistory_80.4', 
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
 #                 'DUC04_21.2', 'DUC04_23.4', 
-                 'Engineer_16.0', 'Engineer_26.5', 
+#                 'Engineer_16.0', 'Engineer_26.5', 
 #                 'IE256_5.6', 'IE256_11.9', 
 #                 'IE256_2016_5.4', 'IE256_2016_13.2', 
 #                 'review_camera_74.5', 'review_camera_78.7', 'review_camera_83.2', 

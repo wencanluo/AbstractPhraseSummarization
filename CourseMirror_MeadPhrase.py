@@ -3,11 +3,8 @@ import re
 import fio
 import xml.etree.ElementTree as ET
 
-import phraseClusteringKmedoid
-import SennaParser
-import CourseMirror_Survey
 import global_params
-import os
+import os,cmd,subprocess
 import fio
 
 def WriteDocsent(phrasedir, datadir, cid, sheets, types):
@@ -51,8 +48,11 @@ def WriteCluster(phrasedir, datadir, cid, sheets, types):
     for type in types:
         for sheet in sheets:
             
-            student_summaryList = CourseMirror_Survey.getStudentResponseList(excelfile, course, week, type, withSource=True)
-            if len(student_summaryList) == 0: continue
+            responses_filename = os.path.join(phrasedir, str(sheet), '%s.sentence.dict'%(type))
+            
+            if not fio.IsExist(responses_filename):
+                print '%s not exist'%responses_filename
+                continue
             
             path = os.path.join(datadir, str(sheet), type)
             fio.NewPath(path)
@@ -80,19 +80,36 @@ if __name__ == '__main__':
     
     from config import ConfigFile
     
-    cid = sys.argv[1]
-    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+    for cid in [
+                'Engineer',
+                'IE256',
+                'IE256_2016',
+                'CS0445', 
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                 'DUC04',
+                ]:
+        config = ConfigFile(config_file_name='config_%s.txt'%cid)
+        sheets = global_params.lectures[cid]
+        types=config.get_types()
+        L = global_params.getLL(cid)[0]
+        
+        phrasedir = "../../data/"+cid+"/ILP_MC/"
+        
+        datadir = "../../data/"+cid+ '/MEAD/'
+        Write2Mead(phrasedir, datadir, cid, sheets, types)
+        
+        datadir = "../../data/"+cid+ '/LexRank/'
+        Write2Mead(phrasedir, datadir, cid, sheets, types)
     
-    phrasedir = "../../data/"+cid+"/MC/"
-    
-    datadir = "../data/"+cid+ '/MEAD/'
-    fio.DeleteFolder(datadir)
-    
-    sheets = global_params.lectures[cid]
-    types=config.get_types()
-    
-    Write2Mead(phrasedir, datadir, cid, sheets, types)
-            
-    #Step5: get PhraseMead output
-    
-    print "done"
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        #Step5: get PhraseMead output
+        meaddir = global_params.meaddir
+        cmd = './get_mead_ilp.sh %s %d %d'%(cid, sheets[-1], L)
+        os.chdir(meaddir)
+        retcode = subprocess.call([cmd], shell=True)
+        print retcode
+        os.chdir(dir_path)
+        
+        print "done"

@@ -656,14 +656,16 @@ if __name__ == '__main__':
     
     #cid = sys.argv[1]
     for cid in [
-                 'Engineer', 
-                 'Engineer_nocutoff',
-                 'IE256',
-                 'IE256_nocutoff',
-                 'IE256_2016',
-                 'IE256_2016_nocutoff',
+                 #'Engineer', 
+                 #'Engineer_nocutoff',
+                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
+				 'Engineer_16.0', 'Engineer_26.5', 
+                 #'IE256',
+                 #'IE256_nocutoff',
+                 #'IE256_2016',
+                 #'IE256_2016_nocutoff',
 #                 'CS0445',
-                 'CS0445_nocutoff',
+                 #'CS0445_nocutoff',
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
