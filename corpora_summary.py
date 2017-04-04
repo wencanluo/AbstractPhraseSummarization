@@ -444,7 +444,7 @@ def get_summary(datadir, corpus, output):
           
         row.append(mc_corpus.get_sparsity_ratio()) #11
         row.append(mc_corpus.get_bigram_ratio_more_than_eqK(1)) #12
-        row.append(mc_corpus.get_bigram_ratio_more_than_eqK(2)) #12
+        #row.append(mc_corpus.get_bigram_ratio_more_than_eqK(2)) #12
         row.append(mc_corpus.get_bigram_ratio_more_than_N()) #13
         row.append(mc_corpus.get_bigram_entropy()) #14
 
@@ -476,14 +476,14 @@ if __name__ == '__main__':
     
     datadir = '../../data/'
     corpus = [
-            ('DUC04', 'news'),
-            #('review_camera','review'),
-            #('review_IMDB','review'),
-            #('review_prHistory','review'),
             ('Engineer','response'),
             ('IE256','response'),
             ('IE256_2016','response'),
-            ('CS0445','response')
+            ('CS0445','response'),
+            ('review_camera','review'),
+            ('review_IMDB','review'),
+            ('review_prHistory','review'),
+            ('DUC04', 'news'),
 #             ('TAC_s08', 'news'),
 #             ('TAC_s09', 'news'),
 #             ('TAC_s10', 'news'),

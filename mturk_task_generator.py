@@ -10,6 +10,7 @@ import stats_util
 from nltk.metrics.agreement import AnnotationTask
 import numpy as np
 import global_params
+import os
 
 folders = {'Mead':'../../data/Engineer/Mead/',
            'Oracle_ILP':'../../data/Engineer/ILP_Oracle/',
@@ -21,7 +22,9 @@ folders = {'Mead':'../../data/Engineer/Mead/',
 prompts = {'MP':"Describe what was confusing or needed more detail.",
            'POI':"Describe what you found most interesting in today's class.",
            'LP':"Describe what you learned about how you learn.",
-           'other':'',
+           'q1':"Describe what was confusing or needed more detail.",
+           'q2':"Describe what you found most interesting in today's class.",
+           'q3':"Describe what you learned about how you learn.",
            }
 
 def load_summary(input):#re-order it by cosine
@@ -75,11 +78,12 @@ def list2paragraph(summaries):
         return '"<p></p>"'
     return '"%s"'% ('\n'.join(newLines))
 
-def generate_checking_point(prompt, week, summaryA, summaryB):
+def generate_checking_point(cid, sheets, prompt, sheet, summaryA, summaryB, N, L):
     
-    w = random.randint(1, 12)
-    while w == week:
-        w = random.randint(1, 12)
+    w = random.randint(0, len(sheets)-1)
+    while sheets[w] == sheet:
+        w = random.randint(0, len(sheets)-1)
+    w = sheets[w]
     
     rp = random.random()
     if rp>0.5:#switch
@@ -88,21 +92,19 @@ def generate_checking_point(prompt, week, summaryA, summaryB):
         summaryA = summaryB
     
     #read TA's summmary
-    reffile = folders['ILP'] + str(w) + '/' + prompt + '.ref.summary'
-    H = load_summary(reffile)
+    Hs = load_human_summary(cid, sheet, prompt, N)
                 
-    sumfileA = folders[summaryA] + str(w) + '/' + prompt + '.' + str('sentence') + '.L' + str(30) + '.summary'
-    A = load_summary(sumfileA)
+    #read system summary
+    A = load_system_sumary(cid, summaryA, L, sheet, prompt, N)
 
-    sumfileB = folders[summaryB] + str(w) + '/' + prompt + '.' + str('sentence') + '.L' + str(30) + '.summary'
-    B = load_summary(sumfileB)
+    B = load_system_sumary(cid, summaryB, L, sheet, prompt, N)
     
     p = numpy.random.permutation(len(B))
     
     B = [B[i] for i in p]
     
     logrow = [prompt, w, summaryA, summaryB, 'Y']
-    row = ['"%s"'%prompts[prompt], list2paragraph(H), list2paragraph(A), list2paragraph(B)]
+    row = ['"%s"'%prompts[prompt], list2paragraph(Hs[0]), list2paragraph(A), list2paragraph(B)]
                     
     return logrow, row
 
@@ -323,16 +325,51 @@ def result_analyze(logfile, results, output):
     print stats_util.ttest(PerferenceValue[keys[0]], PerferenceValue[keys[1]], 1, 1)
     
     print count
+
+def load_human_summary(cid, sheet, prompt, N):
+    H = []
+    for i in range(N):
+        reffile = os.path.join('../../data/%s/ILP_MC/'%cid, str(sheet), prompt + '.ref.%d' %i)
+        ref = load_summary(reffile)
+        H.append(ref)
+    return H
+
+def load_system_sumary(cid, model, L, sheet, prompt, N):
+    sumfile = None
+    if model == 'MC': #need to get the lambda first
+        lambda_json = "../../data/%s/MC/lambda_%d.json"%(cid, L)
+        lambdas = fio.LoadDictJson(lambda_json)
+        lambda_x = lambdas[str(sheet)][0]        
+        sumfile = os.path.join('../../data/%s/%s'%(cid, 'ILP_MC'), str(sheet), '%s.sentence.L%d.%s.0.0.summary'%(prompt, L, lambda_x))
+    elif model == 'ILP':
+        sumfile = os.path.join('../../data/%s/%s'%(cid, 'ILP_MC'), str(sheet), '%s.sentence.L%d.0.0.0.0.summary'%(prompt, L))
+    else:
+        sumfile = os.path.join('../../data/%s/%s'%(cid, model), str(sheet), '%s.summary'%(prompt))
+    return load_summary(sumfile)
+
+def get_prompts(cid, prompt):
+    if cid in ['Engineer', 'IE256', 'IE256_2016', 'CS0445']:
+        return prompts[prompt]
+    return ''
     
-def task_generator(modelpairs, output):
+def task_generator(cid, modelpairs, output):
     head = ['id', 'prompt', 'summary_human', 'summary_A', 'summary_B']
     loghead = ['id', 'prompt', 'week', 'system_A', 'system_B', 'checking_point']
     
-    sheets = range(0,12)
-    for k, modelpair in enumerate(modelpairs):
-        random.seed(1)
-        numpy.random.seed(0)
+    from config import ConfigFile
+    config = ConfigFile(config_file_name='config_%s.txt'%cid)
+      
+    matrix_dir = "../../data/%s/MC/"%cid
     
+    sheets = global_params.lectures[cid]
+    types = config.get_types()
+    N = global_params.no_human[cid]
+    L = global_params.getLL(cid)[0]
+    
+    random.seed(177)
+    numpy.random.seed(177)
+        
+    for k, modelpair in enumerate(modelpairs):
         count = 0
         nocount = 0
         checking_count = 0
@@ -342,15 +379,14 @@ def task_generator(modelpairs, output):
         logbody = []
     
         summaryA, summaryB = modelpair
-        prefix = output + str(k) + '_' + summaryA + '_' + summaryB
+        prefix = os.path.join(output, '%s_%d_%s_%s'%(cid, k, summaryA, summaryB))
         
-        for type in ['POI', 'MP', 'LP']:     
-            for i, sheet in enumerate(sheets):
-                week = i + 1
+        for prompt in types:     
+            for sheet in sheets:
+                week = sheet
                 
                 #read TA's summmary
-                reffile = folders['ILP'] + str(week) + '/' + type + '.ref.summary'
-                H = load_summary(reffile)
+                Hs = load_human_summary(cid, sheet, prompt, N)
                 
                 rp = random.random()
                 if rp>0.5:#switch
@@ -358,26 +394,26 @@ def task_generator(modelpairs, output):
                     summaryA, summaryB = summaryB, summaryA
                 else:
                     nocount += 1
-                    
-                sumfileA = folders[summaryA] + str(week) + '/' + type + '.' + str('sentence') + '.L' + str(30) + '.summary'
-                A = load_summary(sumfileA)
+                
+                #read system summary
+                A = load_system_sumary(cid, summaryA, L, sheet, prompt, N)
             
-                sumfileB = folders[summaryB] + str(week) + '/' + type + '.' + str('sentence') + '.L' + str(30) + '.summary'
-                B = load_summary(sumfileB)
+                B = load_system_sumary(cid, summaryB, L, sheet, prompt, N)
                 
-                A = sort_by_cosin(A, H)
-                B = sort_by_cosin(B, H)
-                
-                logrow = [str(id), type, week, summaryA, summaryB, 'N']
-                row = [str(id), '"%s"'%prompts[type], list2paragraph(H), list2paragraph(A), list2paragraph(B)]
-                id += 1
-                
-                body.append(row)
-                logbody.append(logrow)
+                for H in Hs:
+                    A = sort_by_cosin(A, H)
+                    B = sort_by_cosin(B, H)
+                    
+                    logrow = [str(id), prompt, week, summaryA, summaryB, 'N']
+                    row = [str(id), '"%s"'%prompts[prompt], list2paragraph(H), list2paragraph(A), list2paragraph(B)]
+                    id += 1
+                    
+                    body.append(row)
+                    logbody.append(logrow)
                 
                 rp = random.random()
-                if rp>1-1./7.0:#add a checking point
-                    logrow, row = generate_checking_point(type, week, summaryA, summaryB)
+                if rp>1-1./20.0:#add a checking point
+                    logrow, row = generate_checking_point(cid, sheets, prompt, week, summaryA, summaryB, N, L)
                     body.append([str(id)] + row)
                     logbody.append([str(id)] + logrow)
                     checking_count += 1
@@ -390,18 +426,27 @@ def task_generator(modelpairs, output):
         print count, nocount, checking_count
             
 if __name__ == '__main__':
-    
-    
     modelpairs = [('MC', 'ILP'), 
-                  ('MC', 'Mead'), 
-                  ('MC', 'Oracle'),
-                  ('ILP', 'Mead'), 
-                  ('ILP', 'Oracle'),
-                  ('Mead', 'Oracle'),
+                  ('MC', 'SumBasic'), 
+                  ('SumBasic', 'ILP'),
+                  #('MC', 'MEAD'),
+                  #('MEAD', 'SumBasic'),
                   ]
     
-    output = '../../data/Engineer/input_'
-    task_generator(modelpairs, output)
+    for cid in ['Engineer',
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                'DUC04',
+            ]:
+            
+        output = '../../data/%s/mtask'%cid
+        fio.NewPath(output)
+        
+        task_generator(cid, modelpairs, output)
     
 #     result_analyze('../../data/Engineer/done/input_0_MC_ILP.log', 
 #                    '../../data/Engineer/done/input_0_MC_ILP.out', 
