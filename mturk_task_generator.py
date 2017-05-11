@@ -138,14 +138,14 @@ def get_agreement(logfile, results, output):
     head, body = fio.ReadMatrix(logfile, hasHead=True)
     head_res, body_res = fio.ReadMatrix(results, hasHead=True)
     
-    preference_index = head_res.index('Preference')
+    preference_index = head_res.index('Answer.preference')
     
     subjects = []
     dict_preference = {}
     for row in body_res:
-        id = row[head_res.index('id')]
+        id = row[head_res.index('Input.id')]
         preference = int(row[preference_index])
-        subject_id = row[head_res.index('Worker ID')]
+        subject_id = row[head_res.index('WorkerId')]
         
         subjects.append(subject_id)
         
@@ -166,7 +166,7 @@ def get_agreement(logfile, results, output):
                 bad_annotators.append(subject_id)
     
     bad_annotators = list(set(bad_annotators)) 
-    #print bad_annotators
+    print bad_annotators
     
     count = 0
     total_count = 0
@@ -176,22 +176,23 @@ def get_agreement(logfile, results, output):
         id, prompt, week, system_A, system_B, checking_point = row
         if checking_point == 'Y': continue
         
-        #for subject_id, preference in dict_preference[id].items():
-        values = dict_preference[id].values()
-        for i in range(len(values)):
-            preference = int(values[i])
-            
+        if id not in dict_preference: continue
+        
+        values = []
+        for subject_id, preference in dict_preference[id].items():
+            preference = int(preference)
+#             
 #             if preference < 0:
 #                 preference = -1
 #             elif preference > 0:
 #                 preference = 1
             
-            values[i] = preference
+            values.append(preference)
             
         majority = get_majority(values)
         
         for k, preference in enumerate(values):
-            #if subject_id in bad_annotators: continue
+            if subject_id in bad_annotators: continue
         
             if preference == majority:
                 count += 1
@@ -199,7 +200,8 @@ def get_agreement(logfile, results, output):
             total_count += 1
     
     print count, '\t', total_count, '\t', count*1.0/total_count
-               
+    
+    return count, total_count           
            
 def get_agreement2(logfile, results, output):
     head, body = fio.ReadMatrix(logfile, hasHead=True)
@@ -249,19 +251,18 @@ def get_agreement2(logfile, results, output):
         new_body.append(new_now)
     
     fio.WriteMatrix(output, new_body, header=['1', '2', '3', '4', '5'])
-    
-        
-def result_analyze(logfile, results, output):
+
+def result_analyze3scale(logfile, results, output):
     head, body = fio.ReadMatrix(logfile, hasHead=True)
     head_res, body_res = fio.ReadMatrix(results, hasHead=True)
     
-    preference_index = head_res.index('Preference')
+    preference_index = head_res.index('Answer.preference')
     
     dict_preference = {}
     for row in body_res:
-        id = row[head_res.index('id')]
+        id = row[head_res.index('Input.id')]
         preference = int(row[preference_index])
-        subject_id = row[head_res.index('Worker ID')]
+        subject_id = row[head_res.index('WorkerId')]
         
         if id not in dict_preference:
             dict_preference[id] = {}
@@ -271,11 +272,25 @@ def result_analyze(logfile, results, output):
     count = 0
     dict = defaultdict(int)
     
+    random_guy = {}
+    
+    good_guy = 0
+    bad_guy = 0
+    
     #print dict_preference
     for row in body:
         id, prompt, week, system_A, system_B, checking_point = row
-        if checking_point == 'Y': continue
+        if checking_point == 'Y': 
+            if id not in dict_preference: continue
+            for subject, preference in dict_preference[id].items():
+                if abs(preference) == 2:
+                    random_guy[subject] = 1
+                    bad_guy += 1
+                else:
+                    good_guy += 1
+            continue
         
+        if id not in dict_preference: continue
         for subject, preference in dict_preference[id].items():
             if preference > 0:
                 dict[system_B] += 1
@@ -286,6 +301,8 @@ def result_analyze(logfile, results, output):
         
             count += 1
     
+    print 'goodbad', good_guy, bad_guy
+    
     #print dict_preference
     perference_body = []
     for row in body:
@@ -293,6 +310,7 @@ def result_analyze(logfile, results, output):
         if checking_point == 'Y': continue
         
         row = [id, prompt, week, system_A, system_B]
+        if id not in dict_preference: continue
         for subject, preference in dict_preference[id].items():
             row.append(preference)
         row.append(numpy.sum(dict_preference[id].values()))
@@ -301,6 +319,7 @@ def result_analyze(logfile, results, output):
     
     fio.WriteMatrix(output, perference_body, header=None)
     print dict
+    fio.SaveDict2Json(dict, output+'.json')
     
     PerferenceValue = {}
 
@@ -310,11 +329,17 @@ def result_analyze(logfile, results, output):
         id, prompt, week, system_A, system_B, checking_point = row
         if checking_point == 'Y': continue
         
+        if id not in dict_preference: continue
         for subject, preference in dict_preference[id].items():
             if system_A not in PerferenceValue:
                 PerferenceValue[system_A] = []
             if system_B not in PerferenceValue:
                 PerferenceValue[system_B] = []
+            
+            if preference < 0:
+                preference = -1
+            elif preference > 0:
+                preference = 1
                 
             PerferenceValue[system_A].append(-preference)
             PerferenceValue[system_B].append(preference)
@@ -322,9 +347,105 @@ def result_analyze(logfile, results, output):
     
     keys = PerferenceValue.keys()
     print keys
-    print stats_util.ttest(PerferenceValue[keys[0]], PerferenceValue[keys[1]], 1, 1)
+    p = stats_util.ttest(PerferenceValue[keys[0]], PerferenceValue[keys[1]], 1, 1)
     
-    print count
+    print p
+    return dict, p[1]
+    
+def result_analyze(logfile, results, output):
+    head, body = fio.ReadMatrix(logfile, hasHead=True)
+    head_res, body_res = fio.ReadMatrix(results, hasHead=True)
+    
+    preference_index = head_res.index('Answer.preference')
+    
+    dict_preference = {}
+    for row in body_res:
+        id = row[head_res.index('Input.id')]
+        preference = int(row[preference_index])
+        subject_id = row[head_res.index('WorkerId')]
+        
+        if id not in dict_preference:
+            dict_preference[id] = {}
+        
+        dict_preference[id][subject_id] = preference
+    
+    count = 0
+    dict = defaultdict(int)
+    
+    random_guy = {}
+    
+    good_guy = 0
+    bad_guy = 0
+    
+    #print dict_preference
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': 
+            if id not in dict_preference: continue
+            for subject, preference in dict_preference[id].items():
+                if abs(preference) == 2:
+                    random_guy[subject] = 1
+                    bad_guy += 1
+                else:
+                    good_guy += 1
+            continue
+        
+        if id not in dict_preference: continue
+        for subject, preference in dict_preference[id].items():
+            if preference > 0:
+                dict[system_B] += 1
+            elif preference < 0:
+                dict[system_A] += 1
+            else:
+                dict['no_preference'] += 1
+        
+            count += 1
+    
+    print 'goodbad', good_guy, bad_guy
+    
+    #print dict_preference
+    perference_body = []
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        row = [id, prompt, week, system_A, system_B]
+        if id not in dict_preference: continue
+        for subject, preference in dict_preference[id].items():
+            row.append(preference)
+        row.append(numpy.sum(dict_preference[id].values()))
+        
+        perference_body.append(row)
+    
+    fio.WriteMatrix(output, perference_body, header=None)
+    print dict
+    fio.SaveDict2Json(dict, output+'.json')
+    
+    PerferenceValue = {}
+
+    count = 0
+    #print dict_preference
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        if id not in dict_preference: continue
+        for subject, preference in dict_preference[id].items():
+            if system_A not in PerferenceValue:
+                PerferenceValue[system_A] = []
+            if system_B not in PerferenceValue:
+                PerferenceValue[system_B] = []
+            
+            PerferenceValue[system_A].append(-preference)
+            PerferenceValue[system_B].append(preference)
+            count += 1
+    
+    keys = PerferenceValue.keys()
+    print keys
+    p = stats_util.ttest(PerferenceValue[keys[0]], PerferenceValue[keys[1]], 1, 1)
+    
+    print p
+    return dict, p[1]
 
 def load_human_summary(cid, sheet, prompt, N):
     H = []
@@ -424,16 +545,17 @@ def task_generator(cid, modelpairs, output):
         fio.WriteMatrix(prefix + '.log', logbody, loghead)
     
         print count, nocount, checking_count
-            
-if __name__ == '__main__':
+
+def agreement_by_models():
     modelpairs = [('MC', 'ILP'), 
                   ('MC', 'SumBasic'), 
                   ('SumBasic', 'ILP'),
-                  #('MC', 'MEAD'),
-                  #('MEAD', 'SumBasic'),
                   ]
     
-    for cid in ['Engineer',
+    body = []
+    
+    cids = [
+                'Engineer',
                 'IE256',
                 'IE256_2016',
                 'CS0445',
@@ -441,41 +563,94 @@ if __name__ == '__main__':
                 'review_IMDB', 
                 'review_prHistory',
                 'DUC04',
-            ]:
+            ]
+    for cid in cids:
+        print cid
+        row = [global_params.mapcid(cid)]
+        for k, modelpair in enumerate(modelpairs):
+        
+            output = '../../data/%s/mtask'%cid
             
+            summaryA, summaryB = modelpair
+            logfile = os.path.join(output, '%s_%d_%s_%s.log'%(cid, k, summaryA, summaryB))
+            outputfile = os.path.join(output, '%s_%d_%s_%s.out'%(cid, k, summaryA, summaryB))
+            resutlfile = os.path.join(output, '%s_%d_%s_%s.results.txt'%(cid, k, summaryA, summaryB))
+            
+            if not fio.IsExist(outputfile): continue
+            PDict, p = result_analyze(logfile, outputfile, resutlfile)
+            agree_count, agree_total_count = get_agreement(logfile, outputfile, resutlfile)
+            
+            ratio = "%.1f"%(agree_count*1.0/agree_total_count*100) + '%'
+            
+            if p < 0.05:
+                ratio = ratio + '$^*$'
+            
+            row += [ratio]
+        
+        body.append(row)
+    
+    fio.Write2Latex('../../data/agreements_all.txt', body, ['']+modelpairs)       
+
+if __name__ == '__main__':
+#     agreement_by_models()
+#     exit()
+    
+    modelpairs = [('MC', 'ILP'), 
+                  ('MC', 'SumBasic'), 
+                  ('SumBasic', 'ILP'),
+                  ]
+    
+    
+    A_agree, A_total = 0.0, 0
+    
+    cids = [
+                'Engineer',
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                'DUC04',
+            ]
+    
+    for cid in cids:
+        print '---------------------------------------------'
+        print cid
         output = '../../data/%s/mtask'%cid
         fio.NewPath(output)
         
-        task_generator(cid, modelpairs, output)
-    
-#     result_analyze('../../data/Engineer/done/input_0_MC_ILP.log', 
-#                    '../../data/Engineer/done/input_0_MC_ILP.out', 
-#                    '../../data/Engineer/done/input_0_MC_ILP.results.txt')
-#     
-#     result_analyze('../../data/Engineer/done/input_1_MC_Mead.log', 
-#                    '../../data/Engineer/done/input_1_MC_Mead.out', 
-#                    '../../data/Engineer/done/input_1_MC_Mead.results.txt')
-#     
-#     #result_analyze('../../data/Engineer/done/input_2_MC_Oracle_ILP.log', 
-#     #               '../../data/Engineer/done/input_2_MC_Oracle_ILP.out', 
-#     #               '../../data/Engineer/done/input_2_MC_Oracle_ILP.results.txt')
-#      
-#     #result_analyze('../../data/Engineer/done/input_2_MC_Oracle.log', 
-#     #               '../../data/Engineer/done/input_2_MC_Oracle.out', 
-#     #               '../../data/Engineer/done/input_2_MC_Oracle.results.txt')
-#     
-#     result_analyze('../../data/Engineer/done/input_3_ILP_Mead.log', 
-#                    '../../data/Engineer/done/input_3_ILP_Mead.out', 
-#                    '../../data/Engineer/done/input_3_ILP_Mead.results.txt')
-#         
-#     get_agreement('../../data/Engineer/done/input_0_MC_ILP.log', 
-#                    '../../data/Engineer/done/input_0_MC_ILP.out', 
-#                    '../../data/Engineer/done/input_0_MC_ILP.results.txt')
-#     
-#     get_agreement('../../data/Engineer/done/input_1_MC_Mead.log', 
-#                    '../../data/Engineer/done/input_1_MC_Mead.out', 
-#                    '../../data/Engineer/done/input_1_MC_Mead.results.txt')
-#         
-#     get_agreement('../../data/Engineer/done/input_3_ILP_Mead.log', 
-#                    '../../data/Engineer/done/input_3_ILP_Mead.out', 
-#                    '../../data/Engineer/done/input_3_ILP_Mead.results.txt')
+        #task_generator(cid, modelpairs, output)
+        
+#         total_count = defaultdict(int)
+        total_perferece = defaultdict(int)
+        for k, modelpair in enumerate(modelpairs):
+            summaryA, summaryB = modelpair
+            logfile = os.path.join(output, '%s_%d_%s_%s.log'%(cid, k, summaryA, summaryB))
+            outputfile = os.path.join(output, '%s_%d_%s_%s.out'%(cid, k, summaryA, summaryB))
+            resutlfile = os.path.join(output, '%s_%d_%s_%s.results.txt'%(cid, k, summaryA, summaryB))
+            
+            if not fio.IsExist(outputfile): continue
+             
+            #PDict, p = result_analyze3scale(logfile, outputfile, resutlfile)
+            PDict, p = result_analyze(logfile, outputfile, resutlfile)
+            agree_count, agree_total_count = get_agreement(logfile, outputfile, resutlfile)
+            
+            print agree_count, agree_total_count
+            A_agree += agree_count
+            A_total += agree_total_count
+            
+            for k, v in PDict.items():
+                total_perferece[k] += v
+            
+            total = sum(PDict.values())*1.0
+            
+#             total_count[summaryA] += total
+#             total_count[summaryB] += total
+            
+        total_count = sum(total_perferece.values())*1.0
+        print '%s\t%d\t%d\t%d'%(cid, total_perferece['SumBasic'], total_perferece['ILP'], total_perferece['MC'])
+        #print '%s\t%.3f\t%.3f\t%.3f'%(cid, total_perferece['SumBasic']/total_count['SumBasic'], total_perferece['ILP']/total_count['ILP'], total_perferece['MC']/total_count['MC'])
+        print '%s\t%.3f\t%.3f\t%.3f'%(cid, total_perferece['SumBasic']/total_count, total_perferece['ILP']/total_count, total_perferece['MC']/total_count)
+        
+    print A_agree, A_total, A_agree/A_total

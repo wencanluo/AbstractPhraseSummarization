@@ -53,10 +53,10 @@ if __name__ == '__main__':
                 'IE256',
                 'IE256_2016',
                 'CS0445', 
-                'review_camera', 
-                'review_IMDB', 
-                'review_prHistory',
-                 'DUC04',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                  'DUC04',
                 ]:
         config = ConfigFile(config_file_name='config_%s.txt'%cid)
         sheets = global_params.lectures[cid]
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         L = global_params.getLL(cid)[0]
         
         phrasedir = "../../data/"+cid+"/ILP_MC/"
-        datadir = "../../data/"+cid+"/SumBasic/"
+        datadir = "../../data/"+cid+"/SumBasicP/"
         fio.DeleteFolder(datadir)
         
         ShallowSummary(phrasedir, datadir, cid, sheets, types, K=L)

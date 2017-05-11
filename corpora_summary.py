@@ -281,6 +281,8 @@ class MCCorpus:
         for A in self.As:
             self.bigram_entropies.append(self.get_bigram_entropy_A(A))
         
+        print self.bigram_entropies
+        print
         return '%.3f'%(np.mean(self.bigram_entropies))
     
     def get_human_summary_length(self):
@@ -433,39 +435,34 @@ def get_summary(datadir, corpus, output):
         row.append(mc_corpus.get_size()) #4
         row.append(M) #5
         row.append(N) #6
-        
+         
         row.append(mc_corpus.get_number_of_sentence_per_task()) #7
-        
+         
         row.append(mc_corpus.get_bigram_num_per_task()) #8
         row.append(mc_corpus.get_bigram_num_per_sentence()) #9
         row.append(mc_corpus.get_num_words_per_task()) #10
         row.append(mc_corpus.get_num_words_per_sentence()) #10.5
         fio.SaveList(mc_corpus.wc_sen, os.path.join(datadir, '%s.length'%str(name)))
-          
+           
         row.append(mc_corpus.get_sparsity_ratio()) #11
         row.append(mc_corpus.get_bigram_ratio_more_than_eqK(1)) #12
-        #row.append(mc_corpus.get_bigram_ratio_more_than_eqK(2)) #12
         row.append(mc_corpus.get_bigram_ratio_more_than_N()) #13
         row.append(mc_corpus.get_bigram_entropy()) #14
 
         #output
-        row.append(mc_corpus.get_human_summary_length()) #15        
-        row.append(global_params.no_human[name]) #16
-        row.append(mc_corpus.get_compression_ratio()) #17
-        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(1)) #18
-        row.append(mc_corpus.get_human_summary_bigram_percentage(N=0)) #19
-        row.append(mc_corpus.get_human_summary_bigram_percentage(N=1)) #20
-#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=2))
-#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=3))
-#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=4))
-#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=5))
-        row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2)) #21
-          
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1)) #22
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2)) #23
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))#24
-        row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4)) #25
-        row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2)) #26
+#         row.append(mc_corpus.get_human_summary_length()) #15        
+#         row.append(global_params.no_human[name]) #16
+#         row.append(mc_corpus.get_compression_ratio()) #17
+#         row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(1)) #18
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=0)) #19
+#         row.append(mc_corpus.get_human_summary_bigram_percentage(N=1)) #20
+#         row.append(mc_corpus.get_human_summary_bigram_percentage_bigger(2)) #21
+#           
+#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=1)) #22
+#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=2)) #23
+#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=3))#24
+#         row.append(mc_corpus.get_response_in_human_bigram_percentage(N=4)) #25
+#         row.append(mc_corpus.get_response_in_human_bigram_percentage_bigger(N=2)) #26
         body.append(row)
         
         
@@ -480,10 +477,10 @@ if __name__ == '__main__':
             ('IE256','response'),
             ('IE256_2016','response'),
             ('CS0445','response'),
-            ('review_camera','review'),
-            ('review_IMDB','review'),
-            ('review_prHistory','review'),
-            ('DUC04', 'news'),
+#             ('review_camera','review'),
+#             ('review_IMDB','review'),
+#             ('review_prHistory','review'),
+#             ('DUC04', 'news'),
 #             ('TAC_s08', 'news'),
 #             ('TAC_s09', 'news'),
 #             ('TAC_s10', 'news'),

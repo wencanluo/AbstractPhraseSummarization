@@ -1,6 +1,17 @@
 import numpy as np
 import scipy.stats
 
+def get_ttest_pvalues(body1, body2, index, type=1):
+    p_values = []
+    for k in index:
+        X = [float(row[k]) for row in body1]
+        Y = [float(row[k]) for row in body2]
+        _, p = stats_util.ttest(X, Y, tail=2, type=type)
+        
+        p_values.append(p)
+    
+    return p_values
+
 def ttest(X, Y, tail=1, type=1):
     '''
     tail: 1 or 2

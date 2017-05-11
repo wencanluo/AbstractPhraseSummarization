@@ -249,7 +249,7 @@ def mapcid(cid):
     cidname = cidname.replace('CS0445', 'CS')
     cidname = cidname.replace('review_prHistory', 'peer')
     cidname = cidname.replace('review_camera', 'camera')
-    cidname = cidname.replace('review_IMDB', 'IMDB')
+    cidname = cidname.replace('review_IMDB', 'movie')
     return cidname
 
 
@@ -287,3 +287,17 @@ def getLL(cid):
     return LL
 
             
+def getLLP(cid):
+    LL = []
+    if cid.startswith('CS0445'):
+        LL = [5]
+    elif cid.startswith('IE256_2016'):
+        LL = [5]
+    elif cid.startswith('IE256'):
+        LL = [5]
+    elif cid.startswith('Engineer'):
+        LL = [4]
+    else: #news
+        LL = [100]
+    
+    return LL
