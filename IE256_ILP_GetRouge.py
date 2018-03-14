@@ -7,11 +7,11 @@ from TAC_ILP_baseline import iter_folder
 from numpy import average
 import codecs
 import global_params
+from  OracleExperiment import RougeHeader as RougeHeader
+from  OracleExperiment import RougeNames as RougeNames
 
 tmpdir = "../../data/tmp/"
-RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
 RougeHeaderSplit = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F','R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
-RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
 
 def getRouge(rouge_dict, ilpdir, L, outputdir, Lambda, sheets, types, N=2):
     body = []
@@ -251,8 +251,8 @@ if __name__ == '__main__':
     import sys
     
 #     writebatchmc()
-    gatherRouge()
-    exit(-1)
+#     gatherRouge()
+#     exit(-1)
 #     
 #     getBaselineROUGE('IE256')
 #     exit(-1)
@@ -261,19 +261,20 @@ if __name__ == '__main__':
     
     #cid = 'CS0445'
     for cid in [
-#                 'IE256',
-#                 'IE256_2016',
-#                 'CS0445',
+                'Engineer',
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                'DUC04',
 #                 'IE256_nocutoff',
 #                 'IE256_2016_nocutoff',
 #                 'CS0445_nocutoff',
-#                 'review_camera', 
-#                 'review_IMDB', 
-#                 'review_prHistory',
-                 'review_prHistory_nocutoff',
-                 'review_camera_nocutoff', 
-                 'review_IMDB_nocutoff', 
-#                'DUC04',
+#                  'review_prHistory_nocutoff',
+#                  'review_camera_nocutoff', 
+#                  'review_IMDB_nocutoff', 
 #                'DUC04_nocutoff',
 #                'DUC04_12.6', 'DUC04_13.9', 'DUC04_16.5', 'DUC04_17.2',
 #                 'IE256_21.0',

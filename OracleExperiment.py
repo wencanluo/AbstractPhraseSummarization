@@ -6,8 +6,8 @@ import numpy
 import cmd
 
 tmpdir = "../../data/tmp/"
-RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F',]
-RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX']
+RougeHeader = ['R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F', 'RL-R', 'RL-P', 'RL-F', 'RSX-R', 'RSX-P', 'RSX-F', 'RW-R', 'RW-P', 'RW-F']
+RougeNames = ['ROUGE-1','ROUGE-2', 'ROUGE-SUX', 'ROUGE-L', 'ROUGE-SX', 'ROUGE-W-1.2']
 
 def getRouge_IE256(refs, model):
     #return the Rouge scores given the reference summary and the models
@@ -428,7 +428,8 @@ if __name__ == '__main__':
     oracledir = "../../data/Engineer/Oracle/" 
     datadir = "../../data/Engineer/Oracle/"
     
-    #TestRouge()
+    TestRouge()
+    exit(-1)
     
 #     for L in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
 #         for np in ['syntax', 'chunk']:
