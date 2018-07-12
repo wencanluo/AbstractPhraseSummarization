@@ -160,7 +160,7 @@ class MCCorpus:
     def get_bigram_num_per_sentence(self):
         return '%.1f'%(self.bigram_num/float(self.total_number_of_sentences))
     
-    def get_human_summary_bigram_percentage_increase(self, N=0, outputdir=None):
+    def get_human_summary_bigram_percentage_increase(self, N=0, K=1, outputdir=None):
         '''
         increase the ratio by deleting responses with N>1
         '''
@@ -183,7 +183,7 @@ class MCCorpus:
         #Engineer, K=1->36.0, K=5->38.6, K=10->41.4
         #review_prHistory, K=1->77.4, K=5->78.7, K=10->80.4
         #review_IMDB, K=1->76.5, K=10->76.8
-        K = 10 #remove one sentence
+        #K = 10 #remove one sentence
         
         self.filters = []
         
@@ -301,7 +301,7 @@ class MCCorpus:
         
         return count_N/total
     
-    def get_human_summary_bigram_percentage_decrease(self, N=0, outputdir=None):
+    def get_human_summary_bigram_percentage_decrease(self, N=0, K=1, outputdir=None):
         '''
         decrease the ratio by deleting responses with N=1
         '''
@@ -325,7 +325,7 @@ class MCCorpus:
         #review_camera, K=1->83.2, K=5->78.7  K=10->74.5, K=20->74.3
         #review_prHistory, K=1->75.6, K=5->71.3
         #review_IMDB, K=1->74.8, K=10->70.8
-        K = 10 #remove one sentence
+        #K = 5 #remove one sentence
         
         self.filters = []
         
@@ -517,30 +517,55 @@ class MCCorpus:
     
 def get_summary(datadir, corpus, output):
     
-    for name, domain in corpus:
+    for name, domain, K1, K2 in corpus:
         folder = os.path.join(datadir, name)
         print folder
+        random.seed(1234567)
         
-        mc_corpus = MCCorpus(folder, name)
-        mc_corpus.load_task()
-        
-        #print mc_corpus.get_human_summary_bigram_percentage_increase(N=1)
-        print mc_corpus.get_human_summary_bigram_percentage_decrease(N=1)
+        mc_corpus1 = MCCorpus(folder, name)
+        mc_corpus1.load_task()
+        print mc_corpus1.get_human_summary_bigram_percentage_increase(N=1, K=K1)
+    
+        random.seed(1234567)
+        mc_corpus2 = MCCorpus(folder, name)
+        mc_corpus2.load_task()
+        print mc_corpus2.get_human_summary_bigram_percentage_decrease(N=1, K=K2)
         
 if __name__ == '__main__':
     
-    random.seed(1234567)
+    #increase
+    #IE256, K=1->21.0, K=10->31.2
+    #IE256_2016, K=1->23.7, K=5->29.9, K=10->31.2
+    
+    #review_camera, K=1->84.9, K=5->85.8  K=10->86.2
+    #DUC04, K=1->16.0, K=5->16.5, K=10->17.2, K=20->18.4, K=50->21.2, K=100->23.4
+    #CS0445, K=1->28.0, K=5->32.7, K=10->34.2
+    #Engineer, K=1->36.0, K=5->38.6, K=10->41.4
+    #review_prHistory, K=1->77.4, K=5->78.7, K=10->80.4
+    #review_IMDB, K=1->76.5, K=10->76.8
+    
+    #decrease
+    #IE256, K=1->11.9, K5=5.6, K=10->5.4
+    #IE256_2016, K=1->13.2, K=5->5.4
+    
+    #DUC04, K=1->15.5, K=5->13.9, K=10->12.6
+    #CS0445, K=1->19.3, K=5->11.0
+    #Engineer, K=1->26.5, K=5->16.0, K=10->15.2
+    
+    #review_camera, K=1->83.2, K=5->78.7  K=10->74.5, K=20->74.3
+    #review_prHistory, K=1->75.6, K=5->71.3
+    #review_IMDB, K=1->74.8, K=10->70.8
     
     datadir = '../../data/'
     corpus = [
 #             ('Engineer','response'),
-#             ('IE256','response'),
-#             ('IE256_2016','response'),
-#             ('CS0445','response'),
-#             ('review_camera','review'),
-#             ('review_prHistory','review'),
-#            ('review_IMDB','review'),
-             ('DUC04', 'news'),
+#             ('IE256','response', 1, 1),
+#             ('IE256_2016','response', 1, 1),
+#             ('CS0445','response', 10, 5),
+            ('review_camera','review', 5, 5),
+            ('review_prHistory','review', 5,5),
+            ('review_IMDB','review', 10, 5),
+#             ('DUC04', 'news'),
 #             ('TAC_s08', 'news'),
 #             ('TAC_s09', 'news'),
 #             ('TAC_s10', 'news'),

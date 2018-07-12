@@ -171,11 +171,11 @@ def select_lambda_MC_Engnieer_cv(): # a random 3 lectures
 def select_lambda_MC_cv(cid, L, nfolds): # a random 3 lectures
     sheets = global_params.lectures[cid]
     
-    head = ['week', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F']
+    head = ['week', 'R1-R', 'R1-P', 'R1-F', 'R2-R', 'R2-P', 'R2-F', 'RSU4-R', 'RSU4-P', 'RSU4-F', 'RL-R', 'RL-P', 'RL-F', 'RSX-R', 'RSX-P', 'RSX-F', 'RW-R', 'RW-P', 'RW-F']
     metric = head.index('R1-F')
     
     #score_index = [head.index('R1-F'), head.index('R2-F'), head.index('RSU4-F')]
-    score_index = range(1, 10)
+    score_index = range(1, len(head))
     
     ilpdir = "../../data/%s/ILP_MC/"%cid
     
@@ -298,17 +298,22 @@ if __name__ == '__main__':
     #cid = 'IE256'
     
     for cid in [
-#				 'Engineer', 'Engineer_nocutoff',
-#                 'IE256', 'IE256_nocutoff',
-#                 'IE256_2016','IE256_2016_nocutoff',
-#                 'CS0445', 
-#                 'CS0445_nocutoff',
+#                 'Engineer',
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
 #                 'review_camera', 
 #                 'review_IMDB', 
 #                 'review_prHistory',
-                 'review_camera_nocutoff', 
-                 'review_IMDB_nocutoff', 
-                 'review_prHistory_nocutoff',
+#                 'DUC04',
+#                 'Engineer_nocutoff',
+#                  'IE256_nocutoff',
+#                  'IE256_2016_nocutoff',
+#                  'CS0445_nocutoff',
+#                   'review_prHistory_nocutoff',
+#                   'review_camera_nocutoff', 
+#                   'review_IMDB_nocutoff', 
+#                 'DUC04_nocutoff',
                 #'DUC04',
                 #'DUC04_nocutoff'
 #                'DUC04_12.6', 'DUC04_13.9', 'DUC04_16.5', 'DUC04_17.2',
@@ -318,8 +323,9 @@ if __name__ == '__main__':
 #                 'IE256_2016_29.9',
 #                 'IE256_2016_31.2',
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-
-#				 'Engineer_16.0', 'Engineer_26.5', 
+'Engineer_36.0', 'Engineer_26.5',
+'review_camera_78.7', 'review_camera_85.8', 'review_IMDB_71.9', 'review_IMDB_76.8', 'review_prHistory_71.3', 'review_prHistory_78.7', 'CS0445_11.0', 'CS0445_34.2', 'IE256_21.0', 'IE256_11.9', 'IE256_2016_23.7', 'IE256_2016_13.2',
+'DUC04_13.9', 'DUC04_16.5',
 #                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
                  
 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 

@@ -111,22 +111,22 @@ def gatherRouge():
     
     Allbody = []
     for cid in [
-				'Engineer', 
-#                 'Engineer_nocutoff',
-                'IE256', 
-#                 'IE256_nocutoff',
+                'Engineer',
+                'IE256',
                 'IE256_2016',
-#                 'IE256_2016_nocutoff',
-                'CS0445', 
-#                 'CS0445_nocutoff',
+                'CS0445',
                 'review_camera', 
                 'review_IMDB', 
                 'review_prHistory',
-#                 'review_camera_nocutoff', 
-#                 'review_IMDB_nocutoff', 
-#                 'review_prHistory_nocutoff',
                 'DUC04',
-#                 'DUC04_nocutoff'
+#                 'Engineer_nocutoff',
+#                  'IE256_nocutoff',
+#                  'IE256_2016_nocutoff',
+#                  'CS0445_nocutoff',
+#                   'review_prHistory_nocutoff',
+#                   'review_camera_nocutoff', 
+#                   'review_IMDB_nocutoff', 
+#                 'DUC04_nocutoff',
                 
 #                #'review_camera_74.5', 
 #                'review_camera_78.7', 'review_camera_83.2',
@@ -212,7 +212,208 @@ def gatherRouge():
     output = '../../rouge_all_gather_cutoff.txt'
     fio.Write2Latex(output, Allbody, ['', '$\\alpha_{b=1}$'] + head)
     fio.WriteMatrix(output + '.matrix', Allbody, ['', '$\\alpha_{b=1}$'] + head)
+
+def gatherRougeNoCutoff():
     
+    Allbody = []
+    for cid in [
+#                 'Engineer',
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+#                 'DUC04',
+                'Engineer_nocutoff',
+                 'IE256_nocutoff',
+                 'IE256_2016_nocutoff',
+                 'CS0445_nocutoff',
+                  'review_prHistory_nocutoff',
+                  'review_camera_nocutoff', 
+                  'review_IMDB_nocutoff', 
+                'DUC04_nocutoff',
+                
+#                #'review_camera_74.5', 
+#                'review_camera_78.7', 'review_camera_83.2',
+#                'review_camera',
+#                #'review_camera_84.9', 
+#                'review_camera_85.8', 'review_camera_86.2',
+#                   
+#                #'review_IMDB_70.8', 
+#                'review_IMDB_71.9', 'review_IMDB_74.8',
+#                'review_IMDB',
+#                'review_IMDB_76.5', 'review_IMDB_76.8',
+#                
+#                'review_prHistory_71.3', 'review_prHistory_75.6',
+#                'review_prHistory', 
+#                #'review_prHistory_77.4', 
+#                'review_prHistory_78.7', 'review_prHistory_80.4',
+#                
+#                'Engineer_16.0', 'Engineer_26.5',
+#                'Engineer',
+#                'Engineer_36.0', 
+#                'Engineer_38.6',  'Engineer_41.4',
+                  
+#                 'IE256_5.6', 'IE256_11.9', 
+#                 'IE256',
+#                 'IE256_21.0', 'IE256_26.5',
+#                  
+#                'IE256_2016_5.4', 'IE256_2016_13.2',
+#                'IE256_2016',
+#                'IE256_2016_23.7', 'IE256_2016_29.9', 
+#                #'IE256_2016_31.2',
+#                      
+#                'CS0445_11.0', 'CS0445_19.3',
+#                'CS0445',
+#                'CS0445_28.0', 'CS0445_32.7', 
+#                #'CS0445_34.2',
+#                
+#                'DUC04_12.6', 'DUC04_13.9', 
+#                'DUC04',
+#                'DUC04_16.5', 'DUC04_17.2',
+                ]:
+        
+        LL = global_params.getLL(cid)
+            
+        for L in LL:
+            ilpdir = "../../data/%s/"%cid
+            rougefile = os.path.join(ilpdir, 'test_%d.txt'%L)
+            print rougefile
+            
+            if not fio.IsExist(rougefile): continue
+            
+            head, body = fio.ReadMatrix(rougefile, hasHead=True)
+            
+            cidname = global_params.mapcid(cid)
+            
+            if cid in global_params.AlphaDict:
+                s = global_params.AlphaDict[cid]
+                row = [cidname, s] + body[-2]
+            else:
+                s = cidname.split('_')[-1]
+                
+                if s == 'nocutoff':
+                    row = ['', cidname] + body[-2]
+                else:
+                    row = ['', s] + body[-2]
+            
+            Allbody.append(row)
+            
+            row2 = ['', ''] + body[-1]
+            
+            #process row2
+            
+            for i in range(1, 10):
+                if row2[-i][-1] == '+':
+                    row2[-i] = '\\bf{%s}'%row2[-i]
+                elif  row2[-i][-1] == '-':
+                    pass
+                else:
+                    if float(row2[-i]) > float(row[-i]):
+                        row2[-i] = '\\bf{%s}'%row2[-i]
+            Allbody.append(row2)
+    
+    output = '../../rouge_all_gather_nocutoff.txt'
+    fio.Write2Latex(output, Allbody, ['', '$\\alpha_{b=1}$'] + head)
+    fio.WriteMatrix(output + '.matrix', Allbody, ['', '$\\alpha_{b=1}$'] + head)
+
+def gatherRougeMC():
+    
+    Allbody = []
+    for cid in [
+                #'Engineer_16.0', 
+                'Engineer_26.5',
+                'Engineer',
+                'Engineer_36.0', 
+                #'Engineer_38.6',  'Engineer_41.4',
+                  
+                 #'IE256_5.6', 
+                 'IE256_11.9', 
+                 'IE256',
+                 'IE256_21.0', #'IE256_26.5',
+                  
+                #'IE256_2016_5.4', 
+                'IE256_2016_13.2',
+                'IE256_2016',
+                'IE256_2016_23.7',# 'IE256_2016_29.9', 
+                #'IE256_2016_31.2',
+                      
+                'CS0445_11.0', #'CS0445_19.3',
+                'CS0445',
+#                 'CS0445_28.0', 'CS0445_32.7', 
+                'CS0445_34.2',
+                
+                
+                
+                #                #'review_camera_74.5', 
+                'review_camera_78.7', #'review_camera_83.2',
+                'review_camera',
+                #'review_camera_84.9', 
+                'review_camera_85.8',# 'review_camera_86.2',
+                   
+                #'review_IMDB_70.8', 
+                'review_IMDB_71.9',# 'review_IMDB_74.8',
+                'review_IMDB',
+                #'review_IMDB_76.5', 
+                'review_IMDB_76.8',
+                
+                'review_prHistory_71.3', #'review_prHistory_75.6',
+                'review_prHistory', 
+                #'review_prHistory_77.4', 
+                'review_prHistory_78.7', #'review_prHistory_80.4',
+                
+                #'DUC04_12.6', 
+                'DUC04_13.9', 
+                'DUC04',
+                'DUC04_16.5', #'DUC04_17.2',
+                ]:
+        
+        LL = global_params.getLL(cid)
+            
+        for L in LL:
+            ilpdir = "../../data/%s/"%cid
+            rougefile = os.path.join(ilpdir, 'test_%d.txt'%L)
+            print rougefile
+            
+            if not fio.IsExist(rougefile): continue
+            
+            head, body = fio.ReadMatrix(rougefile, hasHead=True)
+            
+            cidname = global_params.mapcid(cid)
+            
+            if cid in global_params.AlphaDict:
+                s = global_params.AlphaDict[cid]
+                row = [cidname, s] + body[-2]
+            else:
+                s = cidname.split('_')[-1]
+                
+                if s == 'nocutoff':
+                    row = ['', cidname] + body[-2]
+                else:
+                    row = ['', s] + body[-2]
+            
+            Allbody.append(row)
+            
+            row2 = ['', ''] + body[-1]
+            
+            #process row2
+            
+            for i in range(1, 10):
+                if row2[-i][-1] == '+':
+                    row2[-i] = '\\bf{%s}'%row2[-i]
+                elif  row2[-i][-1] == '-':
+                    pass
+                else:
+                    if float(row2[-i]) > float(row[-i]):
+                        row2[-i] = '\\bf{%s}'%row2[-i]
+            Allbody.append(row2)
+    
+    output = '../../rouge_all_gather_mc.txt'
+    fio.Write2Latex(output, Allbody, ['', '$\\alpha_{b=1}$'] + head)
+    fio.WriteMatrix(output + '.matrix', Allbody, ['', '$\\alpha_{b=1}$'] + head)
+        
+        
 def writebatchmc():
         for cid in [
 #                'IE256',
@@ -252,7 +453,9 @@ if __name__ == '__main__':
     
 #     writebatchmc()
 #     gatherRouge()
-#     exit(-1)
+    gatherRougeMC()
+#    gatherRougeNoCutoff()
+    exit(-1)
 #     
 #     getBaselineROUGE('IE256')
 #     exit(-1)
@@ -261,29 +464,33 @@ if __name__ == '__main__':
     
     #cid = 'CS0445'
     for cid in [
-                'Engineer',
-                'IE256',
-                'IE256_2016',
-                'CS0445',
-                'review_camera', 
-                'review_IMDB', 
-                'review_prHistory',
-                'DUC04',
+#                 'Engineer',
+#                 'IE256',
+#                 'IE256_2016',
+#                 'CS0445',
+#                 'review_camera', 
+#                 'review_IMDB', 
+#                 'review_prHistory',
+                 #'DUC04',
+#                'Engineer_nocutoff',
 #                 'IE256_nocutoff',
 #                 'IE256_2016_nocutoff',
 #                 'CS0445_nocutoff',
 #                  'review_prHistory_nocutoff',
 #                  'review_camera_nocutoff', 
 #                  'review_IMDB_nocutoff', 
-#                'DUC04_nocutoff',
-#                'DUC04_12.6', 'DUC04_13.9', 'DUC04_16.5', 'DUC04_17.2',
+#                'DUC04_nocutoff',  'DUC04_17.2',
+
 #                 'IE256_21.0',
 #                 'IE256_26.5',
 #                 'IE256_2016_23.7',
 #                 'IE256_2016_29.9',
 #                 'IE256_2016_31.2',
 #                 'CS0445_28.0', 'CS0445_32.7', 'CS0445_34.2',
-#			     'Engineer', 'Engineer_nocutoff',
+#                 'DUC04_13.9', 'DUC04_16.5',
+'Engineer_36.0', 'Engineer_26.5',
+# 'review_camera_78.7', 'review_camera_85.8', 'review_IMDB_71.9', 'review_IMDB_76.8', 'review_prHistory_71.3', 'review_prHistory_78.7', 'CS0445_11.0', 'CS0445_34.2', 'IE256_21.0', 'IE256_11.9', 'IE256_2016_23.7', 'IE256_2016_13.2',
+#			     'Engineer', 
 #                 'Engineer_36.0', 'Engineer_38.6',  'Engineer_41.4',
 #                 'Engineer_16.0', 'Engineer_26.5',
 				 #                 'review_camera_84.9', 'review_camera_85.8', 'review_camera_86.2', 

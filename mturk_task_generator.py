@@ -133,7 +133,41 @@ def get_majority(A):
     keys = sorted(dict, key=dict.get, reverse=True)
     
     return keys[0]
+
+def get_subjects(logfile, results, output):
+    head, body = fio.ReadMatrix(logfile, hasHead=True)
+    head_res, body_res = fio.ReadMatrix(results, hasHead=True)
     
+    preference_index = head_res.index('Answer.preference')
+    
+    dict_subjects = defaultdict(int)
+    subjects = []
+    dict_preference = {}
+    for row in body_res:
+        id = row[head_res.index('Input.id')]
+        preference = int(row[preference_index])
+        subject_id = row[head_res.index('WorkerId')]
+        
+        subjects.append(subject_id)
+        
+        if id not in dict_preference:
+            dict_preference[id] = {}
+        
+        dict_preference[id][subject_id] = preference
+    
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        if id not in dict_preference: continue
+        
+        for subject_id, preference in dict_preference[id].items():
+            preference = int(preference)
+        
+            dict_subjects[subject_id] += 1
+        
+    return dict_subjects
+            
 def get_agreement(logfile, results, output):
     head, body = fio.ReadMatrix(logfile, hasHead=True)
     head_res, body_res = fio.ReadMatrix(results, hasHead=True)
@@ -352,6 +386,95 @@ def result_analyze3scale(logfile, results, output):
     print p
     return dict, p[1]
     
+def get_preference_scores(logfile, results, output):
+    head, body = fio.ReadMatrix(logfile, hasHead=True)
+    head_res, body_res = fio.ReadMatrix(results, hasHead=True)
+    
+    preference_index = head_res.index('Answer.preference')
+    
+    dict_preference = {}
+    for row in body_res:
+        id = row[head_res.index('Input.id')]
+        preference = int(row[preference_index])
+        subject_id = row[head_res.index('WorkerId')]
+        
+        if id not in dict_preference:
+            dict_preference[id] = {}
+        
+        dict_preference[id][subject_id] = preference
+    
+    count = 0
+    dict = defaultdict(int)
+    
+    random_guy = {}
+    
+    good_guy = 0
+    bad_guy = 0
+    
+    #print dict_preference
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': 
+            if id not in dict_preference: continue
+            for subject, preference in dict_preference[id].items():
+                if abs(preference) == 2:
+                    random_guy[subject] = 1
+                    bad_guy += 1
+                else:
+                    good_guy += 1
+            continue
+        
+        if id not in dict_preference: continue
+        for subject, preference in dict_preference[id].items():
+            if preference > 0:
+                dict[system_B] += 1
+            elif preference < 0:
+                dict[system_A] += 1
+            else:
+                dict['no_preference'] += 1
+        
+            count += 1
+    
+    print 'goodbad', good_guy, bad_guy
+    
+    #print dict_preference
+    perference_body = []
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        row = [id, prompt, week, system_A, system_B]
+        if id not in dict_preference: continue
+        for subject, preference in dict_preference[id].items():
+            row.append(preference)
+        row.append(numpy.sum(dict_preference[id].values()))
+        
+        perference_body.append(row)
+    
+    fio.WriteMatrix(output, perference_body, header=None)
+    print dict
+    fio.SaveDict2Json(dict, output+'.json')
+    
+    PerferenceValue = {}
+
+    count = 0
+    #print dict_preference
+    for row in body:
+        id, prompt, week, system_A, system_B, checking_point = row
+        if checking_point == 'Y': continue
+        
+        if id not in dict_preference: continue
+        for subject, preference in dict_preference[id].items():
+            if system_A not in PerferenceValue:
+                PerferenceValue[system_A] = []
+            if system_B not in PerferenceValue:
+                PerferenceValue[system_B] = []
+            
+            PerferenceValue[system_A].append(-preference)
+            PerferenceValue[system_B].append(preference)
+            count += 1
+    return PerferenceValue
+
 def result_analyze(logfile, results, output):
     head, body = fio.ReadMatrix(logfile, hasHead=True)
     head_res, body_res = fio.ReadMatrix(results, hasHead=True)
@@ -591,9 +714,113 @@ def agreement_by_models():
     
     fio.Write2Latex('../../data/agreements_all.txt', body, ['']+modelpairs)       
 
+def PlotStackedBar():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import collections
+    
+    modelpairs = [('MC', 'ILP'), 
+                  ('MC', 'SumBasic'), 
+                  ('SumBasic', 'ILP'),
+                  ]
+    
+    
+    A_agree, A_total = 0.0, 0
+    
+    cids = [
+                'Engineer',
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                'DUC04',
+            ]
+    
+    for cid in cids:
+        for k, modelpair in enumerate(modelpairs):
+            summaryA, summaryB = modelpair
+            
+            scores = fio.LoadDictJson('../../data/scores/%s_%s_%s.json'%(cid,summaryA, summaryB))
+            
+            counts = collections.Counter(scores[summaryA])
+            
+            
+    N = 5
+    menMeans = (20, 35, 30, 35, 27)
+    womenMeans = (25, 32, 34, 20, 25)
+    menStd = (2, 3, 4, 1, 2)
+    womenStd = (3, 5, 2, 3, 3)
+    ind = np.arange(N)    # the x locations for the groups
+    width = 0.35       # the width of the bars: can also be len(x) sequence
+    
+    p1 = plt.bar(ind, menMeans, width, color='#d62728', yerr=menStd)
+    p2 = plt.bar(ind, womenMeans, width,
+                 bottom=menMeans, yerr=womenStd)
+    
+    plt.ylabel('Scores')
+    plt.title('Scores by group and gender')
+    plt.xticks(ind, ('G1', 'G2', 'G3', 'G4', 'G5'))
+    plt.yticks(np.arange(0, 81, 10))
+    plt.legend((p1[0], p2[0]), ('Men', 'Women'))
+    
+    plt.show()
+
+def getFig2():
+    modelpairs = [('MC', 'ILP'), 
+                  ('MC', 'SumBasic'), 
+                  ('SumBasic', 'ILP'),
+                  ]
+    
+    
+    A_agree, A_total = 0.0, 0
+    
+    cids = [
+                'Engineer',
+                'IE256',
+                'IE256_2016',
+                'CS0445',
+                'review_camera', 
+                'review_IMDB', 
+                'review_prHistory',
+                'DUC04',
+            ]
+    
+    total_subjects = defaultdict(int)
+    for cid in cids:
+        print '---------------------------------------------'
+        print cid
+        output = '../../data/%s/mtask'%cid
+        
+        for k, modelpair in enumerate(modelpairs):
+            summaryA, summaryB = modelpair
+            logfile = os.path.join(output, '%s_%d_%s_%s.log'%(cid, k, summaryA, summaryB))
+            outputfile = os.path.join(output, '%s_%d_%s_%s.out'%(cid, k, summaryA, summaryB))
+            resutlfile = os.path.join(output, '%s_%d_%s_%s.results.txt'%(cid, k, summaryA, summaryB))
+            
+            if not fio.IsExist(outputfile): continue
+             
+            subjects = get_subjects(logfile, outputfile, resutlfile)
+            
+            for subject, count  in subjects.items():
+                total_subjects[subject] += count
+            
+            preference_scores = get_preference_scores(logfile, outputfile, resutlfile)
+            
+            fio.SaveDict2Json(preference_scores, '../../data/scores/%s_%s_%s.json'%(cid,summaryA, summaryB))
+    
+    print len(total_subjects), '%.1f'%np.mean(total_subjects.values()), np.sum(total_subjects.values())
+    
+    #plot the distribution
+    
+            
 if __name__ == '__main__':
 #     agreement_by_models()
 #     exit()
+#     getFig2()
+    PlotStackedBar()
+    exit()
     
     modelpairs = [('MC', 'ILP'), 
                   ('MC', 'SumBasic'), 

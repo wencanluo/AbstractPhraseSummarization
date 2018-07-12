@@ -127,9 +127,8 @@ def gatherRouge():
             if not fio.IsExist(rougefile): continue
             ilphead, ilpbody = fio.ReadMatrix(rougefile, hasHead=True)
             
-            for model in ['MEAD', 
-                          'LexRank', 
-                          'SumBasic']:
+            for model in ['PGN']:#'MEAD', 'LexRank', 'SumBasic']:
+            #for model in ['MEAD', 'LexRank', 'SumBasic']:
                 
                 baseline_dir = "../../data/%s/%s/"%(cid,model)
                 baseline_rougefile = os.path.join(baseline_dir, 'rouge.sentence.L%d.txt'%L)
@@ -139,7 +138,7 @@ def gatherRouge():
                 head, body = fio.ReadMatrix(baseline_rougefile, hasHead=True)
                 
                 cidname = global_params.mapcid(cid)
-                row = [cidname, model] + ['%.3f'%float(x) for x in body[-1][1:-3]]
+                row = [cidname, model] + ['%.3f'%float(x) for x in body[-1][1:]]
                 
                 print cid, L, model
                 print rougefile
@@ -156,15 +155,19 @@ def gatherRouge():
                     k+=1
                 
                 Allbody.append(row)
+            
+            #Add ILP
+#             Allbody.append([cidname]+ilpbody[-2])
+#             Allbody.append([cidname]+ilpbody[-1])
 
-    output = '../../rouge_all_gather_baselines.txt'
+    output = '../../rouge_all_gather_baselines_PGN.txt'
     fio.Write2Latex(output, Allbody, ['Corpus'] + head)
                             
 if __name__ == '__main__':
     import sys
     
-#     gatherRouge()
-#     exit(0)
+    gatherRouge()
+    exit(0)
 
     for cid in [
                 'Engineer', 
@@ -175,6 +178,13 @@ if __name__ == '__main__':
                 'review_IMDB', 
                 'review_prHistory',
                 'DUC04',
+#                                  'IE256_nocutoff',
+#                  'IE256_2016_nocutoff',
+#                  'CS0445_nocutoff',
+#                   'review_prHistory_nocutoff',
+#                   'review_camera_nocutoff', 
+#                   'review_IMDB_nocutoff', 
+#                 'DUC04_nocutoff',
                  ]:
         
         sheets = global_params.lectures[cid]
@@ -184,7 +194,8 @@ if __name__ == '__main__':
         types = config.get_types()
         LL = global_params.getLL(cid)
         
-        for model in ['MEAD', 'LexRank', 'SumBasic']:
+        #for model in ['MEAD', 'LexRank', 'SumBasic']:
+        for model in ['PGN']:
             ilpdir = "../../data/%s/%s/"%(cid,model)
             
             rouge_dict = {}
